@@ -6,3 +6,7 @@ prompt:
       example:
          preamble:  extract functions from text
          source: tests/context_example.txt
+
+  output:
+    base:
+      - "only respond with python code"

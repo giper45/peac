@@ -127,17 +127,23 @@ class PromptYaml:
                 return idx
 
     def get_base_sentences(self, prompt_element):
-        return self.parsed_data['prompt'][prompt_element]['base']
+        if 'prompt' in self.parsed_data and prompt_element in self.parsed_data['prompt']:
+            prompt_data = self.parsed_data['prompt'][prompt_element]
+            return prompt_data.get('base', [])
+        else:
+            return []
 
     def get_local_rules(self, prompt_element):
-        rules = self.parsed_data['prompt'][prompt_element]['local']
         lines = []
-        for name, rule in rules.items():
-            preamble = rule['preamble'] if 'preamble' in rule else ''
-            source = rule['source']
-            with open(source) as f:
-                file_content = "\n".join(f.readlines())
-            lines.append("{}{}{}".format(preamble, ":" if preamble else "", file_content))
+        if 'prompt' in self.parsed_data and prompt_element in self.parsed_data['prompt']:
+            prompt_data = self.parsed_data['prompt'][prompt_element]
+            rules = prompt_data.get('local', {})
+            for name, rule in rules.items():
+                preamble = rule['preamble'] if 'preamble' in rule else ''
+                source = rule['source']
+                with open(source) as f:
+                    file_content = "\n".join(f.readlines())
+                lines.append("{}{}{}".format(preamble, ":" if preamble else "", file_content))
         return lines
 
 
