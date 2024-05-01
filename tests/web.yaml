@@ -1,0 +1,13 @@
+prompt:
+  context:
+    web:
+      hackbox:
+        preamble: store these payloads for xss
+        source: https://book.hacktricks.xyz/pentesting-web/xss-cross-site-scripting
+        xpath: //code/text()
+
+
+  output:
+    base:
+      - "answer me in latex"
+

@@ -1,7 +1,10 @@
 import os
 import re
+from xml.etree import ElementTree
 import requests
 from bs4 import BeautifulSoup
+from lxml import html
+
 import markdown
 
 
@@ -48,9 +51,20 @@ def get_text_from_html(html_content: str) -> str:
 def should_extract_text():
     return 'LLM_AS_CODE_ONLY_TEXT' in os.environ and os.environ['LLM_AS_CODE_ONLY_TEXT'].lower() in ['true', '1'] 
 
+import re
+
+def js_comment_clean(js):
+    js = re.sub("<!--[\\s\\S]*?(?:-->)?","",js)
+    js = re.sub("<!--[\\s\\S]*?-->?","",js)
+    js = re.sub('<!---+>?','',js)
+    # js = re.sub("|<!(?![dD][oO][cC][tT][yY][pP][eE]|\\[CDATA\\[)[^>]*>?","",js)
+    # js = re.sub("|<[?][^>]*>?","",js)
+    return js
+
 def get_text_from_url(url: str) -> str:
     response = requests.get(url)
     if response.status_code == 200:
+        return js_comment_clean(response.text)
         content_type = response.headers.get('Content-Type')
         if should_extract_text() and  content_type and 'text/markdown' in content_type:
             return get_text_from_markdown(response.text)
@@ -133,18 +147,6 @@ class PromptYaml:
         else:
             return []
 
-    def get_local_rules(self, prompt_element):
-        lines = []
-        if 'prompt' in self.parsed_data and prompt_element in self.parsed_data['prompt']:
-            prompt_data = self.parsed_data['prompt'][prompt_element]
-            rules = prompt_data.get('local', {})
-            for name, rule in rules.items():
-                preamble = rule['preamble'] if 'preamble' in rule else ''
-                source = rule['source']
-                with open(source) as f:
-                    file_content = "\n".join(f.readlines())
-                lines.append("{}{}{}".format(preamble, ":" if preamble else "", file_content))
-        return lines
 
 
 
@@ -165,6 +167,46 @@ class PromptYaml:
                     print(url_content)
 
         
+    def get_local_rules(self, prompt_element):
+        lines = []
+        if 'prompt' in self.parsed_data and prompt_element in self.parsed_data['prompt']:
+            prompt_data = self.parsed_data['prompt'][prompt_element]
+            rules = prompt_data.get('local', {})
+            for name, rule in rules.items():
+                preamble = rule['preamble'] if 'preamble' in rule else ''
+                source = rule['source']
+                with open(source) as f:
+                    file_content = "\n".join(f.readlines())
+                lines.append("{}{}{}".format(preamble, ":" if preamble else "", file_content))
+        return lines
+
+    def get_web_rules(self, prompt_element): 
+        lines = []
+        if 'prompt' in self.parsed_data and prompt_element in self.parsed_data['prompt']:
+            prompt_data = self.parsed_data['prompt'][prompt_element]
+            rules = prompt_data.get('web', {})
+            for name, rule in rules.items():
+                preamble = rule['preamble'] if 'preamble' in rule else ''
+                xpath = rule['xpath'] if 'xpath' in rule else ''
+                source = rule['source']
+                html_content = get_text_from_url(source)
+                tree = html.fromstring(html_content)
+                if preamble != '':
+                    lines.append(preamble)
+
+
+                if xpath != '':
+                #     soup = BeautifulSoup(html_content, 'html.parser')
+                #     print("XPATH")
+                    code_elements = tree.xpath(xpath)
+                    for c in code_elements: 
+                        if isinstance(c, html.HtmlElement):
+                            lines.append(ElementTree.tostring(c, 'utf-8').decode('utf-8'))
+                        else:
+                            lines.append(c)
+                else:
+                    lines.append(html_content)
+        return lines
 
     def get_context_base_rules(self):
         return self.get_base_rules('context')
@@ -172,20 +214,31 @@ class PromptYaml:
     def get_context_local_rules(self):
         return self.get_local_rules('context')
 
+    def get_context_web_rules(self):
+        return self.get_web_rules('context')
+
     def get_output_base_rules(self):
         return self.get_base_rules('output')
 
     def get_output_local_rules(self):
         return self.get_local_rules('output')
 
+    def get_output_web_rules(self):
+        return self.get_web_rules('output')
+
+
 
 
     def get_prompt_sentence(self):
         base_context = self.get_context_base_rules()
         local_context = self.get_context_local_rules()
+        web_context = self.get_context_web_rules()
         base_output = self.get_output_base_rules()
         local_output = self.get_output_local_rules()
-        return self.get_sentence('context', base_context + local_context) +  self.get_sentence('output', base_output + local_output)
+        web_output = self.get_output_web_rules()
+
+        return '\n'.join([self.get_sentence('context', base_context + local_context + web_context), self.get_sentence('output', base_output + local_output + web_output),
+                        ])
 
     def __init__(self, yaml_path):
         # Read YAML data from file

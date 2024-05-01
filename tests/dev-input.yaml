@@ -3,8 +3,6 @@ prompt:
     base:
       - "write code in Python language"
       - "for each class, create a test class"
-    web:
-      - prova
 
     local:
       example:
@@ -22,5 +20,6 @@ prompt:
          source: tests/output_example.txt
     web:
       hackbox:
-        source: https://github.com/gx1unina/Best-README-Template
+        source: https://book.hacktricks.xyz/pentesting-web/xss-cross-site-scripting
+        xpath: //code/text()
 

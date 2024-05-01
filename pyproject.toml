@@ -16,6 +16,7 @@ nodriver = "^0.28rc1"
 pyyaml = "^6.0.1"
 validators = "^0.28.1"
 markdown = "^3.6"
+lxml = "^5.2.1"
 
 
 [tool.poetry.group.dev.dependencies]
