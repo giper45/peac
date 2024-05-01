@@ -1,9 +1,14 @@
-# llm-as-code
+# peac
 
 
-## Structure of a prompt
 
-- Instruction A specific task or instruction that guides the model’s behavior and directs it toward the desired output.
-- Context External information or additional context that provides background knowledge to the model, helping it generate more accurate and relevant responses. 
-- Output indicator Specifies the type or format of the desired output. It helps shape the response by defining whether we need a short answer, a paragraph, or any other specific format.
-- Input data The input or question that we want the model to process and provide a response for. It forms the core of the prompt and drives the model’s understanding of the task.
+## How to use
+`peac` has two basic commands: 
+- `prompt` : Generates a prompt from a yaml file and print it. You can copy this prompt and paste on your favourite LLM. 
+- `ask` : Generate the prompt from yaml and use [g4f](https://github.com/xtekky/gpt4free) to ask questions that you can integrate in your works.
+
+
+## Available environment variables
+Some environment variables allows to preprocess the external input variables.
+- `LLM_AS_CODE_ONLY_TEXT` : when markdown or HTML pages are converted in plain-text. Default to false
+

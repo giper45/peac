@@ -1,0 +1,26 @@
+prompt:
+  context:
+    base:
+      - "write code in Python language"
+      - "for each class, create a test class"
+    web:
+      - prova
+
+    local:
+      example:
+         preamble:  extract functions from text
+         source: tests/context_example.txt
+
+  output:
+    base:
+      - "only write code"
+      - "use camel case conventions for methods and functions"
+      - "only create classes"
+    local:
+      example:
+        #  preamble: 
+         source: tests/output_example.txt
+    web:
+      hackbox:
+        source: https://github.com/gx1unina/Best-README-Template
+

@@ -1,0 +1,2 @@
+Use constants when possible
+Use uppercase constants

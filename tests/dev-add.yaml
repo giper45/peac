@@ -1,0 +1,8 @@
+prompt:
+  context:
+    base:
+      - "write code in Python language"
+    local:
+      example:
+         preamble:  extract functions from text
+         source: tests/context_example.txt
