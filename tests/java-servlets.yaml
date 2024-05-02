@@ -1,0 +1,12 @@
+prompt:
+  extends: 
+    - examples/java-base-maven.yaml
+  context:
+    base:
+      - "You contribute to develop Java web applications"
+      - "You only use Java servlets"
+      - "As backend you use hybernate"
+
+  output:
+    base:
+      - For writing code, use Google Java Style Guide (https://google.github.io/styleguide/javaguide.html)

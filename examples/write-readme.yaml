@@ -1,0 +1,17 @@
+version: 0.1
+
+prompt:
+  context:
+    base:
+      - You are a README writer
+    # local:
+    #   code:
+    #       preamble:  this is the code that you should generate prompt
+    #       source: peac/main.py
+
+  output:
+    web:
+      awesomereadme:
+        preamble: Use this structure to create the README
+        source: https://raw.githubusercontent.com/othneildrew/Best-README-Template/master/BLANK_README.md
+    

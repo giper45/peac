@@ -1,0 +1,12 @@
+prompt:
+  context:
+    base:
+      - "You write code in Java"
+      - "You define dependencies"
+      - "Dependencies are realized through pom.xml"
+
+  output:
+    base:
+      - "Use arrow function when possible"
+      - Only provide me source codes, and a bullet point containing the project layout (including pom.xml)
+      - Show me which gitignore I should use

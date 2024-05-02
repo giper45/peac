@@ -1,0 +1,6 @@
+prompt:
+  extends: 
+    - java-base-maven.yaml
+  context:
+    base:
+      - "As backend you use hybernate"

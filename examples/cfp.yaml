@@ -1,0 +1,18 @@
+version: 0.1
+
+prompt:
+  context:
+    base:
+      - You are a parser
+    # local:
+    #   code:
+    #       preamble:  this is the code that you should generate prompt
+    #       source: peac/main.py
+
+  output:
+    web:
+      cfp:
+        source: http://www.wikicfp.com/cfp/call?conference=computer%20science&page=1
+        xpath: //table
+
+    

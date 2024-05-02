@@ -1,5 +1,6 @@
 import os
 import re
+from typing import List
 from xml.etree import ElementTree
 import requests
 from bs4 import BeautifulSoup
@@ -132,9 +133,30 @@ def get_preamble_phrase(prompt_element: str):
     return f"{prompt_element.capitalize()} - use these rules for all next questions:"
 
 def _create_answer_line(prompt_element, information):
-        return "{} {}".format(get_preamble_phrase(prompt_element), "; ".join(information))
+    lines = []
+    index = 1
+    for i, line in enumerate(information, 1):
+        lines.append(f"({i}) {line}")
+
+    return "{} {}".format(get_preamble_phrase(prompt_element), "; ".join(lines))
 
 class PromptYaml:
+    def __init__(self, yaml_path, parent_path = ''):
+        # If not exist try to find in the folder folder of the first path
+        if parent_path == '':
+            parent_path = os.path.dirname(yaml_path)
+        if not os.path.exists(yaml_path):
+            yaml_path = os.path.join(parent_path, os.path.basename(yaml_path))
+
+
+        # Read YAML data from file
+        with open(yaml_path, "r") as file:
+            yaml_data = file.read()
+            self.parsed_data = yaml.safe_load(yaml_data)
+        # context lines
+        self.parents : List[PromptYaml] = PromptYaml.find_dependencies(self.parsed_data, parent_path)
+
+
     def find_index(self, keyword):
         for idx, element in enumerate(self.parsed_data['prompt']):
             if keyword in element: 
@@ -192,7 +214,7 @@ class PromptYaml:
                 html_content = get_text_from_url(source)
                 tree = html.fromstring(html_content)
                 if preamble != '':
-                    lines.append(preamble)
+                    lines.insert(0, preamble)
 
 
                 if xpath != '':
@@ -227,6 +249,17 @@ class PromptYaml:
         return self.get_web_rules('output')
 
 
+    def find_dependencies(yaml_data, parent_path):
+        other_prompts = []
+        prompt = yaml_data['prompt']
+        if 'extends' in prompt: 
+            others_yaml = prompt['extends']
+            for o in others_yaml:
+                other_prompts.append(PromptYaml(o, parent_path))
+
+        return other_prompts
+
+
 
 
     def get_prompt_sentence(self):
@@ -237,17 +270,33 @@ class PromptYaml:
         local_output = self.get_output_local_rules()
         web_output = self.get_output_web_rules()
 
+        for p in self.parents:
+            base_context += p.get_context_base_rules()
+            local_context += p.get_context_local_rules()
+            web_context += p.get_context_web_rules()
+            base_output += p.get_output_base_rules()
+            local_output += p.get_output_local_rules()
+            web_output += p.get_output_web_rules()
+
+
+        base_context = list(set(base_context))
+        local_context = list(set(local_context))
+        web_context = list(set(web_context))
+        base_output = list(set(base_output))
+        local_output = list(set(local_output))
+        web_output = list(set(web_output))
+
+
+
+
+
         return '\n'.join([self.get_sentence('context', base_context + local_context + web_context), self.get_sentence('output', base_output + local_output + web_output),
                         ])
 
-    def __init__(self, yaml_path):
-        # Read YAML data from file
-        with open(yaml_path, "r") as file:
-            yaml_data = file.read()
-            self.parsed_data = yaml.safe_load(yaml_data)
-        # context lines
-        print(self.get_prompt_sentence())
 
+
+    def print(self):
+        print(self.get_prompt_sentence())
 
 
         
@@ -256,6 +305,7 @@ class PromptYaml:
 def ask(yaml_path: str):
     client = ChatClient()
     py = PromptYaml(yaml_path)
+    py.print()
 
     # response = client.ask(f"{py.get_context_rules()} {py.get_output_rules()}")
     while True:
@@ -272,5 +322,6 @@ def ask(yaml_path: str):
 
 @app.command()
 def prompt(yaml_path: str):
-    PromptYaml(yaml_path)
+    py = PromptYaml(yaml_path)
+    py.print()
 
