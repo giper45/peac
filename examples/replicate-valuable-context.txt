@@ -1,0 +1,6 @@
+tumor size max_dimension: [*the greatest dimension of tumor in Centimeters (cm)?,
+"Unknown"];
+pT: [TO, Tis, TI, Tla, TIb, T2, T2a, T2b, T3, T4, TX, "Unknown"); pN: [NO, NI, N2, N3, NX, "Unknown'"];
+tumor stage: ["Stage 0", "Stage I", "Stage IA", "Stage IB", "Stage II", "Stage IA", "Stage IIB",
+"Stage III", "Stage IlA", "Stage IIB", "Stage IV", "Unknown"]; histologic diagnosis: ["Lung Adenocarcinoma", "Lung Squamous Cell Carcinoma", "Other",
+"Unknown").

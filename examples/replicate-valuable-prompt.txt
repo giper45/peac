@@ -1,0 +1,3 @@
+<attribute stated>: <extracted value as stated in the pathology reports,
+<attribute estimated>: <estimated value based on AJCC 7th edition for lung carcinoma staging manual>,
+<attribute>_CD: < the certainty degree of your estimation: [0.00, 1.007>, <attribute>_evidence: <the supporting evidence for your estimation>.

@@ -19,6 +19,9 @@ Through PEaC you can write a yaml structure that contains information from the `
 
 
 ## Installation
+Clone the repository and run `pip install .`. 
+Now you can use with `peac <ask|prompt>`. 
+
 Just run `pip install peac`. 
 To run in development mode: 
 - Clone this repo

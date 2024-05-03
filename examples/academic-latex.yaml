@@ -1,0 +1,16 @@
+prompt:
+  extends: 
+    - academic.yaml
+  context:
+    local: 
+      ieee-guidelines:
+        preamble: follow these guidelines
+        source: ieee.txt
+      
+  output:
+    base:
+      - write the results only in LATEX
+      - use the natbib bibliography style
+      - for each reference, cite the author with \cite
+
+

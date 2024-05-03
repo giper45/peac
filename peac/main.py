@@ -140,13 +140,18 @@ def _create_answer_line(prompt_element, information):
 
     return "{} {}".format(get_preamble_phrase(prompt_element), "; ".join(lines))
 
+def find_path(p, parent_path = ''):
+    if parent_path == '':
+        parent_path = os.path.dirname(p)
+    if not os.path.exists(p):
+        p = os.path.join(parent_path, os.path.basename(p))
+    return p, parent_path
+
 class PromptYaml:
     def __init__(self, yaml_path, parent_path = ''):
         # If not exist try to find in the folder folder of the first path
-        if parent_path == '':
-            parent_path = os.path.dirname(yaml_path)
-        if not os.path.exists(yaml_path):
-            yaml_path = os.path.join(parent_path, os.path.basename(yaml_path))
+        yaml_path, parent_path= find_path(yaml_path, parent_path)
+        self.parent_path = parent_path
 
 
         # Read YAML data from file
@@ -197,6 +202,7 @@ class PromptYaml:
             for name, rule in rules.items():
                 preamble = rule['preamble'] if 'preamble' in rule else ''
                 source = rule['source']
+                source, parent_path = find_path(source, self.parent_path)
                 with open(source) as f:
                     file_content = "\n".join(f.readlines())
                 lines.append("{}{}{}".format(preamble, ":" if preamble else "", file_content))

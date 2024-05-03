@@ -1,7 +1,7 @@
 prompt:
   extends: 
     - java-base-maven.yaml
-    - examples/java-hybernate.yaml
+    - examples/java-hibernate.yaml
   context:
     base:
       - "You contribute to develop Java web applications"
