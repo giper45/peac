@@ -6,6 +6,7 @@ import requests
 from bs4 import BeautifulSoup
 from lxml import html
 
+import g4f.debug
 import markdown
 
 
@@ -15,10 +16,62 @@ from g4f.Provider import RetryProvider, Phind, FreeChatgpt, Liaobots
 import yaml
 import validators
 
+from typing import TypedDict, Optional, List
+
+class PromptSection(TypedDict):
+    preamble: Optional[str]
+    lines: List[str]
 
 
-import g4f.debug
-# g4f.debug.logging = True
+class PromptSections:
+
+    def __init__(self): 
+        self.prompt_sections = []
+
+
+
+    def already_present(self, preamble):
+        return self.get_by_preamble(preamble) != None
+    
+    def get_by_preamble(self, preamble): 
+        for p in self.prompt_sections:
+            if preamble is None: 
+                if 'preamble' not in p: 
+                    return p
+                elif p['preamble'] == None: 
+                    return p 
+            else: 
+                if 'preamble' in p and p['preamble'] == preamble:
+                    return p
+        return None
+
+    def add_section(self, ps: PromptSection):
+        if self.already_present(ps['preamble'] if 'preamble' in ps else None):
+            preamble = self.get_by_preamble(ps['preamble'] if 'preamble' in ps else None)
+            preamble['lines'].extend(ps['lines'])
+            seen = set()
+            preamble['lines'] = [line for line in preamble['lines'] if not (line in seen or seen.add(line))]
+        else:
+            self.prompt_sections.append(ps)
+
+    def add_sections(self, pss: List[PromptSection]):
+        for ps in pss:
+            self.add_section(ps)
+
+    def get_lines(self):
+        lines = []
+        for p in self.prompt_sections:
+            if 'preamble'in p and p['preamble'] != None:
+                lines.append(p['preamble'])
+            lines.extend(p['lines'])
+        lines = [re.sub(r'\n+', '\n', l) for l in lines]
+        return lines
+
+
+
+
+
+g4f.debug.logging = True
 # Utils
 
 
@@ -194,33 +247,39 @@ class PromptYaml:
                     print(url_content)
 
         
-    def get_local_rules(self, prompt_element):
-        lines = []
+    def get_local_rules(self, prompt_element) -> List[PromptSection]:
+        prompt_sections : List[PromptSection] = []
         if 'prompt' in self.parsed_data and prompt_element in self.parsed_data['prompt']:
             prompt_data = self.parsed_data['prompt'][prompt_element]
             rules = prompt_data.get('local', {})
             for name, rule in rules.items():
+                lines = []
                 preamble = rule['preamble'] if 'preamble' in rule else ''
                 source = rule['source']
                 source, parent_path = find_path(source, self.parent_path)
                 with open(source) as f:
                     file_content = "\n".join(f.readlines())
-                lines.append("{}{}{}".format(preamble, ":" if preamble else "", file_content))
-        return lines
+                lines.append(file_content)
+                prompt_sections.append({
+                    'preamble': preamble, 
+                    'lines': lines
+                })
+        return prompt_sections
 
-    def get_web_rules(self, prompt_element): 
-        lines = []
+    def get_web_rules(self, prompt_element) -> List[PromptSection]: 
+        prompt_sections : List[PromptSection] = []
         if 'prompt' in self.parsed_data and prompt_element in self.parsed_data['prompt']:
             prompt_data = self.parsed_data['prompt'][prompt_element]
             rules = prompt_data.get('web', {})
             for name, rule in rules.items():
                 preamble = rule['preamble'] if 'preamble' in rule else ''
+                lines = []
                 xpath = rule['xpath'] if 'xpath' in rule else ''
                 source = rule['source']
                 html_content = get_text_from_url(source)
                 tree = html.fromstring(html_content)
-                if preamble != '':
-                    lines.insert(0, preamble)
+                # if preamble != '':
+                #     lines.insert(0, preamble)
 
 
                 if xpath != '':
@@ -234,7 +293,12 @@ class PromptYaml:
                             lines.append(c)
                 else:
                     lines.append(html_content)
-        return lines
+                # Generate prompt section
+                prompt_sections.append({
+                    'preamble': preamble, 
+                    'lines': lines
+                })
+        return prompt_sections
 
     def get_context_base_rules(self):
         return self.get_base_rules('context')
@@ -268,29 +332,47 @@ class PromptYaml:
 
 
 
+
     def get_prompt_sentence(self):
         base_context = self.get_context_base_rules()
-        local_context = self.get_context_local_rules()
-        web_context = self.get_context_web_rules()
+        local_context = PromptSections()
+        local_context.add_sections(self.get_context_local_rules())
+        # local_context = self.get_context_local_rules()
+        web_context = PromptSections()
+        web_context.add_sections(self.get_context_web_rules())
+        # web_context = self.get_context_web_rules()
+
+
         base_output = self.get_output_base_rules()
-        local_output = self.get_output_local_rules()
-        web_output = self.get_output_web_rules()
+        local_output = PromptSections()
+        local_output.add_sections(self.get_output_local_rules())
+        web_output = PromptSections()
+        web_output.add_sections(self.get_output_web_rules())
+        # web_output = self.get_output_web_rules()
 
         for p in self.parents:
             base_context += p.get_context_base_rules()
-            local_context += p.get_context_local_rules()
-            web_context += p.get_context_web_rules()
+            local_context.add_sections(p.get_context_local_rules())
+            web_context.add_sections(p.get_context_web_rules())
+            # web_context.add_section(p.get_context_web_rules())
+            # web_context += 
+            # p.get_context_web_rules()
+
+
             base_output += p.get_output_base_rules()
-            local_output += p.get_output_local_rules()
-            web_output += p.get_output_web_rules()
+            local_output.add_sections(p.get_output_local_rules())
+            web_output.add_sections(p.get_output_web_rules())
+            # web_output += p.get_output_web_rules()
+            # web_output.add_section(p.get_output_web_rules())
 
 
         base_context = list(set(base_context))
-        local_context = list(set(local_context))
-        web_context = list(set(web_context))
+        local_context = local_context.get_lines()
+        web_context = web_context.get_lines()
         base_output = list(set(base_output))
-        local_output = list(set(local_output))
-        web_output = list(set(web_output))
+        local_output = local_output.get_lines()
+        web_output = web_output.get_lines()
+
 
 
 

@@ -1,0 +1,9 @@
+Authors should maintain the integrity of IEEE specifications by strictly adhering to prescribed formats for margins, column widths, line spacing, and fonts. Before applying styles, content should be organized, with all text and graphics saved separately. Essential style rules include defining abbreviations upon first use (except well-known ones like IEEE), using consistent units (preferably SI), and correctly formatting equations and references. Figures and tables should be positioned appropriately, with captions below figures and heads above tables.
+
+For LaTeX-specific advice, the template discourages hard references in favor of cross-referencing commands to maintain accuracy if sections are rearranged. Authors should avoid common language and formatting mistakes, such as confusing homophones or placing punctuation outside quotation marks. Proper citation formatting is mandatory, and acknowledgments should be concise. Lastly, authors must remove any guidance text from the template before final submission to avoid publication issues.
+
+
+
+
+
+
