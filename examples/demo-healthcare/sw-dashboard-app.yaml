@@ -1,0 +1,6 @@
+prompt:
+  extends: 
+    - use-case-info.yaml
+    - sw-dashboard-language.yaml
+
+  query: write an app program that receives simulated data each 5 seconds to the dashboard.

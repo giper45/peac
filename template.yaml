@@ -1,0 +1,15 @@
+prompt:
+  extends: 
+    - ...
+  context:
+    local: 
+      localname:
+        preamble: follow these guidelines
+        source: filename
+      
+  output:
+    base:
+      - base A
+      - base B
+
+

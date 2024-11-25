@@ -1,0 +1,4 @@
+prompt:
+  output:
+    base:
+      - Use Python3 as language for realizing the code

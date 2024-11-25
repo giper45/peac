@@ -1,0 +1,16 @@
+prompt:
+  context:
+    base:
+      - You are realizing a simulated healthcare scenario 
+      - CLI IoT applications simulate IoT smart health devices that send data to a centralized dashboard. 
+      - The centralized dashboard is used by doctors for monitoring patients. 
+
+      
+  output:
+    base:
+      - The MQTT service used to exchange data between Cli agents and the centralized dashboard is EMQX
+    web:
+      dataExample:
+        preamble: This is a JSON data example for code
+        source: https://raw.githubusercontent.com/giper45/peac/refs/heads/main/examples/demo-healthcare/patient.json
+

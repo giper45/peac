@@ -1,0 +1,6 @@
+prompt:
+  output:
+    base:
+      - Use React for realizing the front-end part
+      - Use Springboot as back-end framework. 
+      - Use Log4J as logging utility.

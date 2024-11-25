@@ -227,6 +227,10 @@ class PromptYaml:
         else:
             return []
 
+    def get_query(self):
+        if 'prompt' in self.parsed_data and 'query' in self.parsed_data['prompt']:
+            return self.parsed_data['prompt']['query']
+        return ''
 
 
 
@@ -349,6 +353,7 @@ class PromptYaml:
         web_output = PromptSections()
         web_output.add_sections(self.get_output_web_rules())
         # web_output = self.get_output_web_rules()
+        query = self.get_query()
 
         for p in self.parents:
             base_context += p.get_context_base_rules()
@@ -379,7 +384,7 @@ class PromptYaml:
 
 
         return '\n'.join([self.get_sentence('context', base_context + local_context + web_context), self.get_sentence('output', base_output + local_output + web_output),
-                        ])
+                        query])
 
 
 

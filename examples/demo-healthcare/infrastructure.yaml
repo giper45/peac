@@ -1,0 +1,14 @@
+prompt:
+  extends: 
+    - docker.yaml
+    - use-case-info.yaml
+    - sw-iot-device-language.yaml
+    - sw-dashboard-language.yaml
+  context:
+    base: 
+      - Use Docker as Enginer for realizing the infrastructure. The CLI agent has a Dockerfile, and the dashboard has separated Dockerfiles
+      - The CLI agent should have a 172.45.20.3 IP address
+      - The remote dashboard should have 172.45.20.2 IP address
+  
+
+  query: Write the source files and the compose

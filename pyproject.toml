@@ -9,7 +9,7 @@ packages = [{include = "peac"}]
 
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.11"
 typer = "^0.12.3"
 g4f = {extras = ["all"], version = "^0.3.0.7"}
 nodriver = "^0.28rc1"

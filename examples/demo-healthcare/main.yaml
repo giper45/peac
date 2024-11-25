@@ -1,0 +1,18 @@
+prompt:
+  # extends: 
+  #   - ...
+  # context:
+  #   local: 
+  #     localname:
+  #       preamble: follow these guidelines
+  #       source: filename
+      
+  output:
+    base:
+      - hello
+    web:
+      dataexample:
+        preamble: this is a json data example for code
+        source: https://raw.githubusercontent.com/giper45/peac/refs/heads/main/examples/demo-healthcare/patient.json
+
+

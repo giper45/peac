@@ -1,0 +1,7 @@
+prompt:
+  output:
+    base:
+      - Write a Makefile for building the images (commands for build the images)
+      - Realize a separated folder for each generated Dockerfile
+      - Each image should have a VERSION.txt having the version name that is used for tagging the images. Use this file in the Makefile for each image
+      - Each images uses as repository "secsi" (for example, secsi/tool:VERSION)
