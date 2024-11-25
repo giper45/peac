@@ -1,0 +1,38 @@
+{
+    "HospitalID": "H001",
+    "HospitalName": "General Hospital",
+    "PatientID": "P001",
+    "PersonalInfo": {
+      "FirstName": "John",
+      "LastName": "Doe",
+      "DOB": "1980-05-15",
+      "Gender": "Male",
+      "ContactInfo": {
+        "Phone": "123-456-7890",
+        "Email": "john.doe@example.com",
+        "Address": "123 Main St, Cityville"
+      }
+    },
+    "HealthData": {
+      "BloodPressure": {
+        "Systolic": 120,
+        "Diastolic": 80
+      },
+      "BloodTests": {
+        "Hemoglobin": 13.5,
+        "Cholesterol": {
+          "Total": 190,
+          "HDL": 50,
+          "LDL": 100
+        }
+      },
+      "HeartRate": 72,
+      "OtherMetrics": [
+        {
+          "Type": "Glucose",
+          "Value": 90,
+          "Unit": "mg/dL"
+        }
+      ]
+    }
+  }
