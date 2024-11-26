@@ -1,0 +1,4 @@
+prompt:
+  output:
+    base:
+      - Use Golang as language for realizing the code

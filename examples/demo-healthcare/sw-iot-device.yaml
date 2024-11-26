@@ -1,6 +1,8 @@
 prompt:
   extends: 
     - use-case-info.yaml
-    - sw-iot-device-language.yaml
+    # - sw-iot-device-language-python.yaml
+    - sw-iot-device-language-golang.yaml
+    - networking.yaml
 
-  query: Write an app program that sends simulated data each 5 seconds to the dashboard.
+  query: write an app program that sends simulated data each 5 seconds to the dashboard.

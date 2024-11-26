@@ -1,0 +1,6 @@
+prompt:
+  context:
+    base: 
+      - The IoT cli agent should have a 172.45.20.3 IP address
+      - The remote dashboard should have 172.45.20.2 IP address
+  

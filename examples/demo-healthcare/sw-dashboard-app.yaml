@@ -2,5 +2,10 @@ prompt:
   extends: 
     - use-case-info.yaml
     - sw-dashboard-language.yaml
+    - networking.yaml
+
+  output:
+      base:
+        - Use Log4J as logging utility.
 
   query: write an app program that receives simulated data each 5 seconds to the dashboard.
