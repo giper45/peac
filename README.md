@@ -19,14 +19,15 @@ Through PEaC you can write a yaml structure that contains information from the `
 
 
 ## Installation
-Clone the repository and run `pip install .`. 
+Clone the repository and run `pip(x) install .`. 
 Now you can use with `peac <ask|prompt>`. 
 
-Just run `pip install peac`. 
+### Development mode
 To run in development mode: 
-- Clone this repo
+- Fork and clone the repo
 - Run `poetry install` 
 - Use the cli through `poetry run peac`. 
+- Send me a pull request ;-)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
