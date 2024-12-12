@@ -9,5 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
  Added the local directory parsing with regex features
  
 ### Added
+- `local` also parses directories, with filter and recursive options.
+
+### Changed
+- the preamble is attached to the first line. The file separator becomes ``` in order to match the GPT markdown parsing syntax.
  
  
