@@ -35,6 +35,31 @@ def test_prompt_sections():
 
 
 
+# Filter txt files, recursive
+def test_import_dir(): 
+    py = PromptYaml(os.path.join('tests', 'dev-folder.yaml'))
+    local_context = PromptSections()
+    context_rules = py.get_context_local_rules() 
+    # assert sorted(expected_lines) == sorted(local_context.get_lines())
+
+def test_import_regex():
+    py = PromptYaml(os.path.join('tests', 'dev-folder-recursive-regex.yaml'))
+    expected_lines = ['extract from folder - [tests/test-folder/test.py]\n```\nprint("I am a test python file")\n```\n[tests/test-folder/example.txt]\n```\nI am an example file.\n```']
+    local_context = PromptSections()
+    context_rules = py.get_context_local_rules() 
+    local_context.add_sections(context_rules)
+    print(local_context.get_lines())
+    # assert expected_lines == local_context.get_lines()
+
+
+def test_import_recursive_dir(): 
+    py = PromptYaml(os.path.join('tests', 'dev-folder-recursive.yaml'))
+    local_context = PromptSections()
+    context_rules = py.get_context_local_rules() 
+    local_context.add_sections(context_rules)
+
+
+
 
 def test_answer():
     py = PromptYaml(os.path.join('tests', 'dev-input.yaml'))

@@ -1,0 +1,9 @@
+prompt:
+  context:
+    local:
+      example:
+         preamble: extract from folder
+         recursive: true
+         filter: \b(public|private)\b
+         extension: java
+         source: tests/test-folder

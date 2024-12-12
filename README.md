@@ -37,7 +37,92 @@ To run in development mode:
 ## How to use
 `peac` has two basic commands: 
 - `prompt` : Generates a prompt from a yaml file and print it. You can copy this prompt and paste on your favourite LLM. 
-- `ask` : Generate the prompt from yaml and use [g4f](https://github.com/xtekky/gpt4free) to ask questions that you can integrate in your works. 
+- `ask` : Generate the prompt from yaml and use [g4f](https://github.com/xtekky/gpt4free) to ask questions that you can integrate in your works. > **Warning**: This command depends on the g4f stability, it could have errors. 
+
+By using the following command:
+```
+peac prompt <YAML> 
+```
+
+A prompt is generated, and you can copy it in you LLM agent.
+Refer to the `demo-healthcare` example for comprehensive examples.
+
+## YAML syntax 
+The base template is provided in `template.yaml` file:
+```
+prompt:
+  extends: 
+    - ...
+  context:
+    local: 
+      localname:
+        preamble: follow these guidelines
+        source: filename
+      
+  output:
+    base:
+      - base A
+      - base B
+
+
+
+```
+
+Copy this to start realizing your files.
+There are four keys: 
+* extends: allow to import other YAML files.  
+* context: realize the `context` section 
+* output: realize the `output` section (ex. formatting, colors, styles, etc.)
+
+When extending other YAML files, the sections inside the file are imported in the base file.
+Duplicated are removed (if, for example, you import the same files, the sections will not be duplicated in the final prompt).
+For each key, there are several subkeys.
+
+#### base
+The most simple way to concatenate strings. 
+It is a list of strings that will be concatenated in the final prompt.
+
+
+#### local 
+Allow to import local files.
+```
+local:
+    <section-name>:
+        (preamble): a string that is prepended to the output. Default=''
+        source: the filename path (or folder). If is a directory, it imports all the files inside.
+        (recursive): perform a recursive search (if the folder is used). Default=False
+        (filter): apply a regex to the text in order to extract only relevant pieces. Default=None
+
+```
+
+Example:
+```
+prompt:
+  context:
+    local:
+      example:
+         preamble: extract from folder
+         recursive: true
+         filter: \b(public|private)\b
+         extension: java
+         source: tests/test-folder
+```
+
+- perform a recursive search
+- filter public and private methods 
+- filter extension `java` files 
+- starts from `tests/test-folder` the search
+
+
+#### web 
+Import a file from remote.
+```
+    web:
+        <section-name>:
+            preamble: a string that is prepended to the output
+            source: the remote URL resource
+```
+
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 

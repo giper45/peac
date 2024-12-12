@@ -14,6 +14,7 @@ import typer
 from g4f.client import Client
 import yaml
 import validators
+from peac import local_parser
 
 from typing import TypedDict, Optional, List
 
@@ -61,7 +62,8 @@ class PromptSections:
         lines = []
         for p in self.prompt_sections:
             if 'preamble'in p and p['preamble'] != None:
-                lines.append(p['preamble'])
+                # Append the preamble to the first string in p['lines']
+                p['lines'][0] = f"{p['preamble']} - {p['lines'][0]}"
             lines.extend(p['lines'])
         lines = [re.sub(r'\n+', '\n', l) for l in lines]
         return lines
@@ -258,10 +260,14 @@ class PromptYaml:
             for name, rule in rules.items():
                 lines = []
                 preamble = rule['preamble'] if 'preamble' in rule else ''
+                # Apply filters
+                recursive = rule['recursive'] if 'recursive' in rule else False
+                extension = rule['extension'] if 'extension' in rule else '*'
+                filter = rule['filter'] if 'filter' in rule else None
+
                 source = rule['source']
                 source, parent_path = find_path(source, self.parent_path)
-                with open(source) as f:
-                    file_content = "\n".join(f.readlines())
+                file_content = local_parser.parse(source, recursive, extension, filter)
                 lines.append(file_content)
                 prompt_sections.append({
                     'preamble': preamble, 

@@ -1,0 +1,6 @@
+prompt:
+  context:
+    local:
+      example:
+         preamble: extract from folder
+         source: tests/test-folder
