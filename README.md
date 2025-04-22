@@ -147,3 +147,18 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
+## Cite this work 
+To cite this work, use:
+```
+@INPROCEEDINGS{10852434,
+  author={Perrone, Gaetano and Romano, Simon Pietro},
+  booktitle={2024 2nd International Conference on Foundation and Large Language Models (FLLM)}, 
+  title={Prompt Engineering as Code (PEaC): an approach for building modular, reusable, and portable prompts}, 
+  year={2024},
+  volume={},
+  number={},
+  pages={289-294},
+  keywords={Computer languages;Codes;Large language models;Redundancy;Natural languages;Buildings;Syntactics;Programming;Prompt engineering;Prompt Engineering;Large Language Models;Infrastructure as Code;Data Serialization},
+  doi={10.1109/FLLM63129.2024.10852434}}
+```
+
