@@ -18,6 +18,8 @@ from peac import local_parser
 
 from typing import TypedDict, Optional, List
 
+from peac.gui.PeacApp import PeacApp
+
 class PromptSection(TypedDict):
     preamble: Optional[str]
     lines: List[str]
@@ -423,3 +425,8 @@ def prompt(yaml_path: str):
     py = PromptYaml(yaml_path)
     py.print()
 
+
+
+@app.command()
+def gui():
+    PeacApp().run()
