@@ -1,6 +1,7 @@
 [tool.poetry]
 name = "peac"
 version = "0.2.0"
+include = ["peac/template.yaml"]
 description = ""
 authors = ["gx1 <18548727+giper45@users.noreply.github.com>"]
 license = "MIT"

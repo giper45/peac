@@ -1,0 +1,44 @@
+prompt:
+  extends: 
+    - another.yaml
+  context:
+      base:
+          - base A 
+          - base B
+      local: 
+        local-file:
+          preamble: template-file-example
+          filter: \b(public|private)\b
+          source: example-file.txt
+
+        local-folder:
+          preamble: template-folder-example
+          recursive: true
+          filter: \b(public|private)\b
+          extension: java
+          source: example-folder
+        web:
+          example:
+            preamble: web template
+            source: https://github.com/giper45/peac/
+            xpath: //div/text()
+  output:
+      base:
+        - base A
+        - base B
+      local-file:
+        preamble: template-file-example
+        filter: \b(public|private)\b
+        source: example-file.txt
+
+      local-folder:
+        preamble: template-folder-example
+        recursive: true
+        filter: \b(public|private)\b
+        extension: java
+        source: example-folder
+      web:
+        example:
+          preamble: web template
+          source: https://github.com/giper45/peac/
+          xpath: //div/text()
