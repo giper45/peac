@@ -28,6 +28,8 @@ def get_template_file():
 
 ####
 
+from peac.gui.PeacApp import PeacApp
+
 class PromptSection(TypedDict):
     preamble: Optional[str]
     lines: List[str]
@@ -35,22 +37,22 @@ class PromptSection(TypedDict):
 
 class PromptSections:
 
-    def __init__(self): 
+    def __init__(self):
         self.prompt_sections = []
 
 
 
     def already_present(self, preamble):
         return self.get_by_preamble(preamble) != None
-    
-    def get_by_preamble(self, preamble): 
+
+    def get_by_preamble(self, preamble):
         for p in self.prompt_sections:
-            if preamble is None: 
-                if 'preamble' not in p: 
+            if preamble is None:
+                if 'preamble' not in p:
                     return p
-                elif p['preamble'] == None: 
-                    return p 
-            else: 
+                elif p['preamble'] == None:
+                    return p
+            else:
                 if 'preamble' in p and p['preamble'] == preamble:
                     return p
         return None
@@ -114,7 +116,7 @@ def get_text_from_html(html_content: str) -> str:
     # return soup.get_text()
 
 def should_extract_text():
-    return 'LLM_AS_CODE_ONLY_TEXT' in os.environ and os.environ['LLM_AS_CODE_ONLY_TEXT'].lower() in ['true', '1'] 
+    return 'LLM_AS_CODE_ONLY_TEXT' in os.environ and os.environ['LLM_AS_CODE_ONLY_TEXT'].lower() in ['true', '1']
 
 import re
 
@@ -158,7 +160,7 @@ def parse_input_string(input_string):
     # Find the position of the opening and closing parentheses
     start_index = input_string.find('input(')
     end_index = input_string.find(')')
-    
+
     # Extract the content within the parentheses
     if start_index != -1 and end_index != -1:
         content = input_string[len("input("):-1]
@@ -228,7 +230,7 @@ class PromptYaml:
 
     def find_index(self, keyword):
         for idx, element in enumerate(self.parsed_data['prompt']):
-            if keyword in element: 
+            if keyword in element:
                 return idx
 
     def get_base_sentences(self, prompt_element):
@@ -261,7 +263,7 @@ class PromptYaml:
                     url_content = get_text_from_url(input_string)
                     print(url_content)
 
-        
+
     def get_local_rules(self, prompt_element) -> List[PromptSection]:
         prompt_sections : List[PromptSection] = []
         if 'prompt' in self.parsed_data and prompt_element in self.parsed_data['prompt']:
@@ -280,12 +282,12 @@ class PromptYaml:
                 file_content = local_parser.parse(source, recursive, extension, filter)
                 lines.append(file_content)
                 prompt_sections.append({
-                    'preamble': preamble, 
+                    'preamble': preamble,
                     'lines': lines
                 })
         return prompt_sections
 
-    def get_web_rules(self, prompt_element) -> List[PromptSection]: 
+    def get_web_rules(self, prompt_element) -> List[PromptSection]:
         prompt_sections : List[PromptSection] = []
         if 'prompt' in self.parsed_data and prompt_element in self.parsed_data['prompt']:
             prompt_data = self.parsed_data['prompt'][prompt_element]
@@ -305,7 +307,7 @@ class PromptYaml:
                 #     soup = BeautifulSoup(html_content, 'html.parser')
                 #     print("XPATH")
                     code_elements = tree.xpath(xpath)
-                    for c in code_elements: 
+                    for c in code_elements:
                         if isinstance(c, html.HtmlElement):
                             lines.append(ElementTree.tostring(c, 'utf-8').decode('utf-8'))
                         else:
@@ -314,7 +316,7 @@ class PromptYaml:
                     lines.append(html_content)
                 # Generate prompt section
                 prompt_sections.append({
-                    'preamble': preamble, 
+                    'preamble': preamble,
                     'lines': lines
                 })
         return prompt_sections
@@ -341,7 +343,7 @@ class PromptYaml:
     def find_dependencies(yaml_data, parent_path):
         other_prompts = []
         prompt = yaml_data['prompt']
-        if 'extends' in prompt: 
+        if 'extends' in prompt:
             others_yaml = prompt['extends']
             for o in others_yaml:
                 other_prompts.append(PromptYaml(o, parent_path))
@@ -375,7 +377,7 @@ class PromptYaml:
             local_context.add_sections(p.get_context_local_rules())
             web_context.add_sections(p.get_context_web_rules())
             # web_context.add_section(p.get_context_web_rules())
-            # web_context += 
+            # web_context +=
             # p.get_context_web_rules()
 
 
@@ -407,7 +409,7 @@ class PromptYaml:
         print(self.get_prompt_sentence())
 
 
-        
+
 
 @app.command()
 def ask(yaml_path: str):
@@ -442,3 +444,7 @@ def init(name: str):
         new_file.write(template_content)
 
     typer.echo(f"File '{new_file_name}' has been created based on the template.")
+
+@app.command()
+def gui():
+    PeacApp().run()
