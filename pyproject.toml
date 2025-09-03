@@ -10,6 +10,7 @@ packages = [{include = "peac"}]
 
 
 [tool.poetry.dependencies]
+
 python = "^3.11"
 typer = "^0.12.3"
 g4f = {extras = ["all"], version = "^0.3.0.7"}
@@ -18,10 +19,13 @@ pyyaml = "^6.0.1"
 validators = "^0.28.1"
 markdown = "^3.6"
 lxml = "^5.2.1"
+customtkinter = "^5.2.2"
 
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.0"
+watchgod = "^0.8.2"
+watchdog = "^6.0.0"
 
 [build-system]
 requires = ["poetry-core"]

@@ -2,17 +2,25 @@ prompt:
   context:
     local:
       contextrules:
-        preamble: "Based on the Diagnosis and Synoptic Data of the pathology report given in the Input Section, estimate the value and the certainty degree (CD: 0.00 to 1.00) for each of the following attributes with allowed values in the bracket:"
+        preamble: 'Based on the Diagnosis and Synoptic Data of the pathology report
+          given in the Input Section, estimate the value and the certainty degree
+          (CD: 0.00 to 1.00) for each of the following attributes with allowed values
+          in the bracket:'
         source: replicate-valuable-context.txt
   output:
+    base:
+    - Please estimate the tumor stage category based on your estimated pT category
+      and pN category and use AJCC7 criteria. For example, if pT is estimated as TZa,
+      pN as NO, without information showing distant metastasis, then by AJCC7 criteria,
+      the tumor stage is "Stage IB".
+    - Please ensure to make valid inference for attribute estimation based on evidence.
+      If there is no available evidence provided to make estimation, please answer
+      the value as "Unknown".
+    - Please make sure to output the whole set of answers together as a single JSON
+      file, and don't output anything beyond the required JSON file.
+    - 'Include "comment" as the last key of the JSON. "comment": <summarizes the pathology
+      report and give critical comments if need.>'
     local:
       attributerules:
-        preamble: "1. For cach attribute, create 4 key-value pairs"
+        preamble: 1. For cach attribute, create 4 key-value pairs
         source: replicate-valuable-prompt.txt
-
-
-    base: 
-      - Please estimate the tumor stage category based on your estimated pT category and pN category and use AJCC7 criteria. For example, if pT is estimated as TZa, pN as NO, without information showing distant metastasis, then by AJCC7 criteria, the tumor stage is "Stage IB".
-      - Please ensure to make valid inference for attribute estimation based on evidence. If there is no available evidence provided to make estimation, please answer the value as "Unknown".
-      - Please make sure to output the whole set of answers together as a single JSON file, and don't output anything beyond the required JSON file.
-      - "Include \"comment\" as the last key of the JSON. \"comment\": <summarizes the pathology report and give critical comments if need.>"

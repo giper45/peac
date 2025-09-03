@@ -162,3 +162,5 @@ cython_debug/
 
 
 examples/tests
+
+.peac_config.json
