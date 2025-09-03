@@ -39,18 +39,23 @@ class PeacApp(ctk.CTk):
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)
         
-        # Initialize data
+        # Initialize multi-file data structures
+        self.current_file_path = None  # Current active file
+        self.open_files = {}  # Dictionary to store data for each open file
+        self.file_tabs = {}  # Dictionary to store tab widgets for each file
         self.yaml_data = {}
-        self.current_file_path = None
         self.file_state = "SYNCED"  # "SYNCED" or "EDITED"
         self.original_data = {}  # Store original loaded data for comparison
         
         # Create GUI elements
         self.create_toolbar()
         self.create_main_content()
+        self.create_status_bar()
         
-        # Load last file if exists
+        # Load last file if exists or create new file
         self.load_last_file()
+        if not self.open_files:
+            self.new_file()
     
     def create_toolbar(self):
         """Create responsive toolbar"""
@@ -120,31 +125,34 @@ class PeacApp(ctk.CTk):
         self.update_action_buttons_state()
     
     def create_main_content(self):
-        """Create main tabbed content area"""
+        """Create main content area with file tabs and content tabs"""
         # Main container
         main_frame = ctk.CTkFrame(self)
         main_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=(5, 10))
         main_frame.grid_columnconfigure(0, weight=1)
-        main_frame.grid_rowconfigure(2, weight=1)  # Updated for query row
+        main_frame.grid_rowconfigure(3, weight=1)  # Content area gets weight (moved to row 3)
         
-        # Query input section
-        self.create_query_input(main_frame)
+        # File tabs bar (row 0)
+        self.create_file_tabs_bar(main_frame)
         
-        # Content tabs header
+        # Query field (row 1)
+        self.create_query_field(main_frame)
+        
+        # Content tabs header (row 2)
         tab_frame = ctk.CTkFrame(main_frame, height=50)
-        tab_frame.grid(row=1, column=0, sticky="ew", padx=10, pady=(5, 5))
-        tab_frame.grid_columnconfigure((0, 1, 2, 3), weight=1)  # Removed Query tab
+        tab_frame.grid(row=2, column=0, sticky="ew", padx=10, pady=(5, 5))
+        tab_frame.grid_columnconfigure((0, 1, 2, 3), weight=1)  # Removed one column for Query
         
-        # Content tab buttons (removed Query tab)
+        # Tab buttons (removed Query tab)
         self.tab_buttons = {}
         self.create_tab_button(tab_frame, "YAML", 0, self.show_yaml_tab)
         self.create_tab_button(tab_frame, "Context", 1, self.show_context_tab)
         self.create_tab_button(tab_frame, "Output", 2, self.show_output_tab)
         self.create_tab_button(tab_frame, "Extends", 3, self.show_extends_tab)
         
-        # Content area
+        # Content area (row 3)
         self.content_frame = ctk.CTkFrame(main_frame)
-        self.content_frame.grid(row=2, column=0, sticky="nsew", padx=10, pady=(5, 10))
+        self.content_frame.grid(row=3, column=0, sticky="nsew", padx=10, pady=(5, 10))
         self.content_frame.grid_columnconfigure(0, weight=1)
         self.content_frame.grid_rowconfigure(0, weight=1)
         
@@ -157,6 +165,88 @@ class PeacApp(ctk.CTk):
         # Show initial tab
         self.current_tab = "YAML"
         self.show_yaml_tab()
+    
+    def create_status_bar(self):
+        """Create status bar for informative messages"""
+        self.status_frame = ctk.CTkFrame(self, height=30)
+        self.status_frame.grid(row=2, column=0, sticky="ew", padx=10, pady=(0, 10))
+        self.status_frame.grid_columnconfigure(0, weight=1)
+        
+        self.status_label = ctk.CTkLabel(
+            self.status_frame,
+            text="",
+            font=ctk.CTkFont(size=14),
+            text_color=("gray50", "gray60")
+        )
+        self.status_label.grid(row=0, column=0, sticky="w", padx=10, pady=5)
+        
+        # Initially hide the status bar
+        self.status_frame.grid_remove()
+    
+    def show_status_message(self, message: str, duration: int = 2000):
+        """Show a temporary status message that disappears after duration (ms)"""
+        self.status_label.configure(text=message)
+        self.status_frame.grid()  # Show the status bar
+        
+        # Hide the status bar after the specified duration
+        self.after(duration, self.hide_status_message)
+    
+    def hide_status_message(self):
+        """Hide the status message"""
+        self.status_frame.grid_remove()
+        self.status_label.configure(text="")
+    
+    def create_query_field(self, parent):
+        """Create the query input field above the tabs"""
+        query_frame = ctk.CTkFrame(parent, height=60)
+        query_frame.grid(row=1, column=0, sticky="ew", padx=10, pady=(5, 5))
+        query_frame.grid_columnconfigure(1, weight=1)
+        
+        # Query label
+        query_label = ctk.CTkLabel(
+            query_frame,
+            text="Query:",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            width=60
+        )
+        query_label.grid(row=0, column=0, sticky="w", padx=(10, 5), pady=10)
+        
+        # Query text entry
+        self.query_entry = ctk.CTkEntry(
+            query_frame,
+            placeholder_text="Enter your query",
+            font=ctk.CTkFont(size=11),
+            height=32
+        )
+        self.query_entry.grid(row=0, column=1, sticky="ew", padx=(5, 10), pady=10)
+
+    def create_file_tabs_bar(self, parent):
+        """Create the file tabs bar at the top"""
+        file_tabs_frame = ctk.CTkFrame(parent, height=45)
+        file_tabs_frame.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
+        file_tabs_frame.grid_columnconfigure(0, weight=1)
+        
+        # Scrollable frame for file tabs
+        self.file_tabs_scroll = ctk.CTkScrollableFrame(
+            file_tabs_frame, 
+            height=35,
+            orientation="horizontal"
+        )
+        self.file_tabs_scroll.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+        
+        # Add new file button
+        new_file_btn = ctk.CTkButton(
+            file_tabs_frame,
+            text="+ New",
+            width=70,
+            height=30,
+            command=self.new_file,
+            fg_color=("gray70", "gray30"),
+            text_color=("gray10", "gray90"),
+            hover_color=("gray60", "gray40"),
+            font=ctk.CTkFont(size=11)
+        )
+        new_file_btn.grid(row=0, column=1, padx=(5, 10), pady=5)
     
     def create_tab_button(self, parent, text, column, command):
         """Create a tab button"""
@@ -172,30 +262,6 @@ class PeacApp(ctk.CTk):
         btn.grid(row=0, column=column, padx=5, pady=5, sticky="ew")
         self.tab_buttons[text] = btn
     
-    def create_query_input(self, parent):
-        """Create query input section above tabs"""
-        query_frame = ctk.CTkFrame(parent, height=60)
-        query_frame.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
-        query_frame.grid_columnconfigure(1, weight=1)
-        
-        # Query label
-        query_label = ctk.CTkLabel(
-            query_frame,
-            text="Query:",
-            font=ctk.CTkFont(size=14, weight="bold"),
-            width=60
-        )
-        query_label.grid(row=0, column=0, padx=(15, 10), pady=15, sticky="w")
-        
-        # Query input field
-        self.query_entry = ctk.CTkEntry(
-            query_frame,
-            placeholder_text='Tell me what is the result of 2+2',
-            font=ctk.CTkFont(size=12),
-            height=35
-        )
-        self.query_entry.grid(row=0, column=1, padx=(0, 15), pady=15, sticky="ew")
-        
     def create_tab_contents(self):
         """Create all tab content widgets"""
         # YAML section
@@ -212,6 +278,188 @@ class PeacApp(ctk.CTk):
         # Extends section
         self.extends_section = ExtendsSection(self.content_frame)
         self.extends_section.set_change_callback(self.on_section_changed)
+    
+    def create_file_tab(self, file_path: str):
+        """Create a file tab"""
+        filename = os.path.basename(file_path) if file_path and not file_path.startswith("Untitled-") else file_path
+        
+        # Create tab container
+        tab_container = ctk.CTkFrame(self.file_tabs_scroll, fg_color="transparent")
+        tab_container.pack(side="left", padx=2, pady=2)
+        
+        # Create tab button
+        tab_btn = ctk.CTkButton(
+            tab_container,
+            text=filename,
+            height=30,
+            width=120,
+            command=lambda: self.switch_to_file(file_path),
+            fg_color=("gray80", "gray25"),
+            text_color=("gray10", "gray90"),
+            hover_color=("gray70", "gray35"),
+            font=ctk.CTkFont(size=11)
+        )
+        tab_btn.pack(side="left")
+        
+        # Create close button
+        close_btn = ctk.CTkButton(
+            tab_container,
+            text="✕",
+            width=25,
+            height=30,
+            command=lambda: self.close_file_tab(file_path),
+            fg_color="transparent",
+            text_color=("gray50", "gray70"),
+            hover_color=("red", "darkred"),
+            font=ctk.CTkFont(size=10)
+        )
+        close_btn.pack(side="left", padx=(2, 0))
+        
+        # Store tab widgets
+        self.file_tabs[file_path] = {
+            'container': tab_container,
+            'button': tab_btn,
+            'close': close_btn
+        }
+        
+        return tab_btn
+    
+    def switch_to_file(self, file_path: str):
+        """Switch to a different open file"""
+        if file_path not in self.open_files:
+            return
+            
+        # Save current file state
+        if self.current_file_path and self.current_file_path in self.open_files:
+            self.save_current_file_state()
+        
+        # Switch to new file
+        self.current_file_path = file_path
+        self.load_file_state(file_path)
+        
+        # Update UI
+        self.update_file_tab_appearances()
+        self.update_filename_display()
+        self.update_action_buttons_state()
+    
+    def close_file_tab(self, file_path: str):
+        """Close a file tab"""
+        if file_path not in self.open_files:
+            return
+        
+        # Check if file has unsaved changes
+        file_data = self.open_files[file_path]
+        if file_data.get('state') == 'EDITED':
+            from tkinter import messagebox
+            result = messagebox.askyesnocancel(
+                "Unsaved Changes", 
+                f"Save changes to {os.path.basename(file_path) if file_path and not file_path.startswith('Untitled-') else file_path}?"
+            )
+            if result is True:  # Save
+                self.switch_to_file(file_path)
+                self.save_file()
+            elif result is None:  # Cancel
+                return
+        
+        # Remove from open files
+        del self.open_files[file_path]
+        
+        # Remove tab
+        if file_path in self.file_tabs:
+            self.file_tabs[file_path]['container'].destroy()
+            del self.file_tabs[file_path]
+        
+        # Switch to another file if this was current
+        if self.current_file_path == file_path:
+            if self.open_files:
+                # Switch to first available file
+                next_file = list(self.open_files.keys())[0]
+                self.switch_to_file(next_file)
+            else:
+                # No files open, create new
+                self.new_file()
+    
+    def update_file_tab_appearances(self):
+        """Update file tab appearances to show which is active"""
+        for file_path, tab_widgets in self.file_tabs.items():
+            if file_path == self.current_file_path:
+                # Active tab
+                tab_widgets['button'].configure(
+                    fg_color=("blue", "darkblue"),
+                    text_color="white"
+                )
+            else:
+                # Inactive tab
+                tab_widgets['button'].configure(
+                    fg_color=("gray80", "gray25"),
+                    text_color=("gray10", "gray90")
+                )
+            
+            # Show unsaved indicator
+            if file_path in self.open_files:
+                file_data = self.open_files[file_path]
+                filename = os.path.basename(file_path) if file_path and not file_path.startswith("Untitled-") else file_path
+                if file_data.get('state') == 'EDITED':
+                    tab_widgets['button'].configure(text=f"{filename} *")
+                else:
+                    tab_widgets['button'].configure(text=filename)
+    
+    def save_current_file_state(self):
+        """Save current GUI state to the open file data"""
+        if self.current_file_path and self.current_file_path in self.open_files:
+            file_data = self.open_files[self.current_file_path]
+            file_data['gui_data'] = self.collect_data()
+            file_data['state'] = self.file_state
+            file_data['original_data'] = self.original_data.copy()
+            file_data['yaml_data'] = self.yaml_data.copy()
+    
+    def load_file_state(self, file_path: str):
+        """Load file state into the GUI"""
+        if file_path not in self.open_files:
+            return
+            
+        file_data = self.open_files[file_path]
+        
+        # Load data
+        self.yaml_data = file_data.get('yaml_data', {})
+        self.file_state = file_data.get('state', 'SYNCED')
+        self.original_data = file_data.get('original_data', {})
+        
+        # Update UI
+        gui_data = file_data.get('gui_data', {})
+        if gui_data:
+            self.update_ui_from_data_dict(gui_data)
+        else:
+            self.update_ui_from_data()
+        
+        # Update YAML display
+        yaml_content = file_data.get('yaml_content', '')
+        if yaml_content and hasattr(self, 'yaml_text'):
+            self.enable_yaml_textbox()
+            self.yaml_text.delete("1.0", "end")
+            self.yaml_text.insert("1.0", yaml_content)
+            self.disable_yaml_textbox()
+    
+    def update_ui_from_data_dict(self, data: dict):
+        """Update UI from data dictionary"""
+        if not data:
+            return
+            
+        # Update sections
+        context_data = data.get('context', {})
+        self.context_section.load_data(context_data)
+        
+        output_data = data.get('output', {})
+        self.output_section.load_data(output_data)
+        
+        extends_data = data.get('extends', [])
+        self.extends_section.load_data(extends_data)
+        
+        # Update query
+        query = data.get('query', '')
+        if hasattr(self, 'query_entry'):
+            self.query_entry.delete(0, "end")
+            self.query_entry.insert(0, query)
     
     def update_yaml_title(self):
         self.yaml_title.configure(text=f"{self.file_name}")
@@ -303,7 +551,7 @@ class PeacApp(ctk.CTk):
         # Track changes in query entry
         if hasattr(self, 'query_entry'):
             self.query_entry.bind('<KeyRelease>', lambda e: on_change())
-            self.query_entry.bind('<FocusOut>', lambda e: on_change())
+            self.query_entry.bind('<Button-1>', lambda e: on_change())
         
         # Track changes in context section base rules
         if hasattr(self, 'context_section') and hasattr(self.context_section, 'base_rules_text'):
@@ -381,19 +629,17 @@ class PeacApp(ctk.CTk):
         self.current_tab = active_tab
     
     def update_filename_display(self):
-        """Update the filename display in toolbar"""
+        """Update the filename label in toolbar"""
         if self.current_file_path:
-            filename = os.path.basename(self.current_file_path)
+            filename = os.path.basename(self.current_file_path) if not self.current_file_path.startswith("Untitled-") else self.current_file_path
             self.filename_label.configure(text=filename)
         else:
             self.filename_label.configure(text="No file loaded")
-        
-        # Update button states
-        self.update_action_buttons_state()
     
     def update_action_buttons_state(self):
         """Enable/disable action buttons based on file state"""
         file_exists = (self.current_file_path is not None and 
+                      not self.current_file_path.startswith("Untitled-") and
                       os.path.exists(self.current_file_path))
         
         # Buttons are enabled when file exists AND state is SYNCED
@@ -404,16 +650,16 @@ class PeacApp(ctk.CTk):
                 self.preview_btn.configure(state="normal")
             else:
                 self.preview_btn.configure(state="disabled")
-                
+        
         if hasattr(self, 'copy_btn'):
             if buttons_enabled:
-                self.copy_btn.configure(state="normal") 
+                self.copy_btn.configure(state="normal")
             else:
                 self.copy_btn.configure(state="disabled")
                 
         # Update window title to show state
         if self.current_file_path:
-            filename = os.path.basename(self.current_file_path)
+            filename = os.path.basename(self.current_file_path) if not self.current_file_path.startswith("Untitled-") else self.current_file_path
             if self.file_state == "EDITED":
                 title = f"PEaC - {filename} *"
             else:
@@ -446,19 +692,61 @@ class PeacApp(ctk.CTk):
             # If there's an error collecting data, assume it's been edited
             self.mark_as_edited()
     
-    def new_file(self):
+    def mark_as_edited(self):
+        """Mark file as edited (unsaved changes)"""
+        if self.file_state != "EDITED":
+            self.file_state = "EDITED"
+            self.update_action_buttons_state()
+            self.update_file_tab_appearances()
+    
+    def mark_as_synced(self):
+        """Mark file as synced (saved)"""
+        if self.file_state != "SYNCED":
+            self.file_state = "SYNCED"
+            self.update_action_buttons_state()
+            self.update_file_tab_appearances()
+    
+    def new_file(self, add_tab=True):
         """Create a new file"""
+        # Save current file state if exists
+        if self.current_file_path and self.current_file_path in self.open_files:
+            self.save_current_file_state()
+        
+        # Create new file
+        file_counter = 1
+        while True:
+            new_file_path = f"Untitled-{file_counter}"
+            if new_file_path not in self.open_files:
+                break
+            file_counter += 1
+        
+        # Reset data
+        self.yaml_data = {}
+        self.original_data = {}
+        self.file_state = "SYNCED"
+        self.current_file_path = new_file_path
+        
+        # Add to open files
+        self.open_files[new_file_path] = {
+            'yaml_data': {},
+            'yaml_content': '',
+            'gui_data': {},
+            'state': 'SYNCED',
+            'original_data': {}
+        }
+        
+        # Create tab if requested
+        if add_tab:
+            self.create_file_tab(new_file_path)
+            self.update_file_tab_appearances()
+        
         # Clear all sections
         self.clear_all_sections()
         
-        # Reset file state
-        self.current_file_path = None
-        self.original_data = {}
-        self.file_state = "SYNCED"
-        self.yaml_data = {}
-        
+        # Update UI
         self.update_filename_display()
         self.update_action_buttons_state()
+        self.show_yaml_tab()
     
     def open_file(self):
         """Open existing YAML file"""
@@ -472,25 +760,25 @@ class PeacApp(ctk.CTk):
         )
         
         if file_path:
-            self.load_yaml_file(file_path)
-    
-    def open_file(self):
-        """Open existing YAML file"""
-        from tkinter import filedialog
-        
-        import os
-        file_path = filedialog.askopenfilename(
-            title="Open PEaC Configuration",
-            filetypes=[("YAML files", "*.yaml *.yml"), ("All files", "*.")],
-            initialdir=os.getcwd()
-        )
-        
-        if file_path:
             self.open_file_in_new_tab(file_path)
+    
+    def open_file_in_new_tab(self, file_path: str):
+        """Open a file in a new tab"""
+        # Check if file is already open
+        if file_path in self.open_files:
+            self.switch_to_file(file_path)
+            return
+        
+        # Save current file state
+        if self.current_file_path and self.current_file_path in self.open_files:
+            self.save_current_file_state()
+        
+        # Load the file
+        self.load_yaml_file(file_path, create_tab=True)
 
     def save_file(self):
         """Save current configuration"""
-        if self.current_file_path:
+        if self.current_file_path and not self.current_file_path.startswith("Untitled-"):
             self.save_yaml_file(self.current_file_path)
         else:
             self.save_as_file()
@@ -506,19 +794,59 @@ class PeacApp(ctk.CTk):
         )
         
         if file_path:
+            old_file_path = self.current_file_path
             self.save_yaml_file(file_path)
+            
+            # Update multi-file system for renamed file
+            if old_file_path and old_file_path.startswith("Untitled-") and old_file_path != file_path:
+                self.rename_file_in_multi_file_system(old_file_path, file_path)
+            
             self.current_file_path = file_path
             self.update_filename_display()
             self.update_action_buttons_state()
     
+    def rename_file_in_multi_file_system(self, old_path: str, new_path: str):
+        """Update multi-file system when a file is renamed"""
+        if old_path in self.open_files:
+            # Move file data to new key
+            self.open_files[new_path] = self.open_files.pop(old_path)
+            
+        if old_path in self.file_tabs:
+            # Move tab widgets to new key
+            tab_widgets = self.file_tabs.pop(old_path)
+            self.file_tabs[new_path] = tab_widgets
+            
+            # Update the lambda functions to use the new file path
+            tab_widgets['button'].configure(command=lambda: self.switch_to_file(new_path))
+            tab_widgets['close'].configure(command=lambda: self.close_file_tab(new_path))
+            
+        # Update tab appearances with new filename
+        self.update_file_tab_appearances()
+    
+    def open_file_as_tab(self, file_path: str):
+        """Open a file as a new tab in the multi-file interface"""
+        try:
+            if not os.path.exists(file_path):
+                print(f"File not found: {file_path}")
+                return False
+            
+            # Use the multi-file tab system
+            self.open_file_in_new_tab(file_path)
+            print(f"Opened: {os.path.basename(file_path)}")
+            return True
+            
+        except Exception as e:
+            print(f"Error opening file: {str(e)}")
+            return False
+    
     def preview_prompt(self):
         """Preview generated prompt"""
         if self.file_state == "EDITED":
-            self.show_toast("Please save your changes first to preview the prompt", "warning")
+            self.show_error_dialog("Preview Error", "Please save your changes first to preview the prompt.\n\nPreview requires the file to be saved to ensure proper path resolution for extends.")
             return
             
         if not self.current_file_path or not os.path.exists(self.current_file_path):
-            self.show_toast("No file to preview. Please create or load a file first", "warning")
+            self.show_error_dialog("Preview Error", "No file to preview. Please create or load a file first.")
             return
             
         try:
@@ -529,18 +857,18 @@ class PeacApp(ctk.CTk):
             # Show preview window
             self.show_preview_window(result)
         except FileNotFoundError as e:
-            self.show_toast(f"Extends file not found: {str(e)}", "error")
+            self.show_error_dialog("Preview Error", f"Extends file not found: {str(e)}\n\nPlease check your extends paths and ensure all referenced files exist.")
         except Exception as e:
-            self.show_toast(f"Preview error: {str(e)}", "error")
+            self.show_error_dialog("Preview Error", str(e))
     
     def copy_prompt(self):
         """Copy generated prompt to clipboard"""
         if self.file_state == "EDITED":
-            self.show_toast("Please save your changes first to copy the prompt", "warning")
+            self.show_error_dialog("Copy Error", "Please save your changes first to copy the prompt.\n\nCopy requires the file to be saved to ensure proper path resolution for extends.")
             return
             
         if not self.current_file_path or not os.path.exists(self.current_file_path):
-            self.show_toast("No file to copy. Please create or load a file first", "warning")
+            self.show_error_dialog("Copy Error", "No file to copy. Please create or load a file first.")
             return
             
         try:
@@ -553,11 +881,11 @@ class PeacApp(ctk.CTk):
             self.clipboard_append(result)
             
             # Show success message
-            self.show_toast("Prompt copied to clipboard!", "success")
+            self.show_status_message("✓ Prompt copied to clipboard!")
         except FileNotFoundError as e:
-            self.show_toast(f"Extends file not found: {str(e)}", "error")
+            self.show_error_dialog("Copy Error", f"Extends file not found: {str(e)}\n\nPlease check your extends paths and ensure all referenced files exist.")
         except Exception as e:
-            self.show_toast(f"Copy error: {str(e)}", "error")
+            self.show_error_dialog("Copy Error", str(e))
     
     def collect_data(self) -> dict:
         """Collect data from all sections"""
@@ -591,32 +919,51 @@ class PeacApp(ctk.CTk):
         """Enable YAML text box"""
         self.yaml_text.configure(state="normal")
 
-    def load_yaml_file(self, file_path: str):
+    def load_yaml_file(self, file_path: str, create_tab: bool = True):
         """Load YAML configuration file"""
         try:
             import yaml
             with open(file_path, 'r') as f:
                 yaml_content = f.read()
-                self.yaml_data = yaml.safe_load(yaml_content) or {}
+                yaml_data = yaml.safe_load(yaml_content) or {}
+            
+            # Add to open files
+            self.open_files[file_path] = {
+                'yaml_data': yaml_data.copy(),
+                'yaml_content': yaml_content,
+                'gui_data': {},
+                'state': 'SYNCED',
+                'original_data': {}
+            }
+            
+            # Switch to this file
+            self.current_file_path = file_path
+            self.yaml_data = yaml_data
+            
+            # Create tab if requested
+            if create_tab:
+                self.create_file_tab(file_path)
+                self.update_file_tab_appearances()
             
             # Update YAML tab with raw content
             self.enable_yaml_textbox()
             self.yaml_text.delete("1.0", "end")
             self.yaml_text.insert("1.0", yaml_content)
             
-            self.current_file_path = file_path
             self.update_ui_from_data()
             
             # Store original data for change tracking
             self.original_data = self.collect_data()
+            self.open_files[file_path]['original_data'] = self.original_data.copy()
             self.mark_as_synced()  # File is synced after loading
             
             self.save_last_file(file_path)
             self.update_filename_display()
+            self.update_action_buttons_state()
             self.disable_yaml_textbox()
 
         except Exception as e:
-            self.show_toast(f"Failed to load file: {e}", "error")
+            self.show_error_dialog("Load Error", f"Failed to load file: {e}")
     
     def save_yaml_file(self, file_path: str):
         """Save configuration to YAML file"""
@@ -644,32 +991,38 @@ class PeacApp(ctk.CTk):
             
             self.current_file_path = file_path
             
+            # Update multi-file system
+            if file_path in self.open_files:
+                self.open_files[file_path]['original_data'] = data.copy()
+                self.open_files[file_path]['state'] = 'SYNCED'
+            
             # Update original data and mark as synced
             self.original_data = data.copy()
             self.mark_as_synced()
             
+            # Update tab appearances to reflect saved state
+            self.update_file_tab_appearances()
+            
             self.save_last_file(file_path)
             self.update_filename_display()
-            self.show_toast(f"Saved to {os.path.basename(file_path)}", "success")
+            self.show_status_message(f"✓ Saved to {os.path.basename(file_path)}")
         except Exception as e:
-            self.show_toast(f"Failed to save file: {e}", "error")
+            self.show_error_dialog("Save Error", f"Failed to save file: {e}")
     
     def update_ui_from_data(self):
         """Update UI with loaded data"""
         # Update each section
         if 'prompt' in self.yaml_data:
             yaml_data = self.yaml_data['prompt']
-        else:
-            yaml_data = self.yaml_data
-            
         self.context_section.load_data(yaml_data.get('context', {}))
         self.output_section.load_data(yaml_data.get('output', {}))
         self.extends_section.load_data(yaml_data.get('extends', []))
 
         # Update query
         query = yaml_data.get('query', '')
-        self.query_entry.delete(0, "end")
-        self.query_entry.insert(0, query)
+        if hasattr(self, 'query_entry'):
+            self.query_entry.delete(0, "end")
+            self.query_entry.insert(0, query)
     
     def clear_all_sections(self):
         """Clear all sections"""
@@ -678,7 +1031,8 @@ class PeacApp(ctk.CTk):
         self.context_section.clear()
         self.output_section.clear()
         self.extends_section.clear()
-        self.query_entry.delete(0, "end")
+        if hasattr(self, 'query_entry'):
+            self.query_entry.delete(0, "end")
         self.disable_yaml_textbox()
     
     def load_last_file(self):
@@ -690,10 +1044,8 @@ class PeacApp(ctk.CTk):
                     file_path = f.read().strip()
                 if file_path and Path(file_path).exists():
                     self.load_yaml_file(file_path)
-                    return True
         except:
             pass  # Ignore errors when loading last file
-        return False
     
     def save_last_file(self, file_path: str):
         """Save the last opened file path"""
@@ -718,150 +1070,32 @@ class PeacApp(ctk.CTk):
         text_area.configure(state="disabled")
     
     def show_error_dialog(self, title: str, message: str):
-        """Show error dialog - use toast for simple errors, modal for complex ones"""
-        # Use toast for simple, short error messages
-        if len(message) < 100 and '\n' not in message:
-            self.show_toast(message, "error", duration=5000)  # Longer duration for errors
-        else:
-            # Use modal dialog for complex error messages
-            dialog = ctk.CTkToplevel(self)
-            dialog.title(title)
-            dialog.geometry("400x200")
-            dialog.transient(self)
-            dialog.grab_set()
-            
-            label = ctk.CTkLabel(dialog, text=message, wraplength=350)
-            label.pack(pady=30)
-            
-            ok_btn = ctk.CTkButton(dialog, text="OK", command=dialog.destroy)
-            ok_btn.pack(pady=10)
+        """Show error dialog"""
+        dialog = ctk.CTkToplevel(self)
+        dialog.title(title)
+        dialog.geometry("400x200")
+        dialog.transient(self)
+        dialog.grab_set()
+        
+        label = ctk.CTkLabel(dialog, text=message, wraplength=350)
+        label.pack(pady=30)
+        
+        ok_btn = ctk.CTkButton(dialog, text="OK", command=dialog.destroy)
+        ok_btn.pack(pady=10)
     
     def show_info_dialog(self, title: str, message: str):
-        """Show toast notification"""
-        self.show_toast(message, "success")
-    
-    def show_toast(self, message: str, toast_type: str = "info", duration: int = 3000):
-        """Show toast notification that automatically disappears
+        """Show info dialog"""
+        dialog = ctk.CTkToplevel(self)
+        dialog.title(title)
+        dialog.geometry("300x150")
+        dialog.transient(self)
+        dialog.grab_set()
         
-        Args:
-            message: Message to display
-            toast_type: Type of toast ("success", "error", "info", "warning")
-            duration: Duration in milliseconds before auto-hide
-        """
-        # Create toast frame with fixed size
-        toast = ctk.CTkFrame(
-            self,
-            corner_radius=10,
-            fg_color=("gray90", "gray20"),
-            border_width=2,
-            width=350,
-            height=60
-        )
-        toast.pack_propagate(False)  # Prevent size from changing based on content
+        label = ctk.CTkLabel(dialog, text=message)
+        label.pack(pady=20)
         
-        # Set border color based on type
-        if toast_type == "success":
-            toast.configure(border_color=("green", "lightgreen"))
-            icon = "✅"
-        elif toast_type == "error":
-            toast.configure(border_color=("red", "lightcoral"))
-            icon = "❌"
-        elif toast_type == "warning":
-            toast.configure(border_color=("orange", "yellow"))
-            icon = "⚠️"
-        else:  # info
-            toast.configure(border_color=("blue", "lightblue"))
-            icon = "ℹ️"
-        
-        # Create content frame
-        content_frame = ctk.CTkFrame(toast, fg_color="transparent")
-        content_frame.pack(padx=15, pady=10, fill="both", expand=True)
-        
-        # Icon and message
-        icon_label = ctk.CTkLabel(
-            content_frame,
-            text=icon,
-            font=ctk.CTkFont(size=16)
-        )
-        icon_label.pack(side="left", padx=(0, 10))
-        
-        message_label = ctk.CTkLabel(
-            content_frame,
-            text=message,
-            font=ctk.CTkFont(size=12),
-            wraplength=300
-        )
-        message_label.pack(side="left", fill="both", expand=True)
-        
-        # Close button
-        close_btn = ctk.CTkButton(
-            content_frame,
-            text="✕",
-            width=25,
-            height=25,
-            font=ctk.CTkFont(size=12),
-            fg_color="transparent",
-            text_color=("gray50", "gray70"),
-            hover_color=("gray80", "gray40"),
-            command=lambda: self.hide_toast(toast)
-        )
-        close_btn.pack(side="right", padx=(10, 0))
-        
-        # Position toast in top-right corner
-        self.update_idletasks()  # Ensure window is rendered
-        window_width = self.winfo_width()
-        window_height = self.winfo_height()
-        
-        toast_width = 350
-        toast_height = 60
-        
-        x = window_width - toast_width - 20
-        y = 80  # Below toolbar
-        
-        toast.place(x=x, y=y)
-        
-        # Animate in
-        self.animate_toast_in(toast, x, y)
-        
-        # Auto-hide after duration
-        if duration > 0:
-            self.after(duration, lambda: self.hide_toast(toast))
-    
-    def animate_toast_in(self, toast, target_x, target_y):
-        """Animate toast sliding in from the right"""
-        start_x = target_x + 400  # Start off-screen
-        steps = 15
-        step_size = (start_x - target_x) / steps
-        
-        def animate_step(step):
-            if step < steps:
-                current_x = start_x - (step_size * step)
-                toast.place(x=current_x, y=target_y)
-                self.after(20, lambda: animate_step(step + 1))
-            else:
-                toast.place(x=target_x, y=target_y)
-        
-        animate_step(0)
-    
-    def hide_toast(self, toast):
-        """Hide toast with animation"""
-        def animate_out():
-            current_x = toast.winfo_x()
-            target_x = current_x + 400
-            steps = 10
-            step_size = (target_x - current_x) / steps
-            
-            def animate_step(step):
-                if step < steps:
-                    new_x = current_x + (step_size * step)
-                    toast.place(x=new_x)
-                    self.after(15, lambda: animate_step(step + 1))
-                else:
-                    toast.destroy()
-            
-            animate_step(0)
-        
-        animate_out()
+        ok_btn = ctk.CTkButton(dialog, text="OK", command=dialog.destroy)
+        ok_btn.pack(pady=10)
 
 
 def main():

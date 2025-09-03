@@ -19,8 +19,17 @@ Through PEaC you can write a yaml structure that contains information from the `
 
 
 ## Installation
+You need python 3.11 to run PEaC.
+
+
 Clone the repository and run `pip(x) install .`. 
 Now you can use with `peac <ask|prompt>`. 
+
+### Note for the GUI
+For macOS users, you need to install the following packages:
+
+```bash
+```
 
 ### Development mode
 To run in development mode: 

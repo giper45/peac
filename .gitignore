@@ -164,3 +164,7 @@ cython_debug/
 examples/tests
 
 .peac_config.json
+
+
+yaml_tests/**
+!yaml_tests/.keep

@@ -213,8 +213,14 @@ class ExtendsCard(ctk.CTkFrame):
                 messagebox.showerror("File Not Found", f"The file '{full_path}' does not exist.")
                 return
             
-            # Open in main app (simplified single file approach)
-            main_app.load_yaml_file(full_path)
+            # Open in main app as a tab
+            if hasattr(main_app, 'open_file_as_tab'):
+                success = main_app.open_file_as_tab(full_path)
+                if not success:
+                    messagebox.showerror("Error", f"Failed to open '{os.path.basename(full_path)}'.")
+            else:
+                # Fallback to old method
+                main_app.load_yaml_file(full_path)
                 
         except Exception as e:
             messagebox.showerror("Error", f"Failed to open file: {str(e)}")

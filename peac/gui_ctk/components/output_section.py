@@ -439,3 +439,16 @@ class OutputSection(ctk.CTkFrame):
         for rule_card in self.web_rules[:]:
             rule_card.destroy()
         self.web_rules.clear()
+    
+    def clear(self):
+        """Clear all content in the output section"""
+        # Clear base rules
+        if hasattr(self, 'base_format_text'):
+            self.base_format_text.delete("1.0", "end")
+        if hasattr(self, 'base_save_path_entry'):
+            self.base_save_path_entry.delete(0, "end")
+        if hasattr(self, 'base_save_filename_entry'):
+            self.base_save_filename_entry.delete(0, "end")
+        
+        # Clear all rules
+        self.clear_all_rules()
