@@ -1,36 +1,43 @@
 [tool.poetry]
 name = "peac"
 version = "0.2.0"
-include = ["peac/template.yaml"]
-description = ""
+description = "Prompt Engineering as Code"
 authors = ["gx1 <18548727+giper45@users.noreply.github.com>"]
 license = "MIT"
 readme = "README.md"
 packages = [{include = "peac"}]
-
+include = ["peac/template.yaml"]
 
 [tool.poetry.dependencies]
-
 python = "^3.11"
-typer = "^0.12.3"
-g4f = {extras = ["all"], version = "^0.3.0.7"}
-nodriver = "^0.28rc1"
-pyyaml = "^6.0.1"
-validators = "^0.28.1"
-markdown = "^3.6"
-lxml = "^5.2.1"
-customtkinter = "^5.2.2"
+# Dipendenze core - versioni stabili per Windows
+typer = "^0.9.0"
+pyyaml = "^6.0"
+requests = "^2.31.0"
+rich = "^13.0.0"
+validators = "^0.22.0"
+markdown = "^3.5.0"
 
+# GUI dependencies - versioni stabili
+customtkinter = "^5.2.0"
+
+# Rimuovi le dipendenze problematiche come g4f e pythonnet
+# g4f = "^0.1.0"  # RIMOSSO - problematico su Windows
+# pythonnet = "^3.0.0"  # RIMOSSO - richiede build tools
+beautifulsoup4 = "^4.13.5"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^8.2.0"
-watchgod = "^0.8.2"
-watchdog = "^6.0.0"
+pytest = "^7.4.0"
+black = "^23.0.0"
+flake8 = "^6.0.0"
+
+[tool.poetry.scripts]
+peac = "peac.main:app"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
-
-[tool.poetry.scripts]
-peac = 'peac.main:app'
+[tool.poetry.extras]
+gui = ["customtkinter"]
+build = ["pyinstaller"]

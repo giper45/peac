@@ -6,11 +6,9 @@ import requests
 from bs4 import BeautifulSoup
 from lxml import html
 
-import g4f.debug
 import markdown
 
 
-from g4f.client import Client
 import yaml
 import validators
 from peac import local_parser
@@ -79,7 +77,6 @@ class PromptSections:
 
 
 
-g4f.debug.logging = True
 # Utils
 
 
