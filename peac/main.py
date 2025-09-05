@@ -11,7 +11,6 @@ def get_template_file():
 ####
 
 from peac.core.peac import PromptYaml
-from peac.gui_ctk.main_app import PeacApp
 
 
 app = typer.Typer()
@@ -34,5 +33,9 @@ def init(name: str):
 
 @app.command()
 def gui():
+    from peac.gui_ctk.main_app import PeacApp
     app = PeacApp()
     app.mainloop()
+
+if __name__ == "__main__":
+    app()
