@@ -375,7 +375,7 @@ class ExtendsSection(ctk.CTkFrame):
         add_btn.grid(row=0, column=1, padx=15, pady=10)
         
         # Extends content area
-        self.extends_content = ctk.CTkScrollableFrame(extends_container)
+        self.extends_content = ctk.CTkScrollableFrame(extends_container, height=400)
         self.extends_content.grid(row=1, column=0, sticky="nsew", padx=10, pady=(5, 10))
         self.extends_content.grid_columnconfigure(0, weight=1)
         

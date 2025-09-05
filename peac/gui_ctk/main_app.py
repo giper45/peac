@@ -233,6 +233,7 @@ class PeacApp(ctk.CTk):
             orientation="horizontal"
         )
         self.file_tabs_scroll.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+        self.file_tabs_scroll.grid_columnconfigure(0, weight=1)
         
         # Add new file button
         new_file_btn = ctk.CTkButton(
@@ -548,10 +549,16 @@ class PeacApp(ctk.CTk):
                 self.after_cancel(self._change_timer)
             self._change_timer = self.after(500, self.check_for_changes)  # 500ms delay
         
-        # Track changes in query entry
+        def on_query_change(*args):
+            # Query changes don't affect file state - just update buttons
+            if hasattr(self, '_query_change_timer'):
+                self.after_cancel(self._query_change_timer)
+            self._query_change_timer = self.after(100, self.update_action_buttons_state)
+        
+        # Track changes in query entry (doesn't mark file as edited)
         if hasattr(self, 'query_entry'):
-            self.query_entry.bind('<KeyRelease>', lambda e: on_change())
-            self.query_entry.bind('<Button-1>', lambda e: on_change())
+            self.query_entry.bind('<KeyRelease>', lambda e: on_query_change())
+            self.query_entry.bind('<Button-1>', lambda e: on_query_change())
         
         # Track changes in context section base rules
         if hasattr(self, 'context_section') and hasattr(self.context_section, 'base_rules_text'):
@@ -642,8 +649,8 @@ class PeacApp(ctk.CTk):
                       not self.current_file_path.startswith("Untitled-") and
                       os.path.exists(self.current_file_path))
         
-        # Buttons are enabled when file exists AND state is SYNCED
-        buttons_enabled = file_exists and self.file_state == "SYNCED"
+        # Buttons are enabled when file exists (no longer require SYNCED state)
+        buttons_enabled = file_exists
         
         if hasattr(self, 'preview_btn'):
             if buttons_enabled:
@@ -839,19 +846,39 @@ class PeacApp(ctk.CTk):
             print(f"Error opening file: {str(e)}")
             return False
     
-    def preview_prompt(self):
-        """Preview generated prompt"""
-        if self.file_state == "EDITED":
-            self.show_error_dialog("Preview Error", "Please save your changes first to preview the prompt.\n\nPreview requires the file to be saved to ensure proper path resolution for extends.")
-            return
+    def create_processor_with_current_query(self):
+        """Create a PromptYaml processor with the current query from the GUI"""
+        if not self.current_file_path or not os.path.exists(self.current_file_path):
+            return None
             
+        # Create processor from saved file
+        processor = PromptYaml(self.current_file_path)
+        
+        # Get current query from GUI
+        current_query = ""
+        if hasattr(self, 'query_entry'):
+            current_query = self.query_entry.get().strip()
+        
+        # Update the processor's parsed_data with current query
+        if 'prompt' not in processor.parsed_data:
+            processor.parsed_data['prompt'] = {}
+        processor.parsed_data['prompt']['query'] = current_query
+        
+        return processor
+
+    def preview_prompt(self):
+        """Preview generated prompt"""            
         if not self.current_file_path or not os.path.exists(self.current_file_path):
             self.show_error_dialog("Preview Error", "No file to preview. Please create or load a file first.")
             return
             
         try:
-            # Use the current saved file directly
-            processor = PromptYaml(self.current_file_path)
+            # Create processor with current query
+            processor = self.create_processor_with_current_query()
+            if not processor:
+                self.show_error_dialog("Preview Error", "Unable to create processor.")
+                return
+                
             result = processor.get_prompt_sentence()
             
             # Show preview window
@@ -862,18 +889,18 @@ class PeacApp(ctk.CTk):
             self.show_error_dialog("Preview Error", str(e))
     
     def copy_prompt(self):
-        """Copy generated prompt to clipboard"""
-        if self.file_state == "EDITED":
-            self.show_error_dialog("Copy Error", "Please save your changes first to copy the prompt.\n\nCopy requires the file to be saved to ensure proper path resolution for extends.")
-            return
-            
+        """Copy generated prompt to clipboard"""            
         if not self.current_file_path or not os.path.exists(self.current_file_path):
             self.show_error_dialog("Copy Error", "No file to copy. Please create or load a file first.")
             return
             
         try:
-            # Use the current saved file directly
-            processor = PromptYaml(self.current_file_path)
+            # Create processor with current query
+            processor = self.create_processor_with_current_query()
+            if not processor:
+                self.show_error_dialog("Copy Error", "Unable to create processor.")
+                return
+                
             result = processor.get_prompt_sentence()
             
             # Copy to clipboard

@@ -168,3 +168,6 @@ examples/tests
 
 yaml_tests/**
 !yaml_tests/.keep
+
+
+.vscode

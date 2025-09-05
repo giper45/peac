@@ -4,7 +4,6 @@ from typing import List
 from xml.etree import ElementTree
 import requests
 from bs4 import BeautifulSoup
-from lxml import html
 
 import markdown
 
@@ -163,25 +162,25 @@ def parse_input_string(input_string):
 
 
 
-class ChatClient:
-    def __init__(self):
-        # self.client = Client()
-        self.messages = []
-        self.client = Client(
-            # provider=RetryProvider([Phind, FreeChatgpt, Liaobots], shuffle=False)
-        )
-
-
-    def ask(self, question):
-        self.messages.append({"role": "user", "content": question})
-        response = self.client.chat.completions.create(
-            # model="",
-            model="gpt-3.5-turbo",
-            # model="claude-3-opus",
-            # provider="",
-            messages=self.messages,
-        )
-        return response.choices[0].message.content
+#class ChatClient:
+#    def __init__(self):
+#        # self.client = Client()
+#        self.messages = []
+#        self.client = Client(
+#            # provider=RetryProvider([Phind, FreeChatgpt, Liaobots], shuffle=False)
+#        )
+#
+#
+#    def ask(self, question):
+#        self.messages.append({"role": "user", "content": question})
+#        response = self.client.chat.completions.create(
+#            # model="",
+#            model="gpt-3.5-turbo",
+#            # model="claude-3-opus",
+#            # provider="",
+#            messages=self.messages,
+#        )
+#        return response.choices[0].message.content
 
 
 
@@ -279,6 +278,110 @@ class PromptYaml:
                 })
         return prompt_sections
 
+    def _find_elements_by_xpath(self, soup, xpath):
+        """
+        Convert basic XPath expressions to BeautifulSoup operations.
+        This is an enhanced conversion that handles more XPath patterns.
+        """
+        elements = []
+        
+        try:
+            # Handle some common XPath patterns
+            if xpath.startswith('//'):
+                # Remove leading //
+                xpath_remainder = xpath[2:]
+                
+                # Handle attribute extraction: //tag[@attr='value']/@attr_name
+                if '/@' in xpath_remainder:
+                    xpath_part, attr_name = xpath_remainder.rsplit('/@', 1)
+                    # Find elements first, then extract attribute
+                    temp_elements = self._parse_xpath_selector(soup, xpath_part)
+                    elements = []
+                    for elem in temp_elements:
+                        if hasattr(elem, 'get') and elem.get(attr_name):
+                            elements.append(elem.get(attr_name))
+                    return elements
+                
+                # Handle text content selection: //tag/text()
+                elif xpath_remainder.endswith('/text()'):
+                    xpath_part = xpath_remainder[:-7]  # Remove /text()
+                    temp_elements = self._parse_xpath_selector(soup, xpath_part)
+                    elements = [elem.get_text() for elem in temp_elements if hasattr(elem, 'get_text')]
+                    return elements
+                
+                # Regular element selection
+                else:
+                    elements = self._parse_xpath_selector(soup, xpath_remainder)
+            else:
+                # Relative XPath or other patterns
+                elements = self._parse_xpath_selector(soup, xpath)
+                    
+        except Exception as e:
+            print(f"Warning: Could not parse XPath '{xpath}': {e}")
+            # Fallback: return empty list
+            elements = []
+            
+        return elements
+
+    def _parse_xpath_selector(self, soup, xpath_part):
+        """Parse XPath selector part and return matching elements"""
+        elements = []
+        
+        # Simple tag selection: tag
+        if '/' not in xpath_part and '[' not in xpath_part:
+            elements = soup.find_all(xpath_part)
+        
+        # Contains function: tag[contains(@attr, 'value')]
+        elif 'contains(' in xpath_part:
+            # Extract tag and contains condition
+            if '[contains(' in xpath_part:
+                tag = xpath_part.split('[contains(')[0]
+                contains_part = xpath_part.split('[contains(')[1].rstrip(')]')
+                
+                # Parse contains(@attr, 'value')
+                if contains_part.startswith('@') and ', ' in contains_part:
+                    attr_part, value_part = contains_part.split(', ', 1)
+                    attr_name = attr_part[1:]  # Remove @
+                    search_value = value_part.strip("'\"")  # Remove quotes
+                    
+                    # Find all elements of this tag that have the attribute containing the value
+                    all_elements = soup.find_all(tag)
+                    for elem in all_elements:
+                        attr_value = elem.get(attr_name, '')
+                        if search_value in attr_value:
+                            elements.append(elem)
+        
+        # Class selection: tag[@class='classname'] 
+        elif "[@class='" in xpath_part and xpath_part.endswith("']"):
+            tag = xpath_part.split('[@class=')[0]
+            class_name = xpath_part.split("[@class='")[1].split("']")[0]
+            elements = soup.find_all(tag, class_=class_name)
+        
+        # ID selection: tag[@id='idname']
+        elif "[@id='" in xpath_part and xpath_part.endswith("']"):
+            tag = xpath_part.split('[@id=')[0]
+            id_name = xpath_part.split("[@id='")[1].split("']")[0]
+            elements = soup.find_all(tag, id=id_name)
+        
+        # General attribute selection: tag[@attr='value']
+        elif "[@" in xpath_part and "='" in xpath_part and xpath_part.endswith("']"):
+            tag = xpath_part.split('[@')[0]
+            attr_part = xpath_part.split('[@')[1][:-2]  # Remove ']
+            attr_name, attr_value = attr_part.split("='", 1)
+            attr_value = attr_value.rstrip("'")
+            
+            # Use a lambda function to match the exact attribute value
+            elements = soup.find_all(tag, attrs={attr_name: attr_value})
+        
+        else:
+            # For other complex patterns, try to find by tag name only
+            tag = xpath_part.split('/')[0].split('[')[0]
+            if tag:
+                elements = soup.find_all(tag)
+                print(f"Warning: Complex XPath pattern '{xpath_part}' simplified to tag '{tag}'. Full XPath support is limited.")
+        
+        return elements
+
     def get_web_rules(self, prompt_element) -> List[PromptSection]:
         prompt_sections : List[PromptSection] = []
         if 'prompt' in self.parsed_data and prompt_element in self.parsed_data['prompt']:
@@ -290,20 +393,21 @@ class PromptYaml:
                 xpath = rule['xpath'] if 'xpath' in rule else ''
                 source = rule['source']
                 html_content = get_text_from_url(source)
-                tree = html.fromstring(html_content)
+                soup = BeautifulSoup(html_content, 'html.parser')
                 # if preamble != '':
                 #     lines.insert(0, preamble)
 
-
                 if xpath != '':
-                #     soup = BeautifulSoup(html_content, 'html.parser')
-                #     print("XPATH")
-                    code_elements = tree.xpath(xpath)
-                    for c in code_elements:
-                        if isinstance(c, html.HtmlElement):
-                            lines.append(ElementTree.tostring(c, 'utf-8').decode('utf-8'))
+                    # Convert basic XPath expressions to BeautifulSoup navigation
+                    # Note: This is a simplified XPath to CSS conversion for common cases
+                    elements = self._find_elements_by_xpath(soup, xpath)
+                    for element in elements:
+                        if hasattr(element, 'get_text'):
+                            # If it's a BeautifulSoup element, get its HTML string
+                            lines.append(str(element))
                         else:
-                            lines.append(c)
+                            # If it's just text content
+                            lines.append(str(element))
                 else:
                     lines.append(html_content)
                 # Generate prompt section

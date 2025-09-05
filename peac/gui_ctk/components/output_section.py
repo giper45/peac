@@ -16,10 +16,20 @@ class RuleCard(ctk.CTkFrame):
         super().__init__(parent, **kwargs)
         
         self.on_delete = on_delete
+        self.change_callback = None
         self.create_widgets()
         
         if rule_data:
             self.load_rule_data(rule_data)
+    
+    def set_change_callback(self, callback):
+        """Set callback function to call when content changes"""
+        self.change_callback = callback
+    
+    def notify_change(self):
+        """Notify that content has changed"""
+        if self.change_callback:
+            self.change_callback()
     
     def create_widgets(self):
         """Create rule card widgets"""
@@ -64,6 +74,20 @@ class RuleCard(ctk.CTkFrame):
                 command=self.on_delete
             )
             delete_btn.grid(row=2, column=2, padx=10, pady=5)
+        
+        # Set up change tracking
+        self.setup_change_tracking()
+    
+    def setup_change_tracking(self):
+        """Set up change tracking for all input widgets"""
+        # Track changes in entry widgets
+        for widget in [self.name_entry, self.source_entry]:
+            widget.bind('<KeyRelease>', lambda e: self.notify_change())
+            widget.bind('<FocusOut>', lambda e: self.notify_change())
+        
+        # Track changes in text widget
+        self.preamble_text.bind('<KeyRelease>', lambda e: self.notify_change())
+        self.preamble_text.bind('<FocusOut>', lambda e: self.notify_change())
     
     def browse_source(self):
         """Browse for source file"""
@@ -94,6 +118,116 @@ class RuleCard(ctk.CTkFrame):
             
             self.source_entry.delete(0, "end")
             self.source_entry.insert(0, data.get('source', ''))
+
+
+class WebRuleCard(ctk.CTkFrame):
+    """Card component for web-specific output rules with XPath support"""
+    
+    def __init__(self, parent, rule_data=None, on_delete=None, **kwargs):
+        super().__init__(parent, **kwargs)
+        
+        self.on_delete = on_delete
+        self.change_callback = None
+        self.create_widgets()
+        
+        if rule_data:
+            self.load_rule_data(rule_data)
+    
+    def set_change_callback(self, callback):
+        """Set callback function to call when content changes"""
+        self.change_callback = callback
+    
+    def notify_change(self):
+        """Notify that content has changed"""
+        if self.change_callback:
+            self.change_callback()
+    
+    def create_widgets(self):
+        """Create web rule card widgets with XPath support"""
+        self.grid_columnconfigure(1, weight=1)
+        
+        # Name field
+        name_label = ctk.CTkLabel(self, text="Name:", width=80)
+        name_label.grid(row=0, column=0, padx=10, pady=(10, 5), sticky="w")
+        
+        self.name_entry = ctk.CTkEntry(self, placeholder_text="Rule name")
+        self.name_entry.grid(row=0, column=1, padx=(5, 10), pady=(10, 5), sticky="ew")
+        
+        # Preamble field
+        preamble_label = ctk.CTkLabel(self, text="Preamble:", width=80)
+        preamble_label.grid(row=1, column=0, padx=10, pady=5, sticky="nw")
+        
+        self.preamble_text = ctk.CTkTextbox(self, height=60)
+        self.preamble_text.grid(row=1, column=1, padx=(5, 10), pady=5, sticky="ew")
+        
+        # URL field
+        url_label = ctk.CTkLabel(self, text="URL:", width=80)
+        url_label.grid(row=2, column=0, padx=10, pady=5, sticky="w")
+        
+        self.source_entry = ctk.CTkEntry(self, placeholder_text="https://example.com")
+        self.source_entry.grid(row=2, column=1, padx=(5, 10), pady=5, sticky="ew")
+        
+        # XPath field
+        xpath_label = ctk.CTkLabel(self, text="XPath:", width=80)
+        xpath_label.grid(row=3, column=0, padx=10, pady=5, sticky="w")
+        
+        self.xpath_entry = ctk.CTkEntry(self, placeholder_text="//div[@class='content'] (optional)")
+        self.xpath_entry.grid(row=3, column=1, padx=(5, 10), pady=5, sticky="ew")
+        
+        # Delete button
+        if self.on_delete:
+            delete_btn = ctk.CTkButton(
+                self, 
+                text="🗑️", 
+                width=30, 
+                fg_color="red", 
+                hover_color="darkred",
+                command=self.on_delete
+            )
+            delete_btn.grid(row=3, column=2, padx=10, pady=5)
+        
+        # Set up change tracking
+        self.setup_change_tracking()
+    
+    def setup_change_tracking(self):
+        """Set up change tracking for all input widgets"""
+        # Track changes in entry widgets
+        for widget in [self.name_entry, self.source_entry, self.xpath_entry]:
+            widget.bind('<KeyRelease>', lambda e: self.notify_change())
+            widget.bind('<FocusOut>', lambda e: self.notify_change())
+        
+        # Track changes in text widget
+        self.preamble_text.bind('<KeyRelease>', lambda e: self.notify_change())
+        self.preamble_text.bind('<FocusOut>', lambda e: self.notify_change())
+    
+    def get_rule_data(self):
+        """Get rule data from inputs"""
+        data = {
+            'name': self.name_entry.get().strip(),
+            'preamble': self.preamble_text.get("1.0", "end-1c").strip(),
+            'source': self.source_entry.get().strip()
+        }
+        
+        xpath = self.xpath_entry.get().strip()
+        if xpath:
+            data['xpath'] = xpath
+            
+        return data
+    
+    def load_rule_data(self, data):
+        """Load rule data into inputs"""
+        if isinstance(data, dict):
+            self.name_entry.delete(0, "end")
+            self.name_entry.insert(0, data.get('name', ''))
+            
+            self.preamble_text.delete("1.0", "end")
+            self.preamble_text.insert("1.0", data.get('preamble', ''))
+            
+            self.source_entry.delete(0, "end")
+            self.source_entry.insert(0, data.get('source', ''))
+            
+            self.xpath_entry.delete(0, "end")
+            self.xpath_entry.insert(0, data.get('xpath', ''))
 
 
 class OutputSection(ctk.CTkFrame):
@@ -222,7 +356,7 @@ class OutputSection(ctk.CTkFrame):
         add_local_btn.grid(row=0, column=1, padx=15, pady=15)
         
         # Scrollable frame for rules
-        self.local_scroll = ctk.CTkScrollableFrame(self.local_tab)
+        self.local_scroll = ctk.CTkScrollableFrame(self.local_tab, height=400)
         self.local_scroll.grid(row=1, column=0, sticky="nsew", padx=10, pady=(5, 10))
         self.local_scroll.grid_columnconfigure(0, weight=1)
     
@@ -248,7 +382,7 @@ class OutputSection(ctk.CTkFrame):
         add_web_btn.grid(row=0, column=1, padx=15, pady=15)
         
         # Scrollable frame for rules
-        self.web_scroll = ctk.CTkScrollableFrame(self.web_tab)
+        self.web_scroll = ctk.CTkScrollableFrame(self.web_tab, height=400)
         self.web_scroll.grid(row=1, column=0, sticky="nsew", padx=10, pady=(5, 10))
         self.web_scroll.grid_columnconfigure(0, weight=1)
     
@@ -258,6 +392,7 @@ class OutputSection(ctk.CTkFrame):
             self.local_scroll,
             on_delete=lambda: self.delete_local_rule(rule_card)
         )
+        rule_card.set_change_callback(self.notify_change)
         rule_card.grid(row=len(self.local_rules), column=0, sticky="ew", padx=5, pady=5)
         self.local_rules.append(rule_card)
         
@@ -278,10 +413,11 @@ class OutputSection(ctk.CTkFrame):
     
     def add_web_rule(self):
         """Add a new web rule"""
-        rule_card = RuleCard(
+        rule_card = WebRuleCard(
             self.web_scroll,
             on_delete=lambda: self.delete_web_rule(rule_card)
         )
+        rule_card.set_change_callback(self.notify_change)
         rule_card.grid(row=len(self.web_rules), column=0, sticky="ew", padx=5, pady=5)
         self.web_rules.append(rule_card)
         
@@ -335,23 +471,14 @@ class OutputSection(ctk.CTkFrame):
         for rule_card in self.web_rules:
             rule_data = rule_card.get_rule_data()
             name = rule_data.get('name', '').strip()
-            if name and (rule_data.get('preamble') or rule_data.get('source')):
+            if name and (rule_data.get('preamble') or rule_data.get('source') or rule_data.get('xpath')):
                 rule_config = {}
                 if rule_data.get('source'):
                     rule_config['source'] = rule_data['source']
-                # For web rules, preamble could contain xpath or other web-specific config
                 if rule_data.get('preamble'):
-                    # Check if it looks like xpath
-                    preamble = rule_data['preamble'].strip()
-                    if preamble.startswith('//') or preamble.startswith('xpath:'):
-                        # Extract xpath value
-                        if preamble.startswith('xpath:'):
-                            xpath_value = preamble[6:].strip()
-                        else:
-                            xpath_value = preamble
-                        rule_config['xpath'] = xpath_value
-                    else:
-                        rule_config['preamble'] = preamble
+                    rule_config['preamble'] = rule_data['preamble']
+                if rule_data.get('xpath'):
+                    rule_config['xpath'] = rule_data['xpath']
                 web_dict[name] = rule_config
         
         if web_dict:
@@ -413,11 +540,12 @@ class OutputSection(ctk.CTkFrame):
             for name, rule_config in web_dict.items():
                 self.add_web_rule()
                 if self.web_rules:
-                    # Convert old format to new format
+                    # Convert old format to new format, preserving XPath field
                     rule_data = {
                         'name': name,
-                        'preamble': rule_config.get('preamble', rule_config.get('xpath', '')),  # xpath -> preamble
-                        'source': rule_config.get('source', '')
+                        'preamble': rule_config.get('preamble', ''),
+                        'source': rule_config.get('source', ''),
+                        'xpath': rule_config.get('xpath', '')
                     }
                     self.web_rules[-1].load_rule_data(rule_data)
         else:

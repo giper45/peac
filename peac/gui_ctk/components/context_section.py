@@ -353,7 +353,7 @@ class ContextSection(ctk.CTkFrame):
         self.web_tab_btn.grid(row=0, column=1, padx=(2.5, 5), pady=5, sticky="ew")
         
         # Rules content area
-        self.rules_content = ctk.CTkScrollableFrame(rules_container)
+        self.rules_content = ctk.CTkScrollableFrame(rules_container, height=400)
         self.rules_content.grid(row=1, column=0, sticky="nsew", padx=10, pady=(5, 10))
         self.rules_content.grid_columnconfigure(0, weight=1)
         
