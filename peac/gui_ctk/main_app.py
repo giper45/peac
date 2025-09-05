@@ -268,17 +268,27 @@ class PeacApp(ctk.CTk):
         # YAML section
         self.create_yaml_section()
         
-        # Context section
-        self.context_section = ContextSection(self.content_frame)
+        # Create scrollable frames for each section
+        # Context section scrollable wrapper
+        self.context_scroll = ctk.CTkScrollableFrame(self.content_frame)
+        self.context_scroll.grid_columnconfigure(0, weight=1)
+        self.context_section = ContextSection(self.context_scroll)
         self.context_section.set_change_callback(self.on_section_changed)
+        self.context_section.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
         
-        # Output section  
-        self.output_section = OutputSection(self.content_frame)
+        # Output section scrollable wrapper
+        self.output_scroll = ctk.CTkScrollableFrame(self.content_frame)
+        self.output_scroll.grid_columnconfigure(0, weight=1)
+        self.output_section = OutputSection(self.output_scroll)
         self.output_section.set_change_callback(self.on_section_changed)
+        self.output_section.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
         
-        # Extends section
-        self.extends_section = ExtendsSection(self.content_frame)
+        # Extends section scrollable wrapper
+        self.extends_scroll = ctk.CTkScrollableFrame(self.content_frame)
+        self.extends_scroll.grid_columnconfigure(0, weight=1)
+        self.extends_section = ExtendsSection(self.extends_scroll)
         self.extends_section.set_change_callback(self.on_section_changed)
+        self.extends_section.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
     
     def create_file_tab(self, file_path: str):
         """Create a file tab"""
@@ -594,7 +604,7 @@ class PeacApp(ctk.CTk):
         if hasattr(self, 'current_tab') and self.current_tab == "YAML":
             self.sync_yaml_to_gui_silent()
         self.hide_all_tabs()
-        self.context_section.grid(row=0, column=0, sticky="nsew")
+        self.context_scroll.grid(row=0, column=0, sticky="nsew")
         self.update_tab_appearance("Context")
     
     def show_output_tab(self):
@@ -603,7 +613,7 @@ class PeacApp(ctk.CTk):
         if hasattr(self, 'current_tab') and self.current_tab == "YAML":
             self.sync_yaml_to_gui_silent()
         self.hide_all_tabs()
-        self.output_section.grid(row=0, column=0, sticky="nsew")
+        self.output_scroll.grid(row=0, column=0, sticky="nsew")
         self.update_tab_appearance("Output")
     
     def show_extends_tab(self):
@@ -612,7 +622,7 @@ class PeacApp(ctk.CTk):
         if hasattr(self, 'current_tab') and self.current_tab == "YAML":
             self.sync_yaml_to_gui_silent()
         self.hide_all_tabs()
-        self.extends_section.grid(row=0, column=0, sticky="nsew")
+        self.extends_scroll.grid(row=0, column=0, sticky="nsew")
         self.update_tab_appearance("Extends")
     
     def hide_all_tabs(self):
