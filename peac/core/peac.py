@@ -65,11 +65,13 @@ class PromptSections:
     def get_lines(self):
         lines = []
         for p in self.prompt_sections:
-            if 'preamble'in p and p['preamble'] != None:
+            if 'preamble' in p and p['preamble'] != None and p['preamble'].strip() != '':
                 # Append the preamble to the first string in p['lines']
-                p['lines'][0] = f"{p['preamble']} - {p['lines'][0]}"
+                if p['lines'] and p['lines'][0] is not None:
+                    p['lines'][0] = f"{p['preamble']} - {p['lines'][0]}"
             lines.extend(p['lines'])
-        lines = [re.sub(r'\n+', '\n', l) for l in lines]
+        # Filter out None values and apply regex cleanup
+        lines = [re.sub(r'\n+', '\n', l) for l in lines if l is not None]
         return lines
 
 
@@ -273,7 +275,7 @@ class PromptYaml:
             rules = prompt_data.get('local', {})
             for name, rule in rules.items():
                 lines = []
-                preamble = rule['preamble'] if 'preamble' in rule else ''
+                preamble = rule.get('preamble', None)
                 # Apply filters
                 recursive = rule['recursive'] if 'recursive' in rule else False
                 extension = rule['extension'] if 'extension' in rule else '*'
@@ -282,7 +284,13 @@ class PromptYaml:
                 source = rule['source']
                 source, parent_path = find_path(source, self.parent_path)
                 file_content = local_parser.parse(source, recursive, extension, filter)
-                lines.append(file_content)
+                
+                # Ensure file_content is not None
+                if file_content is not None:
+                    lines.append(file_content)
+                else:
+                    lines.append(f"Error: Could not read file {source}")
+                    
                 prompt_sections.append({
                     'preamble': preamble,
                     'lines': lines

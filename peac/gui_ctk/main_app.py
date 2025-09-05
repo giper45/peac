@@ -2,6 +2,7 @@
 PEaC GUI - CustomTkinter Implementation
 Modern, responsive GUI for Prompt Engineering as Code
 """
+import traceback
 import customtkinter as ctk
 import os
 import sys
@@ -353,20 +354,28 @@ class PeacApp(ctk.CTk):
     def switch_to_file(self, file_path: str):
         """Switch to a different open file"""
         if file_path not in self.open_files:
+            debug_print(f"File not in open_files: {file_path}")
             return
             
+        debug_print(f"Switching to file: {file_path}")
+        
         # Save current file state
         if self.current_file_path and self.current_file_path in self.open_files:
+            debug_print(f"Saving current file state: {self.current_file_path}")
             self.save_current_file_state()
         
         # Switch to new file
+        old_file_path = self.current_file_path
         self.current_file_path = file_path
+        debug_print(f"Loading file state for: {file_path}")
         self.load_file_state(file_path)
         
         # Update UI
         self.update_file_tab_appearances()
         self.update_filename_display()
         self.update_action_buttons_state()
+        
+        debug_print(f"Successfully switched from {old_file_path} to {file_path}")
     
     def close_file_tab(self, file_path: str):
         """Close a file tab"""
@@ -442,14 +451,18 @@ class PeacApp(ctk.CTk):
     def load_file_state(self, file_path: str):
         """Load file state into the GUI"""
         if file_path not in self.open_files:
+            debug_print(f"load_file_state: File not found in open_files: {file_path}")
             return
             
         file_data = self.open_files[file_path]
+        debug_print(f"load_file_state: Loading data for {file_path}")
         
         # Load data
         self.yaml_data = file_data.get('yaml_data', {})
         self.file_state = file_data.get('state', 'SYNCED')
         self.original_data = file_data.get('original_data', {})
+        
+        debug_print(f"load_file_state: yaml_data keys: {list(self.yaml_data.keys())}")
         
         # Update current file path in sections
         self.context_section.set_current_file_path(file_path)
@@ -457,6 +470,8 @@ class PeacApp(ctk.CTk):
         
         # Update UI
         gui_data = file_data.get('gui_data', {})
+        debug_print(f"load_file_state: Using {'gui_data' if gui_data else 'yaml_data'} to update UI")
+        
         if gui_data:
             self.update_ui_from_data_dict(gui_data)
         else:
@@ -469,6 +484,8 @@ class PeacApp(ctk.CTk):
             self.yaml_text.delete("1.0", "end")
             self.yaml_text.insert("1.0", yaml_content)
             self.disable_yaml_textbox()
+            
+        debug_print(f"load_file_state: Completed loading {file_path}")
     
     def update_ui_from_data_dict(self, data: dict):
         """Update UI from data dictionary"""
@@ -926,16 +943,28 @@ class PeacApp(ctk.CTk):
                 return
                 
             result = processor.get_prompt_sentence()
-            
+
             # Show preview window
             self.show_preview_window(result)
         except FileNotFoundError as e:
             self.show_error_dialog("Preview Error", f"Extends file not found: {str(e)}\n\nPlease check your extends paths and ensure all referenced files exist.")
         except Exception as e:
-            self.show_error_dialog("Preview Error", str(e))
+            full_trace = ''.join(traceback.format_exception(type(e), e, e.__traceback__))
+            print("Traceback (FileNotFoundError):\n", full_trace)
+
+            tb = traceback.extract_tb(e.__traceback__)[-1]
+            self.show_error_dialog(
+                "Preview Error",
+                f"Extends file not found: {str(e)}\n\n"
+                "Please check your extends paths and ensure all referenced files exist.\n"
+                f"Module: {tb.filename}\nLine: {tb.lineno}"
+            )
+
+
     
     def copy_prompt(self):
-        """Copy generated prompt to clipboard"""            
+        """Copy generated prompt to clipboard"""           
+
         if not self.current_file_path or not os.path.exists(self.current_file_path):
             self.show_error_dialog("Copy Error", "No file to copy. Please create or load a file first.")
             return
@@ -1115,8 +1144,10 @@ class PeacApp(ctk.CTk):
     def update_ui_from_data(self):
         """Update UI with loaded data"""
         # Update each section
+        yaml_data = {}
         if 'prompt' in self.yaml_data:
             yaml_data = self.yaml_data['prompt']
+            
         self.context_section.load_data(yaml_data.get('context', {}))
         self.output_section.load_data(yaml_data.get('output', {}))
         self.extends_section.load_data(yaml_data.get('extends', []))
