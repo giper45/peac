@@ -8,8 +8,11 @@ from typing import Dict, List, Any
 import threading
 import os
 
+# Import shared rule components
+from .shared_rule_components import LocalRuleCard, WebRuleCard
 
-class RuleCard(ctk.CTkFrame):
+
+class OutputSection(ctk.CTkFrame):
     """Card component for individual output rules"""
     
     def __init__(self, parent, rule_data=None, on_delete=None, **kwargs):
@@ -388,9 +391,9 @@ class OutputSection(ctk.CTkFrame):
     
     def add_local_rule(self):
         """Add a new local rule"""
-        rule_card = RuleCard(
+        rule_card = LocalRuleCard(
             self.local_scroll,
-            on_delete=lambda: self.delete_local_rule(rule_card)
+            on_delete=lambda card: self.delete_local_rule(card)
         )
         rule_card.set_change_callback(self.notify_change)
         rule_card.grid(row=len(self.local_rules), column=0, sticky="ew", padx=5, pady=5)
@@ -453,15 +456,11 @@ class OutputSection(ctk.CTkFrame):
         # Local rules - convert to original PEaC format (dict with rule names as keys)
         local_dict = {}
         for rule_card in self.local_rules:
-            rule_data = rule_card.get_rule_data()
-            name = rule_data.get('name', '').strip()
-            if name and (rule_data.get('preamble') or rule_data.get('source')):
-                rule_config = {}
-                if rule_data.get('preamble'):
-                    rule_config['preamble'] = rule_data['preamble']
-                if rule_data.get('source'):
-                    rule_config['source'] = rule_data['source']
-                local_dict[name] = rule_config
+            result = rule_card.get_data()
+            if result:
+                name, rule_config = result
+                if name and (rule_config.get('preamble') or rule_config.get('source')):
+                    local_dict[name] = rule_config
         
         if local_dict:
             data['local'] = local_dict
@@ -469,17 +468,11 @@ class OutputSection(ctk.CTkFrame):
         # Web rules - convert to original PEaC format (dict with rule names as keys)
         web_dict = {}
         for rule_card in self.web_rules:
-            rule_data = rule_card.get_rule_data()
-            name = rule_data.get('name', '').strip()
-            if name and (rule_data.get('preamble') or rule_data.get('source') or rule_data.get('xpath')):
-                rule_config = {}
-                if rule_data.get('source'):
-                    rule_config['source'] = rule_data['source']
-                if rule_data.get('preamble'):
-                    rule_config['preamble'] = rule_data['preamble']
-                if rule_data.get('xpath'):
-                    rule_config['xpath'] = rule_data['xpath']
-                web_dict[name] = rule_config
+            result = rule_card.get_data()
+            if result:
+                name, rule_config = result
+                if name and (rule_config.get('preamble') or rule_config.get('source') or rule_config.get('xpath')):
+                    web_dict[name] = rule_config
         
         if web_dict:
             data['web'] = web_dict
@@ -517,13 +510,8 @@ class OutputSection(ctk.CTkFrame):
             for name, rule_config in local_dict.items():
                 self.add_local_rule()
                 if self.local_rules:
-                    # Convert old format to new format
-                    rule_data = {
-                        'name': name,
-                        'preamble': rule_config.get('preamble', ''),
-                        'source': rule_config.get('source', '')
-                    }
-                    self.local_rules[-1].load_rule_data(rule_data)
+                    # Load data using the shared component's method
+                    self.local_rules[-1].load_data(name, rule_config)
         else:
             # New format: local_rules as a list
             if isinstance(local_rules, list):
@@ -540,14 +528,8 @@ class OutputSection(ctk.CTkFrame):
             for name, rule_config in web_dict.items():
                 self.add_web_rule()
                 if self.web_rules:
-                    # Convert old format to new format, preserving XPath field
-                    rule_data = {
-                        'name': name,
-                        'preamble': rule_config.get('preamble', ''),
-                        'source': rule_config.get('source', ''),
-                        'xpath': rule_config.get('xpath', '')
-                    }
-                    self.web_rules[-1].load_rule_data(rule_data)
+                    # Load data using the shared component's method
+                    self.web_rules[-1].load_data(name, rule_config)
         else:
             # New format: web_rules as a list
             if isinstance(web_rules, list):
