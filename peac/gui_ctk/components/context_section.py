@@ -24,14 +24,46 @@ class ContextSection(ctk.CTkFrame):
         self.local_rules = []
         self.web_rules = []
         
-        # Initialize change callback
+        # Initialize change callback and current file path
         self.change_callback = None
+        self.current_file_path = None
         
         # Create widgets
         self.create_widgets()
         
         # Set up change tracking
         self.setup_change_tracking()
+    
+    def set_current_file_path(self, current_file_path: str):
+        """Set the current file path for relative path calculations"""
+        self.current_file_path = current_file_path
+        
+        # Update all existing local rule cards
+        for card in self.local_rules:
+            card.update_current_file_path(current_file_path)
+    
+    def generate_default_rule_name(self, rule_type="local"):
+        """Generate a default rule name based on existing rules"""
+        if rule_type == "local":
+            existing_names = []
+            for card in self.local_rules:
+                name = card.name_entry.get().strip()
+                if name:
+                    existing_names.append(name)
+        else:  # web
+            existing_names = []
+            for card in self.web_rules:
+                name = card.name_entry.get().strip()
+                if name:
+                    existing_names.append(name)
+        
+        # Find the next available rule number
+        base_name = f"{rule_type}-rule"
+        counter = 1
+        while f"{base_name}-{counter}" in existing_names:
+            counter += 1
+        
+        return f"{base_name}-{counter}"
     
     def set_change_callback(self, callback):
         """Set callback function to call when content changes"""
@@ -197,7 +229,13 @@ class ContextSection(ctk.CTkFrame):
     
     def add_local_rule(self):
         """Add new local rule"""
-        card = LocalRuleCard(self.rules_content, on_delete=self.remove_rule_card)
+        default_name = self.generate_default_rule_name("local")
+        card = LocalRuleCard(
+            self.rules_content, 
+            on_delete=self.remove_rule_card, 
+            default_name=default_name,
+            current_file_path=self.current_file_path
+        )
         card.set_change_callback(self.notify_change)
         self.local_rules.append(card)
         self.refresh_rules_display()
@@ -207,7 +245,8 @@ class ContextSection(ctk.CTkFrame):
     
     def add_web_rule(self):
         """Add new web rule"""
-        card = WebRuleCard(self.rules_content, on_delete=self.remove_rule_card)
+        default_name = self.generate_default_rule_name("web")
+        card = WebRuleCard(self.rules_content, on_delete=self.remove_rule_card, default_name=default_name)
         card.set_change_callback(self.notify_change)
         self.web_rules.append(card)
         self.refresh_rules_display()
@@ -234,6 +273,25 @@ class ContextSection(ctk.CTkFrame):
     
     def get_data(self) -> dict:
         """Get all context data"""
+        # First validate all rules
+        validation_errors = []
+        
+        # Validate local rules
+        for i, card in enumerate(self.local_rules):
+            is_valid, error_msg = card.validate()
+            if not is_valid:
+                validation_errors.append(f"Local rule {i+1}: {error_msg}")
+        
+        # Validate web rules
+        for i, card in enumerate(self.web_rules):
+            is_valid, error_msg = card.validate()
+            if not is_valid:
+                validation_errors.append(f"Web rule {i+1}: {error_msg}")
+        
+        # Return validation errors if any (don't show dialog)
+        if validation_errors:
+            return {"_validation_errors": validation_errors}
+        
         data = {}
         
         # Base rules
@@ -289,7 +347,11 @@ class ContextSection(ctk.CTkFrame):
         # Local rules
         local_rules = data.get('local', {})
         for name, rule_config in local_rules.items():
-            card = LocalRuleCard(self.rules_content, on_delete=self.remove_rule_card)
+            card = LocalRuleCard(
+                self.rules_content, 
+                on_delete=self.remove_rule_card,
+                current_file_path=self.current_file_path
+            )
             card.set_change_callback(self.notify_change)
             card.load_data(name, rule_config)
             self.local_rules.append(card)

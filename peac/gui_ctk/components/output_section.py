@@ -247,14 +247,24 @@ class OutputSection(ctk.CTkFrame):
         self.local_rules = []
         self.web_rules = []
         
-        # Initialize change callback
+        # Initialize change callback and current file path
         self.change_callback = None
+        self.current_file_path = None
         
         # Create widgets
         self.create_widgets()
         
         # Set up change tracking
         self.setup_change_tracking()
+    
+    def set_current_file_path(self, current_file_path: str):
+        """Set the current file path for relative path calculations"""
+        self.current_file_path = current_file_path
+        
+        # Update all existing local rule cards
+        for card in self.local_rules:
+            if hasattr(card, 'update_current_file_path'):
+                card.update_current_file_path(current_file_path)
     
     def set_change_callback(self, callback):
         """Set callback function to call when content changes"""
@@ -274,6 +284,29 @@ class OutputSection(ctk.CTkFrame):
         if hasattr(self, 'base_rules_text'):
             self.base_rules_text.bind('<KeyRelease>', lambda e: on_change())
             self.base_rules_text.bind('<Button-1>', lambda e: self.after(10, on_change))
+    
+    def generate_default_rule_name(self, rule_type="local"):
+        """Generate a default rule name based on existing rules"""
+        if rule_type == "local":
+            existing_names = []
+            for card in self.local_rules:
+                name = card.name_entry.get().strip()
+                if name:
+                    existing_names.append(name)
+        else:  # web
+            existing_names = []
+            for card in self.web_rules:
+                name = card.name_entry.get().strip()
+                if name:
+                    existing_names.append(name)
+        
+        # Find the next available rule number
+        base_name = f"{rule_type}-rule"
+        counter = 1
+        while f"{base_name}-{counter}" in existing_names:
+            counter += 1
+        
+        return f"{base_name}-{counter}"
     
     def create_widgets(self):
         """Create output section widgets"""
@@ -391,9 +424,12 @@ class OutputSection(ctk.CTkFrame):
     
     def add_local_rule(self):
         """Add a new local rule"""
+        default_name = self.generate_default_rule_name("local")
         rule_card = LocalRuleCard(
             self.local_scroll,
-            on_delete=lambda card: self.delete_local_rule(card)
+            on_delete=lambda card: self.delete_local_rule(card),
+            default_name=default_name,
+            current_file_path=self.current_file_path
         )
         rule_card.set_change_callback(self.notify_change)
         rule_card.grid(row=len(self.local_rules), column=0, sticky="ew", padx=5, pady=5)
@@ -416,9 +452,11 @@ class OutputSection(ctk.CTkFrame):
     
     def add_web_rule(self):
         """Add a new web rule"""
+        default_name = self.generate_default_rule_name("web")
         rule_card = WebRuleCard(
             self.web_scroll,
-            on_delete=lambda: self.delete_web_rule(rule_card)
+            on_delete=lambda: self.delete_web_rule(rule_card),
+            default_name=default_name
         )
         rule_card.set_change_callback(self.notify_change)
         rule_card.grid(row=len(self.web_rules), column=0, sticky="ew", padx=5, pady=5)
@@ -441,6 +479,25 @@ class OutputSection(ctk.CTkFrame):
     
     def get_data(self) -> dict:
         """Get output configuration data in original PEaC format"""
+        # First validate all rules
+        validation_errors = []
+        
+        # Validate local rules
+        for i, card in enumerate(self.local_rules):
+            is_valid, error_msg = card.validate()
+            if not is_valid:
+                validation_errors.append(f"Local rule {i+1}: {error_msg}")
+        
+        # Validate web rules
+        for i, card in enumerate(self.web_rules):
+            is_valid, error_msg = card.validate()
+            if not is_valid:
+                validation_errors.append(f"Web rule {i+1}: {error_msg}")
+        
+        # Return validation errors if any (don't show dialog)
+        if validation_errors:
+            return {"_validation_errors": validation_errors}
+        
         data = {}
         
         # Base rules - in original format this could be 'base' as a list

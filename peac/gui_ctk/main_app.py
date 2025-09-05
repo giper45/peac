@@ -91,6 +91,7 @@ class PeacApp(ctk.CTk):
             command=self.save_file
         )
         save_btn.grid(row=0, column=2, padx=5)
+        self.save_btn = save_btn  # Store reference for enable/disable
         
         # Center filename display
         self.filename_label = ctk.CTkLabel(
@@ -195,6 +196,20 @@ class PeacApp(ctk.CTk):
         """Hide the status message"""
         self.status_frame.grid_remove()
         self.status_label.configure(text="")
+    
+    def set_status(self, message: str, status_type: str = "normal"):
+        """Set status message with different types"""
+        if message:
+            if status_type == "error":
+                self.status_label.configure(text=message, text_color="red")
+            elif status_type == "success":
+                self.status_label.configure(text=message, text_color="green")
+            else:
+                self.status_label.configure(text=message, text_color=("gray50", "gray60"))
+            self.status_frame.grid()  # Show the status bar
+        else:
+            self.status_frame.grid_remove()
+            self.status_label.configure(text="")
     
     def create_query_field(self, parent):
         """Create the query input field above the tabs"""
@@ -436,6 +451,10 @@ class PeacApp(ctk.CTk):
         self.file_state = file_data.get('state', 'SYNCED')
         self.original_data = file_data.get('original_data', {})
         
+        # Update current file path in sections
+        self.context_section.set_current_file_path(file_path)
+        self.output_section.set_current_file_path(file_path)
+        
         # Update UI
         gui_data = file_data.get('gui_data', {})
         if gui_data:
@@ -526,6 +545,8 @@ class PeacApp(ctk.CTk):
         try:
             import yaml
             data = self.collect_data()
+            if data is None:  # Validation failed
+                return  # Don't sync if validation failed
             
             # Wrap in PEaC format structure
             peac_data = {
@@ -589,6 +610,16 @@ class PeacApp(ctk.CTk):
         if hasattr(self, '_change_timer'):
             self.after_cancel(self._change_timer)
         self._change_timer = self.after(300, self.check_for_changes)  # 300ms delay
+        
+        # Also debounce validation check
+        if hasattr(self, '_validation_timer'):
+            self.after_cancel(self._validation_timer)
+        self._validation_timer = self.after(500, self.check_validation)  # 500ms delay for validation
+    
+    def check_validation(self):
+        """Check validation and update UI accordingly"""
+        # Collect data to trigger validation
+        self.collect_data()
     
     def show_yaml_tab(self):
         """Show YAML tab"""
@@ -819,6 +850,11 @@ class PeacApp(ctk.CTk):
                 self.rename_file_in_multi_file_system(old_file_path, file_path)
             
             self.current_file_path = file_path
+            
+            # Update current file path in sections
+            self.context_section.set_current_file_path(file_path)
+            self.output_section.set_current_file_path(file_path)
+            
             self.update_filename_display()
             self.update_action_buttons_state()
     
@@ -927,14 +963,19 @@ class PeacApp(ctk.CTk):
     def collect_data(self) -> dict:
         """Collect data from all sections"""
         data = {}
+        all_validation_errors = []
         
         # Collect from each section
         context_data = self.context_section.get_data()
-        if context_data:
+        if context_data and "_validation_errors" in context_data:
+            all_validation_errors.extend([f"Context - {err}" for err in context_data["_validation_errors"]])
+        elif context_data:
             data['context'] = context_data
         
         output_data = self.output_section.get_data()
-        if output_data:
+        if output_data and "_validation_errors" in output_data:
+            all_validation_errors.extend([f"Output - {err}" for err in output_data["_validation_errors"]])
+        elif output_data:
             data['output'] = output_data
         
         extends_data = self.extends_section.get_data()
@@ -945,6 +986,21 @@ class PeacApp(ctk.CTk):
         query_text = self.query_entry.get().strip()
         if query_text:
             data['query'] = query_text
+        
+        # Handle validation errors
+        if all_validation_errors:
+            # Update status bar with validation errors
+            error_message = "⚠️ Validation errors: " + "; ".join(all_validation_errors)
+            self.set_status(error_message, "error")
+            # Disable save button
+            self.save_btn.configure(state="disabled")
+            return {"_validation_errors": all_validation_errors}
+        else:
+            # Enable save button if no errors
+            self.save_btn.configure(state="normal")
+            # Clear any previous error status
+            if hasattr(self, 'status_label') and "⚠️" in self.status_label.cget("text"):
+                self.set_status("", "normal")
         
         return data
 
@@ -976,6 +1032,10 @@ class PeacApp(ctk.CTk):
             # Switch to this file
             self.current_file_path = file_path
             self.yaml_data = yaml_data
+            
+            # Update current file path in sections
+            self.context_section.set_current_file_path(file_path)
+            self.output_section.set_current_file_path(file_path)
             
             # Create tab if requested
             if create_tab:
@@ -1009,6 +1069,10 @@ class PeacApp(ctk.CTk):
             
             # Always collect data from GUI sections
             data = self.collect_data()
+            if data is None:  # Validation failed
+                return False  # Don't save if validation failed
+            if "_validation_errors" in data:  # New validation error format
+                return False  # Don't save if validation failed
             
             # Wrap in PEaC format structure
             peac_data = {
@@ -1043,8 +1107,10 @@ class PeacApp(ctk.CTk):
             self.save_last_file(file_path)
             self.update_filename_display()
             self.show_status_message(f"✓ Saved to {os.path.basename(file_path)}")
+            return True
         except Exception as e:
             self.show_error_dialog("Save Error", f"Failed to save file: {e}")
+            return False
     
     def update_ui_from_data(self):
         """Update UI with loaded data"""
@@ -1100,11 +1166,52 @@ class PeacApp(ctk.CTk):
         preview_window.geometry("800x600")
         preview_window.transient(self)
         
+        # Button frame
+        button_frame = ctk.CTkFrame(preview_window, height=50)
+        button_frame.pack(fill="x", padx=20, pady=(20, 10))
+        
+        # Copy to clipboard button
+        copy_btn = ctk.CTkButton(
+            button_frame,
+            text="📋 Copy to Clipboard",
+            command=lambda: self.copy_to_clipboard(content, preview_window)
+        )
+        copy_btn.pack(side="right", padx=10, pady=10)
+        
         # Text area
         text_area = ctk.CTkTextbox(preview_window)
-        text_area.pack(fill="both", expand=True, padx=20, pady=20)
+        text_area.pack(fill="both", expand=True, padx=20, pady=(0, 20))
         text_area.insert("1.0", content)
         text_area.configure(state="disabled")
+    
+    def copy_to_clipboard(self, content: str, parent_window=None):
+        """Copy content to clipboard"""
+        try:
+            self.clipboard_clear()
+            self.clipboard_append(content)
+            # Show success message
+            if parent_window:
+                self.show_temp_message(parent_window, "✓ Copied to clipboard!")
+            else:
+                self.set_status("✓ Copied to clipboard!", "success")
+                self.after(2000, lambda: self.set_status("", "normal"))  # Clear after 2 seconds
+        except Exception as e:
+            if parent_window:
+                self.show_temp_message(parent_window, f"❌ Failed to copy: {e}", "error")
+            else:
+                self.set_status(f"❌ Failed to copy: {e}", "error")
+    
+    def show_temp_message(self, parent_window, message: str, msg_type: str = "success"):
+        """Show temporary message in a window"""
+        msg_label = ctk.CTkLabel(
+            parent_window,
+            text=message,
+            text_color="green" if msg_type == "success" else "red"
+        )
+        msg_label.pack(pady=5)
+        
+        # Remove the message after 2 seconds
+        parent_window.after(2000, msg_label.destroy)
     
     def show_error_dialog(self, title: str, message: str):
         """Show error dialog"""

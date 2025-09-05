@@ -7,21 +7,84 @@ import customtkinter as ctk
 from tkinter import filedialog, messagebox
 from typing import Dict, List, Any, Optional, Callable
 import os
+import posixpath
+
+
+def to_posix_path(path: str) -> str:
+    """Convert Windows path to POSIX-like path"""
+    return path.replace('\\', '/')
+
+
+def get_relative_posix_path(target_path: str, base_file_path: str) -> str:
+    """Get relative path in POSIX format from base file to target file"""
+    if not base_file_path or base_file_path.startswith("Untitled-"):
+        # If no base file or it's untitled, return the target as-is
+        return to_posix_path(target_path)
+    
+    try:
+        # Get directory of the base file
+        base_dir = os.path.dirname(os.path.abspath(base_file_path))
+        target_abs = os.path.abspath(target_path)
+        
+        # Calculate relative path
+        rel_path = os.path.relpath(target_abs, base_dir)
+        
+        # Convert to POSIX format and handle current directory
+        posix_path = to_posix_path(rel_path)
+        
+        # Add ./ prefix for files in same directory
+        if not posix_path.startswith('.') and '/' not in posix_path:
+            posix_path = './' + posix_path
+            
+        return posix_path
+    except (ValueError, OSError):
+        # Fallback to absolute path in POSIX format if relative path fails
+        return to_posix_path(os.path.abspath(target_path))
+
+
+def resolve_path_from_yaml(yaml_path: str, yaml_file_path: str) -> str:
+    """Resolve a path from YAML file to absolute path"""
+    if not yaml_file_path or yaml_file_path.startswith("Untitled-"):
+        return yaml_path
+    
+    try:
+        # If the yaml_path is already absolute, return as-is
+        if os.path.isabs(yaml_path) or (len(yaml_path) > 1 and yaml_path[1:3] == ':/'):
+            return yaml_path
+            
+        # Convert POSIX-like relative path to OS path
+        os_path = yaml_path.replace('/', os.sep)
+        
+        # Get directory of the YAML file
+        yaml_dir = os.path.dirname(os.path.abspath(yaml_file_path))
+        
+        # Resolve relative path relative to YAML file directory
+        resolved_path = os.path.normpath(os.path.join(yaml_dir, os_path))
+        
+        return resolved_path
+    except (ValueError, OSError):
+        return yaml_path
 
 
 class LocalRuleCard(ctk.CTkFrame):
     """Card component for local rules with full feature support"""
     
-    def __init__(self, parent, rule_data=None, on_delete=None, **kwargs):
+    def __init__(self, parent, rule_data=None, on_delete=None, default_name=None, current_file_path=None, **kwargs):
         super().__init__(parent, **kwargs)
         self.on_delete = on_delete
         self.change_callback = None
+        self.current_file_path = current_file_path  # Reference to current YAML file
         
         # Configure grid
         self.grid_columnconfigure(1, weight=1)
         
         # Create widgets
         self.create_widgets()
+        
+        # Set default name if provided
+        if default_name:
+            self.name_entry.delete(0, "end")
+            self.name_entry.insert(0, default_name)
         
         if rule_data:
             self.load_data(rule_data)
@@ -77,7 +140,7 @@ class LocalRuleCard(ctk.CTkFrame):
         source_frame.grid(row=row, column=1, columnspan=2, sticky="ew", padx=(5, 10), pady=5)
         source_frame.grid_columnconfigure(0, weight=1)
         
-        self.source_entry = ctk.CTkEntry(source_frame, placeholder_text="Path to file or folder")
+        self.source_entry = ctk.CTkEntry(source_frame, placeholder_text="Path to file or folder", state="readonly")
         self.source_entry.grid(row=0, column=0, sticky="ew", padx=(0, 5))
         
         browse_btn = ctk.CTkButton(
@@ -93,7 +156,7 @@ class LocalRuleCard(ctk.CTkFrame):
         # Options row
         options_frame = ctk.CTkFrame(self, fg_color="transparent")
         options_frame.grid(row=row, column=0, columnspan=3, sticky="ew", padx=10, pady=5)
-        options_frame.grid_columnconfigure((1, 2), weight=1)
+        options_frame.grid_columnconfigure((2, 3), weight=1)
         
         # Recursive checkbox
         self.recursive_var = ctk.BooleanVar()
@@ -104,15 +167,25 @@ class LocalRuleCard(ctk.CTkFrame):
         )
         recursive_cb.grid(row=0, column=0, sticky="w", padx=(0, 10))
         
+        # Absolute path checkbox
+        self.absolute_path_var = ctk.BooleanVar()
+        absolute_cb = ctk.CTkCheckBox(
+            options_frame, 
+            text="Absolute path", 
+            variable=self.absolute_path_var,
+            command=self.on_path_type_changed
+        )
+        absolute_cb.grid(row=0, column=1, sticky="w", padx=(0, 10))
+        
         # Extension filter
         ext_label = ctk.CTkLabel(options_frame, text="Extensions:")
-        ext_label.grid(row=0, column=1, sticky="w", padx=(0, 5))
+        ext_label.grid(row=0, column=2, sticky="w", padx=(0, 5))
         
         self.extension_entry = ctk.CTkEntry(
             options_frame, 
             placeholder_text="*.py, *.txt, etc."
         )
-        self.extension_entry.grid(row=0, column=2, sticky="ew", padx=5)
+        self.extension_entry.grid(row=0, column=3, sticky="ew", padx=5)
         
         # Filter pattern
         filter_label = ctk.CTkLabel(options_frame, text="Filter:")
@@ -138,8 +211,47 @@ class LocalRuleCard(ctk.CTkFrame):
         self.preamble_text.bind('<KeyRelease>', lambda e: self.notify_change())
         self.preamble_text.bind('<FocusOut>', lambda e: self.notify_change())
         
-        # Track changes in checkbox
+        # Track changes in checkboxes
         self.recursive_var.trace('w', lambda *args: self.notify_change())
+        self.absolute_path_var.trace('w', lambda *args: self.notify_change())
+    
+    def on_path_type_changed(self):
+        """Called when absolute path checkbox is toggled"""
+        # Convert current path if there is one
+        current_path = self.source_entry.get().strip()
+        if current_path:
+            if self.absolute_path_var.get():
+                # Convert to absolute path in POSIX format
+                # First, resolve the current path relative to the YAML file if it's relative
+                if not os.path.isabs(current_path) and self.current_file_path:
+                    base_dir = os.path.dirname(os.path.abspath(self.current_file_path))
+                    # Convert POSIX path back to local format for resolution
+                    local_path = current_path.replace('/', os.sep)
+                    resolved_path = os.path.join(base_dir, local_path)
+                    abs_path = to_posix_path(os.path.abspath(resolved_path))
+                else:
+                    abs_path = to_posix_path(os.path.abspath(current_path))
+                
+                self.source_entry.configure(state="normal")
+                self.source_entry.delete(0, "end")
+                self.source_entry.insert(0, abs_path)
+                self.source_entry.configure(state="readonly")
+            else:
+                # Convert to relative path in POSIX format
+                # First resolve to absolute if it's relative
+                if not os.path.isabs(current_path) and self.current_file_path:
+                    base_dir = os.path.dirname(os.path.abspath(self.current_file_path))
+                    local_path = current_path.replace('/', os.sep)
+                    abs_path = os.path.join(base_dir, local_path)
+                else:
+                    abs_path = current_path.replace('/', os.sep)
+                
+                rel_path = get_relative_posix_path(abs_path, self.current_file_path)
+                self.source_entry.configure(state="normal")
+                self.source_entry.delete(0, "end")
+                self.source_entry.insert(0, rel_path)
+                self.source_entry.configure(state="readonly")
+        self.notify_change()
     
     def browse_source(self):
         """Browse for source file/folder"""
@@ -173,18 +285,42 @@ class LocalRuleCard(ctk.CTkFrame):
         if result["choice"] == "file":
             file_path = filedialog.askopenfilename(title="Select Source File")
             if file_path:
-                self.source_entry.delete(0, "end")
-                self.source_entry.insert(0, file_path)
+                self._set_source_path(file_path)
         elif result["choice"] == "folder":
             folder_path = filedialog.askdirectory(title="Select Source Folder")
             if folder_path:
-                self.source_entry.delete(0, "end")
-                self.source_entry.insert(0, folder_path)
+                self._set_source_path(folder_path)
+    
+    def _set_source_path(self, path: str):
+        """Set source path handling relative/absolute conversion"""
+        if self.absolute_path_var.get():
+            # Use absolute path in POSIX format
+            final_path = to_posix_path(os.path.abspath(path))
+        else:
+            # Use relative path in POSIX format, relative to current YAML file
+            final_path = get_relative_posix_path(path, self.current_file_path)
+        
+        # Update the entry (temporarily enable it)
+        self.source_entry.configure(state="normal")
+        self.source_entry.delete(0, "end")
+        self.source_entry.insert(0, final_path)
+        self.source_entry.configure(state="readonly")
+        
+        self.notify_change()
     
     def remove_self(self):
         """Remove this rule card"""
         if self.on_delete:
             self.on_delete(self)
+    
+    def validate(self) -> tuple:
+        """Validate rule data without showing error dialogs"""
+        name = self.name_entry.get().strip()
+        
+        if not name:
+            return False, "Rule name cannot be empty"
+        
+        return True, ""
     
     def get_data(self) -> tuple:
         """Get rule data from inputs"""
@@ -223,8 +359,35 @@ class LocalRuleCard(ctk.CTkFrame):
         self.preamble_text.insert("1.0", preamble)
         
         source = rule_data.get('source', '')
-        self.source_entry.delete(0, "end")
-        self.source_entry.insert(0, source)
+        if source:
+            # Resolve path from YAML context if it's relative
+            if self.current_file_path and not (source.startswith('/') or 
+                                             (len(source) > 1 and source[1:3] == ':/') or
+                                             source.startswith('\\\\')):
+                # It's a relative path, resolve it from YAML file location
+                resolved_path = resolve_path_from_yaml(source, self.current_file_path)
+                
+                # Now determine the display path based on absolute path checkbox
+                if self.absolute_path_var.get():
+                    display_path = resolved_path
+                else:
+                    # Calculate relative path from current position
+                    display_path = get_relative_posix_path(resolved_path, self.current_file_path)
+            else:
+                # It's already absolute or no current file context
+                display_path = source
+                
+            # Determine if path is absolute for checkbox state
+            is_absolute = (source.startswith('/') or 
+                          (len(source) > 1 and source[1:3] == ':/') or  # Windows C:/
+                          source.startswith('\\\\'))  # UNC path
+            self.absolute_path_var.set(is_absolute)
+            
+            # Set the source path (temporarily enable the entry)
+            self.source_entry.configure(state="normal")
+            self.source_entry.delete(0, "end")
+            self.source_entry.insert(0, display_path)
+            self.source_entry.configure(state="readonly")
         
         self.recursive_var.set(rule_data.get('recursive', False))
         
@@ -235,12 +398,22 @@ class LocalRuleCard(ctk.CTkFrame):
         filter_pattern = rule_data.get('filter', '')
         self.filter_entry.delete(0, "end")
         self.filter_entry.insert(0, filter_pattern)
+    
+    def update_current_file_path(self, current_file_path: str):
+        """Update the current file path reference"""
+        self.current_file_path = current_file_path
+        
+        # If we have a relative path, recalculate it for the new file location
+        current_source = self.source_entry.get().strip()
+        if current_source and not self.absolute_path_var.get():
+            # Recalculate relative path for new file location
+            self.on_path_type_changed()
 
 
 class WebRuleCard(ctk.CTkFrame):
     """Card component for web rules with XPath support"""
     
-    def __init__(self, parent, rule_data=None, on_delete=None, **kwargs):
+    def __init__(self, parent, rule_data=None, on_delete=None, default_name=None, **kwargs):
         super().__init__(parent, **kwargs)
         self.on_delete = on_delete
         self.change_callback = None
@@ -250,6 +423,11 @@ class WebRuleCard(ctk.CTkFrame):
         
         # Create widgets
         self.create_widgets()
+        
+        # Set default name if provided
+        if default_name:
+            self.name_entry.delete(0, "end")
+            self.name_entry.insert(0, default_name)
         
         if rule_data:
             self.load_data(rule_data)
@@ -331,6 +509,15 @@ class WebRuleCard(ctk.CTkFrame):
         """Remove this rule card"""
         if self.on_delete:
             self.on_delete(self)
+    
+    def validate(self) -> tuple:
+        """Validate rule data without showing error dialogs"""
+        name = self.name_entry.get().strip()
+        
+        if not name:
+            return False, "Rule name cannot be empty"
+        
+        return True, ""
     
     def get_data(self) -> tuple:
         """Get rule data from inputs"""

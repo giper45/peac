@@ -198,25 +198,36 @@ def _create_answer_line(prompt_element, information):
     return "{} {}".format(get_preamble_phrase(prompt_element), "\n".join(lines))
 
 def find_path(p, parent_path = ''):
+    """
+    Resolve path relative to parent_path if it's a relative path,
+    otherwise return the absolute path as-is.
+    """
     if parent_path == '':
         parent_path = os.path.dirname(p)
-    if not os.path.exists(p):
-        p = os.path.join(parent_path, os.path.basename(p))
-    return p, parent_path
+    
+    # If path is already absolute, return as-is
+    if os.path.isabs(p):
+        return p, parent_path
+    
+    # For relative paths, resolve them relative to parent_path
+    resolved_path = os.path.normpath(os.path.join(parent_path, p))
+    return resolved_path, parent_path
 
 class PromptYaml:
     def __init__(self, yaml_path, parent_path = ''):
-        # If not exist try to find in the folder folder of the first path
-        yaml_path, parent_path= find_path(yaml_path, parent_path)
-        self.parent_path = parent_path
-
+        # Resolve the YAML file path and set parent_path to its directory
+        if not os.path.isabs(yaml_path) and parent_path:
+            yaml_path = os.path.normpath(os.path.join(parent_path, yaml_path))
+        
+        # Set parent_path to the directory containing the YAML file
+        self.parent_path = os.path.dirname(os.path.abspath(yaml_path))
 
         # Read YAML data from file
         with open(yaml_path, "r") as file:
             yaml_data = file.read()
             self.parsed_data = yaml.safe_load(yaml_data)
         # context lines
-        self.parents : List[PromptYaml] = PromptYaml.find_dependencies(self.parsed_data, parent_path)
+        self.parents : List[PromptYaml] = PromptYaml.find_dependencies(self.parsed_data, self.parent_path)
 
 
     def find_index(self, keyword):
