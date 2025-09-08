@@ -189,13 +189,30 @@ class LocalRuleCard(ctk.CTkFrame):
         
         # Filter pattern
         filter_label = ctk.CTkLabel(options_frame, text="Filter:")
-        filter_label.grid(row=0, column=3, sticky="w", padx=(10, 5))
+        filter_label.grid(row=0, column=4, sticky="w", padx=(10, 5))
         
         self.filter_entry = ctk.CTkEntry(
             options_frame, 
             placeholder_text="Regex pattern"
         )
-        self.filter_entry.grid(row=0, column=4, sticky="ew", padx=(5, 0))
+        self.filter_entry.grid(row=0, column=5, sticky="ew", padx=(5, 0))
+        
+        row += 1
+        
+        # Advanced options row for PDF/DOCX/XLSX
+        advanced_frame = ctk.CTkFrame(self, fg_color="transparent")
+        advanced_frame.grid(row=row, column=0, columnspan=3, sticky="ew", padx=10, pady=5)
+        advanced_frame.grid_columnconfigure(1, weight=1)
+        
+        # Pages/Sheets option for PDF/DOCX/XLSX
+        self.pages_label = ctk.CTkLabel(advanced_frame, text="Pages/Sheets:")
+        self.pages_label.grid(row=0, column=0, sticky="w", padx=(0, 5))
+        
+        self.pages_entry = ctk.CTkEntry(
+            advanced_frame, 
+            placeholder_text="e.g., 1-5, 1,3,5 or Sheet1,Sheet2"
+        )
+        self.pages_entry.grid(row=0, column=1, sticky="ew", padx=5)
         
         # Set up change tracking
         self.setup_change_tracking()
@@ -203,7 +220,7 @@ class LocalRuleCard(ctk.CTkFrame):
     def setup_change_tracking(self):
         """Set up change tracking for all input widgets"""
         # Track changes in entry widgets
-        for widget in [self.name_entry, self.source_entry, self.extension_entry, self.filter_entry]:
+        for widget in [self.name_entry, self.source_entry, self.extension_entry, self.filter_entry, self.pages_entry]:
             widget.bind('<KeyRelease>', lambda e: self.notify_change())
             widget.bind('<FocusOut>', lambda e: self.notify_change())
         
@@ -214,6 +231,24 @@ class LocalRuleCard(ctk.CTkFrame):
         # Track changes in checkboxes
         self.recursive_var.trace('w', lambda *args: self.notify_change())
         self.absolute_path_var.trace('w', lambda *args: self.notify_change())
+        
+        # Track source changes to update pages/sheets label
+        self.source_entry.bind('<KeyRelease>', lambda e: self.update_pages_label())
+        self.source_entry.bind('<FocusOut>', lambda e: self.update_pages_label())
+    
+    def update_pages_label(self):
+        """Update the pages/sheets label and placeholder based on file type"""
+        source_path = self.source_entry.get().strip().lower()
+        
+        if source_path.endswith('.xlsx'):
+            self.pages_label.configure(text="Sheets:")
+            self.pages_entry.configure(placeholder_text="e.g., 1-3, Sheet1,Sheet2")
+        elif source_path.endswith(('.pdf', '.docx')):
+            self.pages_label.configure(text="Pages:")
+            self.pages_entry.configure(placeholder_text="e.g., 1-5, 1,3,5")
+        else:
+            self.pages_label.configure(text="Pages/Sheets:")
+            self.pages_entry.configure(placeholder_text="e.g., 1-5, 1,3,5 or Sheet1,Sheet2")
     
     def on_path_type_changed(self):
         """Called when absolute path checkbox is toggled"""
@@ -347,6 +382,19 @@ class LocalRuleCard(ctk.CTkFrame):
         if filter_pattern:
             rule_data['filter'] = filter_pattern
         
+        # Handle provider options (pages for PDF/DOCX, sheets for XLSX)
+        pages = self.pages_entry.get().strip()
+        if pages:
+            if 'options' not in rule_data:
+                rule_data['options'] = {}
+            
+            # Determine if this is an XLSX file to use 'sheets' instead of 'pages'
+            source_path = source.lower() if source else ""
+            if source_path.endswith('.xlsx'):
+                rule_data['options']['sheets'] = pages
+            else:
+                rule_data['options']['pages'] = pages
+        
         return (name, rule_data)
     
     def load_data(self, name: str, rule_data: dict):
@@ -398,6 +446,15 @@ class LocalRuleCard(ctk.CTkFrame):
         filter_pattern = rule_data.get('filter', '')
         self.filter_entry.delete(0, "end")
         self.filter_entry.insert(0, filter_pattern)
+        
+        # Load provider options (pages or sheets)
+        options = rule_data.get('options', {})
+        pages_sheets = options.get('pages', options.get('sheets', '')) if options else ''
+        self.pages_entry.delete(0, "end")
+        self.pages_entry.insert(0, pages_sheets)
+        
+        # Update the label based on file type
+        self.update_pages_label()
     
     def update_current_file_path(self, current_file_path: str):
         """Update the current file path reference"""

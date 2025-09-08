@@ -1,0 +1,17 @@
+Questo è un testo di test per il PDF.
+
+Capitolo 1: Introduzione
+Figure 1: Architettura del sistema
+Questo descrive il sistema generale.
+
+Capitolo 2: Implementazione
+Figure 2: Diagramma di flusso
+Dettagli dell'implementazione.
+
+Altro testo senza figure.
+
+Figure 3: Schema dei dati
+Struttura dei dati utilizzata.
+
+Conclusioni
+Questo è il finale del documento.

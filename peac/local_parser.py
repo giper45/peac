@@ -23,10 +23,12 @@ def get_file_provider(file_path):
     file_extension = Path(file_path).suffix.lower()
     
     if file_extension == '.pdf':
+        print("Entering PDF provider")
         try:
             from peac.providers.pdf import PdfProvider
             return PdfProvider()
         except ImportError:
+            print("Import error")
             return None
     elif file_extension == '.docx':
         try:
@@ -34,16 +36,25 @@ def get_file_provider(file_path):
             return DocxProvider()
         except ImportError:
             return None
+    elif file_extension == '.xlsx':
+        print("Entering XLSX provider")
+        try:
+            from peac.providers.xlsx import XlsxProvider
+            return XlsxProvider()
+        except ImportError:
+            print("XLSX provider import error - openpyxl may not be installed")
+            return None
     
     return None
 
 
-def read_file(source, filter_regex=None):
+def read_file(source, filter_regex=None, options=None):
     """Read the filename and parse with appropriate provider if needed
 
     Args:
         source (str): the filename
         filter_regex (str): regex pattern to filter lines (only for text files)
+        options (dict): optional provider-specific options (e.g., pages for PDF/DOCX)
     """
     file_content = ""
     lines = []
@@ -52,7 +63,13 @@ def read_file(source, filter_regex=None):
     provider = get_file_provider(source)
     if provider:
         try:
-            file_content = provider.parse(source)
+            file_content = provider.parse(source, options)
+            
+            # Apply filter if provider supports it and filter is specified
+            if filter_regex and hasattr(provider, 'apply_filter'):
+                file_content = provider.apply_filter(file_content, filter_regex)
+            
+            print(f"Parsed {source} with provider {provider.__class__.__name__}")
         except Exception as e:
             # Fallback to regular text reading if provider fails
             print(f"Warning: Failed to parse {source} with provider: {e}")
@@ -94,33 +111,40 @@ def read_file(source, filter_regex=None):
 
 
 
-def read_dir(source, recursive=False, ext="*", filter_regex=None):
+def read_dir(source, recursive=False, ext="*", filter_regex=None, options=None):
     """Read all files in a directory using the read_file function.
 
     Args:
         source (str): The directory path.
         recursive (bool): Whether to include files in subdirectories.
         ext (str): File extension to filter by (e.g., 'txt', 'py', '*' for all files).
+        filter_regex (str): regex pattern to filter lines (only for text files)
+        options (dict): optional provider-specific options (e.g., pages for PDF/DOCX)
 
     Returns:
-        dict: A dictionary with file paths as keys and their contents as values,
-              where each file's content is prepended with "[<FILENAME>]\n".
+        str: Concatenated contents of all files with headers.
     """
     file_contents = []
     source_path = Path(source)
     pattern = f"**/*.{ext}" if recursive else f"*.{ext}"
     for file_path in source_path.glob(pattern):
-        file_contents.append(read_file(file_path, filter_regex))
+        file_contents.append(read_file(file_path, filter_regex, options))
 
     return "\n".join(file_contents)
 
 
-
-
-
-def parse(source, recursive = False, ext='*', filter_regex=None):
+def parse(source, recursive=False, ext='*', filter_regex=None, options=None):
+    """Parse source with optional provider options
+    
+    Args:
+        source (str): File or directory path
+        recursive (bool): Whether to include files in subdirectories
+        ext (str): File extension to filter by
+        filter_regex (str): regex pattern to filter lines
+        options (dict): optional provider-specific options (e.g., pages for PDF/DOCX)
+    """
     type = check_type(source)
     if type == PathType.FILE: 
-        return read_file(source, filter_regex)
+        return read_file(source, filter_regex, options)
     elif type == PathType.DIR:
-        return read_dir(source, recursive, ext, filter_regex)
+        return read_dir(source, recursive, ext, filter_regex, options)

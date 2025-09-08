@@ -280,10 +280,13 @@ class PromptYaml:
                 recursive = rule['recursive'] if 'recursive' in rule else False
                 extension = rule['extension'] if 'extension' in rule else '*'
                 filter = rule['filter'] if 'filter' in rule else None
+                
+                # Get provider options (e.g., pages for PDF/DOCX)
+                options = rule.get('options', {}) if 'options' in rule else None
 
                 source = rule['source']
                 source, parent_path = find_path(source, self.parent_path)
-                file_content = local_parser.parse(source, recursive, extension, filter)
+                file_content = local_parser.parse(source, recursive, extension, filter, options)
                 
                 # Ensure file_content is not None
                 if file_content is not None:

@@ -17,6 +17,34 @@ prompt:
           filter: \b(public|private)\b
           extension: java
           source: example-folder
+          
+        pdf-example:
+          preamble: PDF pages example
+          source: document.pdf
+          filter: Figure.*
+          options:
+            pages: "1-5,10,15-20"
+            
+        docx-example:
+          preamble: DOCX paragraphs example
+          source: document.docx
+          filter: "Table.*"
+          options:
+            pages: "1-10"
+            
+        xlsx-example:
+          preamble: Excel sheets example
+          source: spreadsheet.xlsx
+          filter: "Total.*"
+          options:
+            sheets: "1-3"  # First 3 sheets
+            
+        xlsx-named-sheets:
+          preamble: Specific Excel sheets
+          source: data.xlsx
+          filter: "^[A-Z]+"  # Lines starting with uppercase letters
+          options:
+            sheets: "Summary,Data,Results"  # Named sheets
         web:
           example:
             preamble: web template
