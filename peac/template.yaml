@@ -50,6 +50,23 @@ prompt:
             preamble: web template
             source: https://github.com/giper45/peac/
             xpath: //div/text()
+      rag:
+        knowledge-base:
+          preamble: Search in knowledge base (GPU accelerated)
+          faiss_file: kb.faiss
+          query: "What is the main concept?"
+          source_folder: docs/
+          top_k: 3
+          chunk_size: 512
+          overlap: 50
+          filter: ".*important.*"
+          
+        code-search:
+          preamble: Search in codebase (GPU accelerated)
+          faiss_file: code_vectors.faiss
+          query: "Find function definitions"
+          source_folder: src/
+          top_k: 5
   output:
       base:
         - base A
@@ -70,3 +87,10 @@ prompt:
           preamble: web template
           source: https://github.com/giper45/peac/
           xpath: //div/text()
+      rag:
+        analysis:
+          preamble: Analyze documents (GPU accelerated)
+          faiss_file: analysis.faiss
+          query: "Find relevant analysis data"
+          source_folder: data/
+          top_k: 3

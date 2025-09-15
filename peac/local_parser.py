@@ -48,6 +48,40 @@ def get_file_provider(file_path):
     return None
 
 
+def get_rag_provider():
+    """Get RAG provider instance"""
+    try:
+        from peac.providers.rag import RagProvider
+        return RagProvider()
+    except ImportError:
+        print("RAG provider import error - faiss-cpu or sentence-transformers may not be installed")
+        return None
+
+
+def parse_rag(faiss_file, options=None):
+    """Parse RAG request using FAISS vector database
+    
+    Args:
+        faiss_file (str): Path to FAISS index file
+        options (dict): RAG options containing query, source_folder, etc.
+    """
+    provider = get_rag_provider()
+    if not provider:
+        return "Error: RAG provider not available. Install dependencies: pip install faiss-cpu sentence-transformers"
+    
+    try:
+        content = provider.parse(faiss_file, options)
+        
+        # Apply filter if specified
+        filter_regex = options.get('filter') if options else None
+        if filter_regex:
+            content = provider.apply_filter(content, filter_regex)
+        
+        return f"[RAG: {faiss_file}]\n```\n{content}\n```"
+    except Exception as e:
+        return f"Error in RAG processing: {str(e)}"
+
+
 def read_file(source, filter_regex=None, options=None):
     """Read the filename and parse with appropriate provider if needed
 

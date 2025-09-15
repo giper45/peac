@@ -9,7 +9,7 @@ import threading
 import os
 
 # Import shared rule components
-from .shared_rule_components import LocalRuleCard, WebRuleCard
+from .shared_rule_components import LocalRuleCard, WebRuleCard, RagRuleCard
 
 
 class OutputSection(ctk.CTkFrame):
@@ -246,6 +246,7 @@ class OutputSection(ctk.CTkFrame):
         # Initialize rule lists
         self.local_rules = []
         self.web_rules = []
+        self.rag_rules = []
         
         # Initialize change callback and current file path
         self.change_callback = None
@@ -293,9 +294,15 @@ class OutputSection(ctk.CTkFrame):
                 name = card.name_entry.get().strip()
                 if name:
                     existing_names.append(name)
-        else:  # web
+        elif rule_type == "web":
             existing_names = []
             for card in self.web_rules:
+                name = card.name_entry.get().strip()
+                if name:
+                    existing_names.append(name)
+        else:  # rag
+            existing_names = []
+            for card in self.rag_rules:
                 name = card.name_entry.get().strip()
                 if name:
                     existing_names.append(name)
@@ -357,18 +364,24 @@ class OutputSection(ctk.CTkFrame):
         # Add tabs
         self.local_tab = self.tabview.add("Local Rules")
         self.web_tab = self.tabview.add("Web Rules")
+        self.rag_tab = self.tabview.add("RAG Rules")
         
         # Configure tab grids
         self.local_tab.grid_columnconfigure(0, weight=1)
         self.local_tab.grid_rowconfigure(1, weight=1)
         self.web_tab.grid_columnconfigure(0, weight=1)
         self.web_tab.grid_rowconfigure(1, weight=1)
+        self.rag_tab.grid_columnconfigure(0, weight=1)
+        self.rag_tab.grid_rowconfigure(1, weight=1)
         
         # Create local rules tab content
         self.create_local_rules_tab()
         
         # Create web rules tab content
         self.create_web_rules_tab()
+        
+        # Create RAG rules tab content
+        self.create_rag_rules_tab()
     
     def create_local_rules_tab(self):
         """Create local rules tab content"""
@@ -421,6 +434,32 @@ class OutputSection(ctk.CTkFrame):
         self.web_scroll = ctk.CTkScrollableFrame(self.web_tab, height=400)
         self.web_scroll.grid(row=1, column=0, sticky="nsew", padx=10, pady=(5, 10))
         self.web_scroll.grid_columnconfigure(0, weight=1)
+    
+    def create_rag_rules_tab(self):
+        """Create RAG rules tab content"""
+        # Header with add button
+        header_frame = ctk.CTkFrame(self.rag_tab, height=50)
+        header_frame.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
+        header_frame.grid_columnconfigure(0, weight=1)
+        
+        rag_label = ctk.CTkLabel(
+            header_frame,
+            text="RAG Output Rules",
+            font=ctk.CTkFont(size=16, weight="bold")
+        )
+        rag_label.grid(row=0, column=0, sticky="w", padx=15, pady=15)
+        
+        add_rag_btn = ctk.CTkButton(
+            header_frame,
+            text="+ Add RAG Rule",
+            command=self.add_rag_rule
+        )
+        add_rag_btn.grid(row=0, column=1, padx=15, pady=15)
+        
+        # Scrollable frame for rules
+        self.rag_scroll = ctk.CTkScrollableFrame(self.rag_tab, height=400)
+        self.rag_scroll.grid(row=1, column=0, sticky="nsew", padx=10, pady=(5, 10))
+        self.rag_scroll.grid_columnconfigure(0, weight=1)
     
     def add_local_rule(self):
         """Add a new local rule"""
@@ -477,6 +516,34 @@ class OutputSection(ctk.CTkFrame):
             # Notify about change
             self.notify_change()
     
+    def add_rag_rule(self):
+        """Add a new RAG rule"""
+        default_name = self.generate_default_rule_name("rag")
+        rule_card = RagRuleCard(
+            self.rag_scroll,
+            on_delete=lambda: self.delete_rag_rule(rule_card),
+            default_name=default_name,
+            current_file_path=self.current_file_path
+        )
+        rule_card.set_change_callback(self.notify_change)
+        rule_card.grid(row=len(self.rag_rules), column=0, sticky="ew", padx=5, pady=5)
+        self.rag_rules.append(rule_card)
+        
+        # Notify about change
+        self.notify_change()
+    
+    def delete_rag_rule(self, rule_card):
+        """Delete a RAG rule"""
+        if rule_card in self.rag_rules:
+            self.rag_rules.remove(rule_card)
+            rule_card.destroy()
+            # Re-grid remaining cards
+            for i, card in enumerate(self.rag_rules):
+                card.grid(row=i, column=0, sticky="ew", padx=5, pady=5)
+            
+            # Notify about change
+            self.notify_change()
+    
     def get_data(self) -> dict:
         """Get output configuration data in original PEaC format"""
         # First validate all rules
@@ -493,6 +560,12 @@ class OutputSection(ctk.CTkFrame):
             is_valid, error_msg = card.validate()
             if not is_valid:
                 validation_errors.append(f"Web rule {i+1}: {error_msg}")
+        
+        # Validate RAG rules
+        for i, card in enumerate(self.rag_rules):
+            is_valid, error_msg = card.validate()
+            if not is_valid:
+                validation_errors.append(f"RAG rule {i+1}: {error_msg}")
         
         # Return validation errors if any (don't show dialog)
         if validation_errors:
@@ -533,6 +606,18 @@ class OutputSection(ctk.CTkFrame):
         
         if web_dict:
             data['web'] = web_dict
+        
+        # RAG rules - convert to original PEaC format (dict with rule names as keys)
+        rag_dict = {}
+        for rule_card in self.rag_rules:
+            result = rule_card.get_data()
+            if result:
+                name, rule_config = result
+                if name and (rule_config.get('preamble') or rule_config.get('faiss_file') or rule_config.get('query')):
+                    rag_dict[name] = rule_config
+        
+        if rag_dict:
+            data['rag'] = rag_dict
         
         return data
     
@@ -594,6 +679,24 @@ class OutputSection(ctk.CTkFrame):
                     self.add_web_rule()
                     if self.web_rules:
                         self.web_rules[-1].load_rule_data(rule_data)
+        
+        # Load RAG rules
+        rag_rules = data.get('rag_rules', [])
+        if not rag_rules:
+            # Try old format: rag as a dict
+            rag_dict = data.get('rag', {})
+            for name, rule_config in rag_dict.items():
+                self.add_rag_rule()
+                if self.rag_rules:
+                    # Load data using the shared component's method
+                    self.rag_rules[-1].load_data(name, rule_config)
+        else:
+            # New format: rag_rules as a list
+            if isinstance(rag_rules, list):
+                for rule_data in rag_rules:
+                    self.add_rag_rule()
+                    if self.rag_rules:
+                        self.rag_rules[-1].load_rule_data(rule_data)
     
     def clear_all_rules(self):
         """Clear all rules"""
@@ -606,6 +709,11 @@ class OutputSection(ctk.CTkFrame):
         for rule_card in self.web_rules[:]:
             rule_card.destroy()
         self.web_rules.clear()
+        
+        # Clear RAG rules
+        for rule_card in self.rag_rules[:]:
+            rule_card.destroy()
+        self.rag_rules.clear()
     
     def clear(self):
         """Clear all content in the output section"""
