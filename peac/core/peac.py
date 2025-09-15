@@ -197,7 +197,7 @@ def _create_answer_line(prompt_element, information):
     for i, line in enumerate(information, 1):
         lines.append(f"{line}")
 
-    return "{} {}".format(get_preamble_phrase(prompt_element), "\n".join(lines))
+    return "{}{}".format(get_preamble_phrase(prompt_element), "\n".join(lines))
 
 def find_path(p, parent_path = ''):
     """
@@ -556,12 +556,12 @@ class PromptYaml:
             web_output.add_sections(p.get_output_web_rules())
             rag_output.add_sections(p.get_output_rag_rules())
 
-        base_context = list(set(base_context))
+        base_context = list(set(base_context)) if isinstance(base_context, list) else [base_context] if base_context else []
         local_context = local_context.get_lines()
         web_context = web_context.get_lines()
         rag_context = rag_context.get_lines()
         
-        base_output = list(set(base_output))
+        base_output = list(set(base_output)) if isinstance(base_output, list) else [base_output] if base_output else []
         local_output = local_output.get_lines()
         web_output = web_output.get_lines()
         rag_output = rag_output.get_lines()
