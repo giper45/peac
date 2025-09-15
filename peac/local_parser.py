@@ -136,12 +136,16 @@ def read_file(source, filter_regex=None, options=None):
             file_content = f"Error reading file: {e}"
     
     """ File output:
-        [filename] 
         ```
         content
         ```
     """
-    return f"[{source}]\n```\n{file_content}\n```" 
+    # Original code with filename header (commented out)
+    # filename = os.path.basename(source)
+    # return f"[{filename}]\n```\n{file_content}\n```"
+    
+    # Return only the content without filename header
+    return f"```\n{file_content}\n```" 
 
 
 
