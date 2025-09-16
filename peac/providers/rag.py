@@ -426,8 +426,8 @@ class RagProvider:
         # Prepare results
         results = []
         for i, (score, idx) in enumerate(zip(scores[0], indices[0])):
-            if idx < len(metadata):
-                result = metadata[idx].copy()
+            if idx < len(chunks_metadata):
+                result = chunks_metadata[idx].copy()
                 result['score'] = float(score)
                 result['rank'] = i + 1
                 results.append(result)
