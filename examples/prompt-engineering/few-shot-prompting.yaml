@@ -1,0 +1,26 @@
+prompt:
+  instruction:
+    base:
+      - "You are an expert classifier that learns from examples"
+      - "Analyze the pattern from the provided examples and apply it to new inputs"
+      - "Maintain consistency with the demonstrated classification approach"
+      - "Be precise and follow the exact format shown in examples"
+
+  context:
+    base:
+      - "Few-shot learning approach: Learn from the examples provided below"
+      - "Pay attention to the input-output pattern and reasoning"
+    
+    local:
+      classification-examples:
+        preamble: "Here are examples to learn from"
+        source: few-shot-examples/sentiment-analysis-examples.txt
+
+  output:
+    base:
+      - "Provide only the classification result"
+      - "Use the same format as shown in examples"
+      - "Be concise and direct"
+      - "No additional explanation unless requested"
+
+  query: "Classify this review: 'The product arrived quickly and works as described.'"

@@ -1,0 +1,69 @@
+@startuml PEaC_UseCase_Sequence
+!theme plain
+
+
+actor "User" as User
+participant "PEaC GUI" as GUI
+participant "PEaC Core" as Core
+participant "ChatGPT/LLM" as LLM
+
+== 1. Setup and Configuration ==
+
+User -> GUI: Launch PEaC GUI
+activate GUI
+GUI -> User: Show interface with tabs
+
+User -> GUI: Create new YAML configuration
+GUI -> User: Display configuration editor
+
+== 2. Define Prompt Structure ==
+
+User -> GUI: Configure Instructions tab
+note right of User: Define task instructions\nand behavioral guidelines
+
+User -> GUI: Configure Context tab
+note right of User: Add context sources:\n- Local files\n- Web URLs\n- Knowledge base
+
+User -> GUI: Configure Output tab
+note right of User: Define output format\nand response structure
+
+== 3. Generate Prompt ==
+
+User -> GUI: Click "Preview" button
+GUI -> Core: Process configuration
+activate Core
+
+Core -> Core: Assemble prompt from:\n- Instructions\n- Context sources\n- Output format
+
+Core -> GUI: Return generated prompt
+deactivate Core
+
+GUI -> User: Display prompt preview
+
+== 4. Use with ChatGPT ==
+
+User -> GUI: Click "Copy" button
+GUI -> GUI: Copy prompt to clipboard
+GUI -> User: Show "Prompt copied!" message
+
+User -> LLM: Open ChatGPT
+User -> LLM: Paste generated prompt
+activate LLM
+
+note right of LLM: Complete prompt includes:\n- Clear instructions\n- Relevant context\n- Output formatting\n- User query
+
+User -> LLM: Send prompt
+LLM -> User: Generate formatted response
+deactivate LLM
+
+== 5. Iterate and Refine ==
+
+User -> GUI: Modify configuration if needed
+User -> GUI: Generate updated prompt
+User -> LLM: Use refined prompt in ChatGPT
+
+note over User, LLM: Repeat process for different\nqueries or improved results
+
+deactivate GUI
+
+@enduml

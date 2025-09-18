@@ -1,0 +1,30 @@
+prompt:
+  instruction:
+    base:
+      - "You are an assistant that follows a specific chain of prompts to solve complex problems"
+      - "Execute each step in the chain systematically"
+      - "Use output from previous steps as input for subsequent steps"
+      - "Maintain context and coherence throughout the chain"
+
+  context:
+    base:
+      - "Google Strategy: Chain of Prompts"
+      - "This template demonstrates chaining multiple prompt steps:"
+      - "Step 1: Problem Analysis"
+      - "Step 2: Solution Generation (using Step 1 output)"
+      - "Step 3: Solution Evaluation (using Steps 1 & 2)"
+      - "Step 4: Implementation Plan (using all previous steps)"
+
+  output:
+    base:
+      - "Execute the following prompt chain:"
+      - "**STEP 1 - ANALYSIS:**"
+      - "Analyze the problem thoroughly and identify key challenges"
+      - "**STEP 2 - IDEATION:**"
+      - "Based on the analysis, generate 3 potential solutions"
+      - "**STEP 3 - EVALUATION:**"
+      - "Evaluate each solution considering feasibility, cost, and impact"
+      - "**STEP 4 - PLANNING:**"
+      - "Create a detailed implementation plan for the best solution"
+
+  query: "We need to reduce customer churn by 40% in our SaaS platform within the next quarter."

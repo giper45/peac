@@ -1,0 +1,19 @@
+Example 1:
+Input: "def calculate_area(radius): return 3.14 * radius * radius"
+Language: Python
+
+Example 2:
+Input: "public class HelloWorld { public static void main(String[] args) { System.out.println("Hello World"); }}"
+Language: Java
+
+Example 3:
+Input: "const greeting = 'Hello World'; console.log(greeting);"
+Language: JavaScript
+
+Example 4:
+Input: "#include <iostream> using namespace std; int main() { cout << "Hello World"; return 0; }"
+Language: C++
+
+Example 5:
+Input: "SELECT * FROM users WHERE age > 18;"
+Language: SQL

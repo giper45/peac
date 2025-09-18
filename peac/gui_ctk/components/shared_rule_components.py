@@ -487,7 +487,8 @@ class WebRuleCard(ctk.CTkFrame):
             self.name_entry.insert(0, default_name)
         
         if rule_data:
-            self.load_data(rule_data)
+            name, data = rule_data
+            self.load_data(name, data)
     
     def set_change_callback(self, callback: Callable):
         """Set callback function to call when content changes"""
@@ -612,3 +613,340 @@ class WebRuleCard(ctk.CTkFrame):
         xpath = rule_data.get('xpath', '')
         self.xpath_entry.delete(0, "end")
         self.xpath_entry.insert(0, xpath)
+
+
+class RagRuleCard(ctk.CTkFrame):
+    """Card component for RAG rules with FAISS vector search"""
+    
+    def __init__(self, parent, rule_data=None, on_delete=None, default_name=None, current_file_path=None, **kwargs):
+        super().__init__(parent, **kwargs)
+        self.on_delete = on_delete
+        self.change_callback = None
+        self.current_file_path = current_file_path
+        
+        # Configure grid
+        self.grid_columnconfigure(1, weight=1)
+        
+        # Create widgets
+        self.create_widgets()
+        
+        # Set default name if provided
+        if default_name:
+            self.name_entry.delete(0, "end")
+            self.name_entry.insert(0, default_name)
+        
+        if rule_data:
+            name, data = rule_data
+            self.load_data(name, data)
+    
+    def set_change_callback(self, callback: Callable):
+        """Set callback function to call when content changes"""
+        self.change_callback = callback
+    
+    def notify_change(self):
+        """Notify that content has changed"""
+        if self.change_callback:
+            self.change_callback()
+    
+    def create_widgets(self):
+        """Create RAG rule card widgets"""
+        row = 0
+        
+        # Rule name
+        name_label = ctk.CTkLabel(self, text="Rule Name:", width=100)
+        name_label.grid(row=row, column=0, sticky="w", padx=(10, 5), pady=(10, 5))
+        
+        self.name_entry = ctk.CTkEntry(self, placeholder_text="Enter rule name")
+        self.name_entry.grid(row=row, column=1, sticky="ew", padx=(5, 10), pady=(10, 5))
+        
+        # Remove button
+        remove_btn = ctk.CTkButton(
+            self, 
+            text="✕", 
+            width=30, 
+            height=30,
+            command=self.remove_self,
+            fg_color="red",
+            hover_color="darkred"
+        )
+        remove_btn.grid(row=row, column=2, padx=(5, 10), pady=(10, 5))
+        
+        row += 1
+        
+        # Preamble
+        preamble_label = ctk.CTkLabel(self, text="Preamble:", width=100)
+        preamble_label.grid(row=row, column=0, sticky="nw", padx=(10, 5), pady=5)
+        
+        self.preamble_text = ctk.CTkTextbox(self, height=60)
+        self.preamble_text.grid(row=row, column=1, columnspan=2, sticky="ew", padx=(5, 10), pady=5)
+        
+        row += 1
+        
+        # FAISS file path with browse button
+        faiss_label = ctk.CTkLabel(self, text="FAISS File:", width=100)
+        faiss_label.grid(row=row, column=0, sticky="w", padx=(10, 5), pady=5)
+        
+        faiss_frame = ctk.CTkFrame(self, fg_color="transparent")
+        faiss_frame.grid(row=row, column=1, columnspan=2, sticky="ew", padx=(5, 10), pady=5)
+        faiss_frame.grid_columnconfigure(0, weight=1)
+        
+        self.faiss_entry = ctk.CTkEntry(faiss_frame, placeholder_text="Path to FAISS index file (.faiss)")
+        self.faiss_entry.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        
+        browse_faiss_btn = ctk.CTkButton(
+            faiss_frame, 
+            text="📁", 
+            width=40,
+            command=self.browse_faiss_file
+        )
+        browse_faiss_btn.grid(row=0, column=1)
+        
+        row += 1
+        
+        # Source folder
+        source_label = ctk.CTkLabel(self, text="Source Folder:", width=100)
+        source_label.grid(row=row, column=0, sticky="w", padx=(10, 5), pady=5)
+        
+        source_frame = ctk.CTkFrame(self, fg_color="transparent")
+        source_frame.grid(row=row, column=1, columnspan=2, sticky="ew", padx=(5, 10), pady=5)
+        source_frame.grid_columnconfigure(0, weight=1)
+        
+        self.source_entry = ctk.CTkEntry(source_frame, placeholder_text="Folder to embed if FAISS doesn't exist")
+        self.source_entry.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        
+        browse_source_btn = ctk.CTkButton(
+            source_frame, 
+            text="📂", 
+            width=40,
+            command=self.browse_source_folder
+        )
+        browse_source_btn.grid(row=0, column=1)
+        
+        row += 1
+        
+        # Query
+        query_label = ctk.CTkLabel(self, text="Query:", width=100)
+        query_label.grid(row=row, column=0, sticky="nw", padx=(10, 5), pady=5)
+        
+        self.query_text = ctk.CTkTextbox(self, height=60)
+        self.query_text.grid(row=row, column=1, columnspan=2, sticky="ew", padx=(5, 10), pady=5)
+        
+        row += 1
+        
+        # RAG options frame 1 - Force override and Model selection
+        options_frame1 = ctk.CTkFrame(self, fg_color="transparent")
+        options_frame1.grid(row=row, column=0, columnspan=3, sticky="ew", padx=10, pady=5)
+        options_frame1.grid_columnconfigure((1, 3), weight=1)
+        
+        # Force override checkbox
+        self.force_override_var = ctk.BooleanVar()
+        self.force_override_checkbox = ctk.CTkCheckBox(
+            options_frame1,
+            text="Force Recreate FAISS",
+            variable=self.force_override_var,
+            command=self.notify_change
+        )
+        self.force_override_checkbox.grid(row=0, column=0, sticky="w", padx=(0, 15))
+        
+        # Embedding model selection
+        model_label = ctk.CTkLabel(options_frame1, text="Embedding Model:")
+        model_label.grid(row=0, column=1, sticky="w", padx=(0, 5))
+        
+        self.model_var = ctk.StringVar(value="all-MiniLM-L6-v2")
+        self.model_menu = ctk.CTkOptionMenu(
+            options_frame1,
+            variable=self.model_var,
+            values=[
+                "all-MiniLM-L6-v2",
+                "paraphrase-multilingual-MiniLM-L12-v2",
+                "all-mpnet-base-v2",
+                "multi-qa-MiniLM-L6-cos-v1",
+                "paraphrase-MiniLM-L6-v2"
+            ],
+            command=lambda x: self.notify_change()
+        )
+        self.model_menu.grid(row=0, column=2, sticky="ew", padx=5)
+        
+        row += 1
+        
+        # RAG options frame 2 - Top K and Chunk size
+        options_frame2 = ctk.CTkFrame(self, fg_color="transparent")
+        options_frame2.grid(row=row, column=0, columnspan=3, sticky="ew", padx=10, pady=5)
+        options_frame2.grid_columnconfigure((1, 3), weight=1)
+        
+        # Top K
+        topk_label = ctk.CTkLabel(options_frame2, text="Top K:")
+        topk_label.grid(row=0, column=0, sticky="w", padx=(0, 5))
+        
+        self.topk_entry = ctk.CTkEntry(options_frame2, placeholder_text="5", width=60)
+        self.topk_entry.grid(row=0, column=1, sticky="w", padx=5)
+        
+        # Chunk size
+        chunk_label = ctk.CTkLabel(options_frame2, text="Chunk Size:")
+        chunk_label.grid(row=0, column=2, sticky="w", padx=(10, 5))
+        
+        self.chunk_entry = ctk.CTkEntry(options_frame2, placeholder_text="512", width=80)
+        self.chunk_entry.grid(row=0, column=3, sticky="w", padx=5)
+        
+        row += 1
+        
+        # Filter
+        filter_frame = ctk.CTkFrame(self, fg_color="transparent")
+        filter_frame.grid(row=row, column=0, columnspan=3, sticky="ew", padx=10, pady=5)
+        filter_frame.grid_columnconfigure(1, weight=1)
+        
+        filter_label = ctk.CTkLabel(filter_frame, text="Filter Regex:")
+        filter_label.grid(row=0, column=0, sticky="w", padx=(0, 5))
+        
+        self.filter_entry = ctk.CTkEntry(filter_frame, placeholder_text="Optional regex filter")
+        self.filter_entry.grid(row=0, column=1, sticky="ew", padx=5)
+        
+        # Set up change tracking
+        self.setup_change_tracking()
+    
+    def setup_change_tracking(self):
+        """Set up change tracking for all input widgets"""
+        for widget in [self.name_entry, self.faiss_entry, self.source_entry, 
+                       self.topk_entry, self.chunk_entry, self.filter_entry]:
+            widget.bind('<KeyRelease>', lambda e: self.notify_change())
+            widget.bind('<FocusOut>', lambda e: self.notify_change())
+        
+        self.preamble_text.bind('<KeyRelease>', lambda e: self.notify_change())
+        self.preamble_text.bind('<FocusOut>', lambda e: self.notify_change())
+        self.query_text.bind('<KeyRelease>', lambda e: self.notify_change())
+        self.query_text.bind('<FocusOut>', lambda e: self.notify_change())
+    
+    def browse_faiss_file(self):
+        """Browse for FAISS file"""
+        file_path = filedialog.asksaveasfilename(
+            title="Select or create FAISS file",
+            defaultextension=".faiss",
+            filetypes=[("FAISS files", "*.faiss"), ("All files", "*.*")]
+        )
+        if file_path:
+            self.faiss_entry.delete(0, "end")
+            self.faiss_entry.insert(0, file_path)
+            self.notify_change()
+    
+    def browse_source_folder(self):
+        """Browse for source folder"""
+        folder_path = filedialog.askdirectory(title="Select source folder for embedding")
+        if folder_path:
+            self.source_entry.delete(0, "end")
+            self.source_entry.insert(0, folder_path)
+            self.notify_change()
+    
+    def remove_self(self):
+        """Remove this rule card"""
+        if self.on_delete:
+            self.on_delete(self)
+    
+    def validate(self) -> tuple:
+        """Validate rule configuration"""
+        errors = []
+        
+        name = self.name_entry.get().strip()
+        if not name:
+            errors.append("Rule name is required")
+        
+        faiss_file = self.faiss_entry.get().strip()
+        if not faiss_file:
+            errors.append("FAISS file is required")
+        
+        query = self.query_text.get("1.0", "end-1c").strip()
+        if not query:
+            errors.append("Query is required")
+        
+        return len(errors) == 0, errors
+    
+    def get_data(self) -> tuple:
+        """Get rule data from inputs"""
+        name = self.name_entry.get().strip()
+        rule_data = {}
+        
+        preamble = self.preamble_text.get("1.0", "end-1c").strip()
+        if preamble:
+            rule_data['preamble'] = preamble
+        
+        faiss_file = self.faiss_entry.get().strip()
+        if faiss_file:
+            rule_data['faiss_file'] = faiss_file
+        
+        source_folder = self.source_entry.get().strip()
+        if source_folder:
+            rule_data['source_folder'] = source_folder
+        
+        query = self.query_text.get("1.0", "end-1c").strip()
+        if query:
+            rule_data['query'] = query
+        
+        # Force override checkbox
+        rule_data['force_override'] = self.force_override_var.get()
+        
+        # Embedding model
+        rule_data['embedding_model'] = self.model_var.get()
+        
+        top_k = self.topk_entry.get().strip()
+        if top_k:
+            try:
+                rule_data['top_k'] = int(top_k)
+            except ValueError:
+                rule_data['top_k'] = 5
+        
+        chunk_size = self.chunk_entry.get().strip()
+        if chunk_size:
+            try:
+                rule_data['chunk_size'] = int(chunk_size)
+            except ValueError:
+                rule_data['chunk_size'] = 512
+        
+        filter_pattern = self.filter_entry.get().strip()
+        if filter_pattern:
+            rule_data['filter'] = filter_pattern
+        
+        return name, rule_data
+    
+    def load_data(self, name: str, rule_data: dict):
+        """Load data into the rule card"""
+        self.name_entry.delete(0, "end")
+        self.name_entry.insert(0, name)
+        
+        preamble = rule_data.get('preamble', '')
+        self.preamble_text.delete("1.0", "end")
+        self.preamble_text.insert("1.0", preamble)
+        
+        faiss_file = rule_data.get('faiss_file', '')
+        self.faiss_entry.delete(0, "end")
+        self.faiss_entry.insert(0, faiss_file)
+        
+        source_folder = rule_data.get('source_folder', '')
+        self.source_entry.delete(0, "end")
+        self.source_entry.insert(0, source_folder)
+        
+        query = rule_data.get('query', '')
+        self.query_text.delete("1.0", "end")
+        self.query_text.insert("1.0", query)
+        
+        # Force override checkbox
+        force_override = rule_data.get('force_override', False)
+        self.force_override_var.set(force_override)
+        
+        # Embedding model
+        embedding_model = rule_data.get('embedding_model', 'all-MiniLM-L6-v2')
+        self.model_var.set(embedding_model)
+        
+        top_k = str(rule_data.get('top_k', 5))
+        self.topk_entry.delete(0, "end")
+        self.topk_entry.insert(0, top_k)
+        
+        chunk_size = str(rule_data.get('chunk_size', 512))
+        self.chunk_entry.delete(0, "end")
+        self.chunk_entry.insert(0, chunk_size)
+        
+        filter_pattern = rule_data.get('filter', '')
+        self.filter_entry.delete(0, "end")
+        self.filter_entry.insert(0, filter_pattern)
+    
+    def update_current_file_path(self, current_file_path: str):
+        """Update the current file path reference"""
+        self.current_file_path = current_file_path

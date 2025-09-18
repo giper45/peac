@@ -197,7 +197,7 @@ def _create_answer_line(prompt_element, information):
     for i, line in enumerate(information, 1):
         lines.append(f"{line}")
 
-    return "{} {}".format(get_preamble_phrase(prompt_element), "\n".join(lines))
+    return "{}{}".format(get_preamble_phrase(prompt_element), "\n".join(lines))
 
 def find_path(p, parent_path = ''):
     """
@@ -294,6 +294,54 @@ class PromptYaml:
                 else:
                     lines.append(f"Error: Could not read file {source}")
                     
+                prompt_sections.append({
+                    'preamble': preamble,
+                    'lines': lines
+                })
+        return prompt_sections
+
+    def get_rag_rules(self, prompt_element) -> List[PromptSection]:
+        """Get RAG (Retrieval-Augmented Generation) rules"""
+        prompt_sections: List[PromptSection] = []
+        if 'prompt' in self.parsed_data and prompt_element in self.parsed_data['prompt']:
+            prompt_data = self.parsed_data['prompt'][prompt_element]
+            rules = prompt_data.get('rag', {})
+            for name, rule in rules.items():
+                lines = []
+                preamble = rule.get('preamble', None)
+                
+                # RAG specific options
+                faiss_file = rule.get('faiss_file', '')
+                query = rule.get('query', '')
+                source_folder = rule.get('source_folder', '')
+                top_k = rule.get('top_k', 5)
+                chunk_size = rule.get('chunk_size', 512)
+                overlap = rule.get('overlap', 50)
+                filter_regex = rule.get('filter', None)
+                
+                if not faiss_file:
+                    lines.append(f"Error: No FAISS file specified for RAG rule '{name}'")
+                elif not query:
+                    lines.append(f"Error: No query specified for RAG rule '{name}'")
+                else:
+                    # Build options dictionary
+                    rag_options = {
+                        'query': query,
+                        'source_folder': source_folder,
+                        'top_k': top_k,
+                        'chunk_size': chunk_size,
+                        'overlap': overlap
+                    }
+                    if filter_regex:
+                        rag_options['filter'] = filter_regex
+                    
+                    # Resolve faiss_file path relative to YAML file
+                    faiss_file, _ = find_path(faiss_file, self.parent_path)
+                    
+                    # Process RAG request
+                    rag_content = local_parser.parse_rag(faiss_file, rag_options)
+                    lines.append(rag_content)
+                
                 prompt_sections.append({
                     'preamble': preamble,
                     'lines': lines
@@ -448,6 +496,9 @@ class PromptYaml:
     def get_context_web_rules(self):
         return self.get_web_rules('context')
 
+    def get_context_rag_rules(self):
+        return self.get_rag_rules('context')
+
     def get_output_base_rules(self):
         return self.get_base_rules('output')
 
@@ -456,6 +507,21 @@ class PromptYaml:
 
     def get_output_web_rules(self):
         return self.get_web_rules('output')
+
+    def get_output_rag_rules(self):
+        return self.get_rag_rules('output')
+
+    def get_instruction_base_rules(self):
+        return self.get_base_rules('instruction')
+
+    def get_instruction_local_rules(self):
+        return self.get_local_rules('instruction')
+
+    def get_instruction_web_rules(self):
+        return self.get_web_rules('instruction')
+
+    def get_instruction_rag_rules(self):
+        return self.get_rag_rules('instruction')
 
 
     def find_dependencies(yaml_data, parent_path):
@@ -473,53 +539,87 @@ class PromptYaml:
 
 
     def get_prompt_sentence(self):
+        # Get instruction rules
+        base_instruction = self.get_instruction_base_rules()
+        local_instruction = PromptSections()
+        local_instruction.add_sections(self.get_instruction_local_rules())
+        web_instruction = PromptSections()
+        web_instruction.add_sections(self.get_instruction_web_rules())
+        rag_instruction = PromptSections()
+        rag_instruction.add_sections(self.get_instruction_rag_rules())
+
+        # Get context rules
         base_context = self.get_context_base_rules()
         local_context = PromptSections()
         local_context.add_sections(self.get_context_local_rules())
-        # local_context = self.get_context_local_rules()
         web_context = PromptSections()
         web_context.add_sections(self.get_context_web_rules())
-        # web_context = self.get_context_web_rules()
+        rag_context = PromptSections()
+        rag_context.add_sections(self.get_context_rag_rules())
 
-
+        # Get output rules
         base_output = self.get_output_base_rules()
         local_output = PromptSections()
         local_output.add_sections(self.get_output_local_rules())
         web_output = PromptSections()
         web_output.add_sections(self.get_output_web_rules())
-        # web_output = self.get_output_web_rules()
+        rag_output = PromptSections()
+        rag_output.add_sections(self.get_output_rag_rules())
+        
         query = self.get_query()
 
+        # Process parent dependencies
         for p in self.parents:
+            base_instruction += p.get_instruction_base_rules()
+            local_instruction.add_sections(p.get_instruction_local_rules())
+            web_instruction.add_sections(p.get_instruction_web_rules())
+            rag_instruction.add_sections(p.get_instruction_rag_rules())
+
             base_context += p.get_context_base_rules()
             local_context.add_sections(p.get_context_local_rules())
             web_context.add_sections(p.get_context_web_rules())
-            # web_context.add_section(p.get_context_web_rules())
-            # web_context +=
-            # p.get_context_web_rules()
-
+            rag_context.add_sections(p.get_context_rag_rules())
 
             base_output += p.get_output_base_rules()
             local_output.add_sections(p.get_output_local_rules())
             web_output.add_sections(p.get_output_web_rules())
-            # web_output += p.get_output_web_rules()
-            # web_output.add_section(p.get_output_web_rules())
+            rag_output.add_sections(p.get_output_rag_rules())
 
+        # Process instruction data
+        base_instruction = list(set(base_instruction)) if isinstance(base_instruction, list) else [base_instruction] if base_instruction else []
+        local_instruction = local_instruction.get_lines()
+        web_instruction = web_instruction.get_lines()
+        rag_instruction = rag_instruction.get_lines()
 
-        base_context = list(set(base_context))
+        # Process context data
+        base_context = list(set(base_context)) if isinstance(base_context, list) else [base_context] if base_context else []
         local_context = local_context.get_lines()
         web_context = web_context.get_lines()
-        base_output = list(set(base_output))
+        rag_context = rag_context.get_lines()
+        
+        # Process output data
+        base_output = list(set(base_output)) if isinstance(base_output, list) else [base_output] if base_output else []
         local_output = local_output.get_lines()
         web_output = web_output.get_lines()
+        rag_output = rag_output.get_lines()
 
+        # Combine all sections
+        all_instruction = base_instruction + local_instruction + web_instruction + rag_instruction
+        all_context = base_context + local_context + web_context + rag_context
+        all_output = base_output + local_output + web_output + rag_output
 
+        # Build final prompt
+        prompt_parts = []
+        if all_instruction:
+            prompt_parts.append(self.get_sentence('instruction', all_instruction))
+        if all_context:
+            prompt_parts.append(self.get_sentence('context', all_context))
+        if all_output:
+            prompt_parts.append(self.get_sentence('output', all_output))
+        if query:
+            prompt_parts.append(query)
 
-
-
-
-        return '\n'.join([self.get_sentence('context', base_context + local_context + web_context), self.get_sentence('output', base_output + local_output + web_output),
-                        query])
+        return '\n'.join(prompt_parts)
 
 
 

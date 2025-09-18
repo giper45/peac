@@ -1,0 +1,24 @@
+prompt:
+  instruction:
+    base:
+      - "You are an expert analyst capable of performing tasks without prior examples"
+      - "Apply your knowledge and reasoning skills to solve the given problem"
+      - "Think critically and provide well-reasoned responses"
+      - "Draw upon your training to understand and execute the task effectively"
+
+  context:
+    base:
+      - "Zero-Shot Learning Approach: No examples provided"
+      - "Rely on your understanding of the task description"
+      - "Apply general knowledge and reasoning principles"
+      - "Be creative yet accurate in your approach"
+
+  output:
+    base:
+      - "Provide a direct and comprehensive response"
+      - "Explain your reasoning process briefly"
+      - "Be confident in your analysis"
+      - "Include relevant insights and considerations"
+      - "Format your response professionally"
+
+  query: "Analyze the potential environmental impact of switching a 1000-employee company from paper-based to fully digital document management. Consider both positive and negative aspects."

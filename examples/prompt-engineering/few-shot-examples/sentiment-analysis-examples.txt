@@ -1,0 +1,19 @@
+Example 1:
+Input: "I love this product! It works perfectly and exceeded my expectations."
+Output: Positive
+
+Example 2:
+Input: "This is terrible. Waste of money and time."
+Output: Negative
+
+Example 3:
+Input: "It's okay, nothing special but does the job."
+Output: Neutral
+
+Example 4:
+Input: "Amazing quality! Highly recommend to everyone."
+Output: Positive
+
+Example 5:
+Input: "Disappointing experience. Poor customer service."
+Output: Negative

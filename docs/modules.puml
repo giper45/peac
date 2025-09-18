@@ -1,0 +1,115 @@
+@startuml modules
+!theme plain
+scale 1.0
+
+skinparam page {
+    BackgroundColor white
+    BorderColor black
+    Margin 20
+}
+
+skinparam component {
+    Style rectangle
+    BackgroundColor white
+    BorderColor black
+    FontSize 12
+    FontStyle bold
+    Padding 10
+}
+
+skinparam package {
+    BackgroundColor white
+    BorderColor black
+    FontSize 14
+    FontStyle bold
+    Padding 15
+}
+
+skinparam interface {
+    BackgroundColor white
+    BorderColor black
+    FontSize 11
+}
+
+skinparam arrow {
+    Color black
+    FontSize 14
+}
+
+skinparam linetype ortho
+
+title PEaC Architecture Overview
+
+package "External Data Sources" as external {
+    component "Local Files (.txt, .pdf, .docx, .xlsx)" as localfiles
+    component "Vector Database (FAISS)" as vectordb
+}
+
+package "PEaC Core Architecture" as core {
+    
+    package "Providers Module (/peac/providers/)" as providers {
+        component "Local File Parser\n(local_parser.py)" as localparser
+        component "PDF Provider\n(pdf.py)" as pdfprov
+        component "DOCX Provider\n(docx.py)" as docxprov
+        component "XLSX Provider\n(xlsx.py)" as xlsxprov
+        component "RAG Provider\n(rag.py)" as ragprov
+        component "Base Provider\n(base.py)" as baseprov
+        
+        baseprov --> pdfprov : implements
+        baseprov --> docxprov : implements  
+        baseprov --> xlsxprov : implements
+        localparser --> pdfprov : uses
+        localparser --> docxprov : uses
+        localparser --> xlsxprov : uses
+        localparser --> ragprov : uses
+    }
+    
+    package "Core Engine (/peac/core/)" as engine {
+        component "PromptYaml Class\n(peac.py)" as promptyaml
+        component "YAML Parser" as yamlparser
+        component "Prompt Generator" as promptgen
+        
+        yamlparser --> promptyaml : parses to
+        promptyaml --> promptgen : generates
+    }
+}
+
+package "User Interface Layer" as ui {
+    component "CustomTkinter GUI\n(/peac/gui_ctk/)" as gui
+    component "CLI Interface\n(main.py)" as cli
+}
+
+' Data flow connections
+localfiles --> localparser : file content
+vectordb --> ragprov : vector search
+
+localparser --> promptyaml : processed content
+ragprov --> promptyaml : retrieved context
+
+gui --> promptyaml : YAML configuration
+cli --> promptyaml : YAML files
+
+promptyaml --> promptgen : assembled data
+promptgen --> output : final prompt text
+
+interface "PEaC API" as api
+engine --> api : programmatic access
+
+' External data sources include local files (.txt, .pdf, .docx, .xlsx) and vector databases (FAISS Index)
+
+' Providers implement file-specific parsing:
+' • PDF: Page range filtering with PyPDF2
+' • DOCX: Paragraph extraction with python-docx  
+' • XLSX: Sheet selection with openpyxl
+' • RAG: FAISS vector search with sentence-transformers
+
+' Core engine components:
+' • PromptYaml: Main processing class
+' • YAML parsing: Configuration management
+' • Prompt generation: Template assembly
+
+' User interfaces:
+' • GUI: CustomTkinter visual editor
+' • CLI: Command-line automation
+
+@enduml

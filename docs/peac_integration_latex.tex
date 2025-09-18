@@ -1,0 +1,110 @@
+\section{PEaC Integration with External Applications}
+
+This section describes how PEaC can be integrated into external applications through two primary approaches: as a Python library and via Command Line Interface (CLI). The integration patterns enable developers to incorporate structured prompt engineering capabilities into their existing workflows and applications.
+
+\subsection{Integration Approaches}
+
+PEaC supports multiple integration scenarios to accommodate different development environments and use cases. Table~\ref{tab:integration-approaches} summarizes the available integration methods and their characteristics.
+
+\begin{table}[htbp]
+\centering
+\caption{PEaC Integration Approaches}
+\label{tab:integration-approaches}
+\begin{tabular}{|l|p{4cm}|p{3cm}|p{3cm}|}
+\hline
+\textbf{Method} & \textbf{Description} & \textbf{Use Case} & \textbf{Advantages} \\
+\hline
+Python Library & Direct import of PEaC modules & Python applications & Fine-grained control, programmatic access \\
+\hline
+CLI Interface & Command-line execution & Any programming language & Language agnostic, simple integration \\
+\hline
+Batch Processing & Automated processing of multiple documents & Large-scale operations & Efficient bulk processing \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Python Library Integration}
+
+The Python library integration provides the most flexible approach for incorporating PEaC functionality into existing Python applications. Developers can directly import the \texttt{PromptYaml} class from the \texttt{peac.core} module and programmatically generate prompts.
+
+\subsubsection{Implementation Steps}
+
+The integration process follows these key steps:
+
+\begin{enumerate}
+    \item \textbf{Configuration Loading}: The application loads a YAML configuration file containing the prompt engineering specifications
+    \item \textbf{PromptYaml Instantiation}: Create a \texttt{PromptYaml} object with the configuration file path
+    \item \textbf{Content Processing}: The library processes various data sources (local files, web content, RAG queries) as specified in the configuration
+    \item \textbf{Prompt Generation}: Call \texttt{get\_prompt\_sentence()} to generate the structured prompt
+    \item \textbf{LLM Integration}: Send the generated prompt to the target LLM service
+\end{enumerate}
+
+\subsubsection{Code Example}
+
+\begin{verbatim}
+from peac.core.peac import PromptYaml
+
+# Load PEaC configuration
+processor = PromptYaml("config.yaml")
+
+# Generate structured prompt
+prompt = processor.get_prompt_sentence()
+
+# Send to LLM service
+response = llm_service.query(prompt)
+\end{verbatim}
+
+\subsection{CLI Integration}
+
+The Command Line Interface provides a language-agnostic integration method, allowing applications written in any programming language to leverage PEaC capabilities through system calls.
+
+\subsubsection{CLI Usage Pattern}
+
+Applications can execute PEaC commands and capture the output through standard input/output mechanisms:
+
+\begin{verbatim}
+peac process config.yaml --output prompt.txt
+\end{verbatim}
+
+This approach is particularly suitable for:
+\begin{itemize}
+    \item Applications written in languages other than Python
+    \item Microservice architectures where PEaC runs as a separate service
+    \item Batch processing scenarios requiring minimal integration overhead
+\end{itemize}
+
+\subsection{Batch Processing Integration}
+
+For large-scale operations, PEaC supports batch processing integration where multiple documents or configurations can be processed automatically. This pattern is especially useful for:
+
+\begin{itemize}
+    \item Document analysis workflows
+    \item Content generation pipelines
+    \item Automated report generation systems
+\end{itemize}
+
+The batch processing follows an iterative pattern where each input document is processed through the complete PEaC pipeline, generating customized prompts for subsequent LLM processing.
+
+\subsection{Integration Benefits}
+
+The integration capabilities of PEaC provide several advantages for external applications:
+
+\begin{description}
+    \item[Modularity] Applications can leverage PEaC's prompt engineering capabilities without reimplementing complex logic
+    \item[Consistency] Standardized prompt generation ensures consistent LLM interactions across different parts of an application
+    \item[Maintainability] Prompt engineering logic is externalized to configuration files, enabling updates without code changes
+    \item[Scalability] Both library and CLI integrations support scaling from single requests to batch operations
+\end{description}
+
+\subsection{Error Handling and Validation}
+
+PEaC integration includes comprehensive error handling mechanisms:
+
+\begin{itemize}
+    \item Configuration validation ensures YAML files conform to expected schemas
+    \item File system access errors are properly caught and reported
+    \item Network connectivity issues for web-based content sources are handled gracefully
+    \item RAG query failures include fallback mechanisms when knowledge bases are unavailable
+\end{itemize}
+
+This robust error handling ensures that external applications can implement reliable prompt generation workflows with appropriate fallback strategies when individual components encounter issues.

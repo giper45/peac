@@ -7,7 +7,7 @@ from tkinter import filedialog, messagebox
 from typing import Dict, List, Any
 
 # Import shared rule components
-from .shared_rule_components import LocalRuleCard, WebRuleCard
+from .shared_rule_components import LocalRuleCard, WebRuleCard, RagRuleCard
 
 
 class ContextSection(ctk.CTkFrame):
@@ -20,9 +20,10 @@ class ContextSection(ctk.CTkFrame):
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(2, weight=1)
         
-        # Initialize rule cards - separate lists for local and web
+        # Initialize rule cards - separate lists for local, web and rag
         self.local_rules = []
         self.web_rules = []
+        self.rag_rules = []
         
         # Initialize change callback and current file path
         self.change_callback = None
@@ -50,9 +51,15 @@ class ContextSection(ctk.CTkFrame):
                 name = card.name_entry.get().strip()
                 if name:
                     existing_names.append(name)
-        else:  # web
+        elif rule_type == "web":
             existing_names = []
             for card in self.web_rules:
+                name = card.name_entry.get().strip()
+                if name:
+                    existing_names.append(name)
+        else:  # rag
+            existing_names = []
+            for card in self.rag_rules:
                 name = card.name_entry.get().strip()
                 if name:
                     existing_names.append(name)
@@ -121,7 +128,7 @@ class ContextSection(ctk.CTkFrame):
         # Tab buttons
         tab_frame = ctk.CTkFrame(rules_container, height=40)
         tab_frame.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
-        tab_frame.grid_columnconfigure((0, 1), weight=1)
+        tab_frame.grid_columnconfigure((0, 1, 2), weight=1)
         
         self.local_tab_btn = ctk.CTkButton(
             tab_frame,
@@ -140,7 +147,18 @@ class ContextSection(ctk.CTkFrame):
             text_color=("gray10", "gray90"),
             hover_color=("gray70", "gray30")
         )
-        self.web_tab_btn.grid(row=0, column=1, padx=(2.5, 5), pady=5, sticky="ew")
+        self.web_tab_btn.grid(row=0, column=1, padx=(2.5, 2.5), pady=5, sticky="ew")
+        
+        self.rag_tab_btn = ctk.CTkButton(
+            tab_frame,
+            text="🧠 RAG Rules",
+            height=35,
+            command=self.show_rag_tab,
+            fg_color="transparent",
+            text_color=("gray10", "gray90"),
+            hover_color=("gray70", "gray30")
+        )
+        self.rag_tab_btn.grid(row=0, column=2, padx=(2.5, 5), pady=5, sticky="ew")
         
         # Rules content area
         self.rules_content = ctk.CTkScrollableFrame(rules_container, height=400)
@@ -169,6 +187,13 @@ class ContextSection(ctk.CTkFrame):
             command=self.add_web_rule,
             height=40
         )
+        
+        self.rag_add_btn = ctk.CTkButton(
+            self.rules_content,
+            text="➕ Add RAG Rule",
+            command=self.add_rag_rule,
+            height=40
+        )
     
     def show_local_tab(self):
         """Show local rules tab"""
@@ -180,6 +205,10 @@ class ContextSection(ctk.CTkFrame):
             text_color=("gray10", "white")
         )
         self.web_tab_btn.configure(
+            fg_color="transparent",
+            text_color=("gray10", "gray90")
+        )
+        self.rag_tab_btn.configure(
             fg_color="transparent",
             text_color=("gray10", "gray90")
         )
@@ -200,6 +229,31 @@ class ContextSection(ctk.CTkFrame):
             fg_color="transparent",
             text_color=("gray10", "gray90")
         )
+        self.rag_tab_btn.configure(
+            fg_color="transparent",
+            text_color=("gray10", "gray90")
+        )
+        
+        # Show/hide appropriate content
+        self.refresh_rules_display()
+    
+    def show_rag_tab(self):
+        """Show RAG rules tab"""
+        self.current_rule_type = "rag"
+        
+        # Update button appearance
+        self.rag_tab_btn.configure(
+            fg_color=("gray75", "gray25"),
+            text_color=("gray10", "white")
+        )
+        self.local_tab_btn.configure(
+            fg_color="transparent",
+            text_color=("gray10", "gray90")
+        )
+        self.web_tab_btn.configure(
+            fg_color="transparent",
+            text_color=("gray10", "gray90")
+        )
         
         # Show/hide appropriate content
         self.refresh_rules_display()
@@ -207,12 +261,13 @@ class ContextSection(ctk.CTkFrame):
     def refresh_rules_display(self):
         """Refresh the display of rules based on current tab"""
         # Hide all rule cards first
-        for card in self.local_rules + self.web_rules:
+        for card in self.local_rules + self.web_rules + self.rag_rules:
             card.grid_forget()
         
         # Hide add buttons
         self.local_add_btn.grid_forget()
         self.web_add_btn.grid_forget()
+        self.rag_add_btn.grid_forget()
         
         # Show appropriate cards and add button
         row = 0
@@ -221,11 +276,16 @@ class ContextSection(ctk.CTkFrame):
                 card.grid(row=row, column=0, sticky="ew", padx=5, pady=5)
                 row += 1
             self.local_add_btn.grid(row=row, column=0, sticky="ew", padx=5, pady=10)
-        else:  # web
+        elif self.current_rule_type == "web":
             for card in self.web_rules:
                 card.grid(row=row, column=0, sticky="ew", padx=5, pady=5)
                 row += 1
             self.web_add_btn.grid(row=row, column=0, sticky="ew", padx=5, pady=10)
+        else:  # rag
+            for card in self.rag_rules:
+                card.grid(row=row, column=0, sticky="ew", padx=5, pady=5)
+                row += 1
+            self.rag_add_btn.grid(row=row, column=0, sticky="ew", padx=5, pady=10)
     
     def add_local_rule(self):
         """Add new local rule"""
@@ -254,6 +314,22 @@ class ContextSection(ctk.CTkFrame):
         # Notify about change
         self.notify_change()
     
+    def add_rag_rule(self):
+        """Add new RAG rule"""
+        default_name = self.generate_default_rule_name("rag")
+        card = RagRuleCard(
+            self.rules_content, 
+            on_delete=self.remove_rule_card, 
+            default_name=default_name,
+            current_file_path=self.current_file_path
+        )
+        card.set_change_callback(self.notify_change)
+        self.rag_rules.append(card)
+        self.refresh_rules_display()
+        
+        # Notify about change
+        self.notify_change()
+    
     def remove_rule_card(self, card):
         """Remove a rule card"""
         removed = False
@@ -262,6 +338,9 @@ class ContextSection(ctk.CTkFrame):
             removed = True
         elif card in self.web_rules:
             self.web_rules.remove(card)
+            removed = True
+        elif card in self.rag_rules:
+            self.rag_rules.remove(card)
             removed = True
         
         if removed:
@@ -287,6 +366,12 @@ class ContextSection(ctk.CTkFrame):
             is_valid, error_msg = card.validate()
             if not is_valid:
                 validation_errors.append(f"Web rule {i+1}: {error_msg}")
+        
+        # Validate RAG rules
+        for i, card in enumerate(self.rag_rules):
+            is_valid, error_msg = card.validate()
+            if not is_valid:
+                validation_errors.append(f"RAG rule {i+1}: {error_msg}")
         
         # Return validation errors if any (don't show dialog)
         if validation_errors:
@@ -322,6 +407,17 @@ class ContextSection(ctk.CTkFrame):
         
         if web_rules:
             data['web'] = web_rules
+        
+        # RAG rules
+        rag_rules = {}
+        for card in self.rag_rules:
+            rule_data = card.get_data()
+            if rule_data:
+                name, rule_config = rule_data
+                rag_rules[name] = rule_config
+        
+        if rag_rules:
+            data['rag'] = rag_rules
         
         return data
     
@@ -363,6 +459,19 @@ class ContextSection(ctk.CTkFrame):
             card.set_change_callback(self.notify_change)
             card.load_data(name, rule_config)
             self.web_rules.append(card)
+        
+        # RAG rules
+        rag_rules = data.get('rag', {})
+        for name, rule_config in rag_rules.items():
+            card = RagRuleCard(
+                self.rules_content, 
+                on_delete=self.remove_rule_card,
+                current_file_path=self.current_file_path
+            )
+            card.set_change_callback(self.notify_change)
+            card.load_data(name, rule_config)
+            self.rag_rules.append(card)
+        
         self.refresh_rules_display()
     
     def clear(self):
@@ -376,5 +485,9 @@ class ContextSection(ctk.CTkFrame):
         for card in self.web_rules:
             card.destroy()
         self.web_rules.clear()
+        
+        for card in self.rag_rules:
+            card.destroy()
+        self.rag_rules.clear()
         
         self.refresh_rules_display()
