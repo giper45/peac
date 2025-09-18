@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "peac"
-version = "0.2.1"
+version = "0.2.2"
 description = "Prompt Engineering as Code"
 authors = ["gx1 <18548727+giper45@users.noreply.github.com>"]
 license = "MIT"
@@ -52,7 +52,7 @@ build-backend = "poetry.core.masonry.api"
 gui = ["customtkinter"]
 
 [tool.bumpversion]
-current_version = "0.2.1"
+current_version = "0.2.2"
 parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
 serialize = ["{major}.{minor}.{patch}"]
 search = "{current_version}"

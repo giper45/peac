@@ -10,18 +10,35 @@ Here we write upgrading notes for brands. It's a team effort to make them as
 straightforward as possible.
  
 ### Added
-- Excel XLSX provider support with sheet filtering
-- Support for "sheets" option in XLSX files (instead of "pages")
-- Dynamic GUI labels for Pages/Sheets based on file type
-- bumpversion configuration for automated version management
-- BUMPVERSION.md guide for version management workflow
+- [Next features here]
  
 ### Changed
-- GUI now displays appropriate labels (Pages for PDF/DOCX, Sheets for XLSX)
-- Provider system enhanced to support multiple file types consistently
+- [Changes here]
  
 ### Fixed
-- Regex filtering now works correctly across all providers (PDF, DOCX, XLSX)
+- [Fixes here]
+
+## [0.2.2] - 2025-09-18
+ 
+### Added
+- Architecture documentation with accurate implementation diagrams
+- PlantUML and Draw.io architecture diagrams with modular design
+- Comprehensive prompt engineering templates collection (12+ strategies)
+- Academic paper descriptions following Elsevier CAS-SC guidelines
+- RAG integration verification and code structure analysis
+- Module documentation with actual vs. theoretical implementation mapping
+ 
+### Changed
+- Updated architecture diagrams to reflect actual codebase implementation
+- Improved diagram styling with clean black/white theme for publications
+- Enhanced PlantUML diagrams with straight lines and readable fonts
+- Reorganized draw.io components for easier modification
+ 
+### Fixed
+- Copy function now includes Instruction section in prompt generation
+- Architecture diagram accuracy - removed theoretical components
+- Provider module documentation now matches actual implementation
+- Component relationship mapping corrected in architectural diagrams
 
 ## [0.2.1] - 2024-12-12
   
