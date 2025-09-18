@@ -511,6 +511,18 @@ class PromptYaml:
     def get_output_rag_rules(self):
         return self.get_rag_rules('output')
 
+    def get_instruction_base_rules(self):
+        return self.get_base_rules('instruction')
+
+    def get_instruction_local_rules(self):
+        return self.get_local_rules('instruction')
+
+    def get_instruction_web_rules(self):
+        return self.get_web_rules('instruction')
+
+    def get_instruction_rag_rules(self):
+        return self.get_rag_rules('instruction')
+
 
     def find_dependencies(yaml_data, parent_path):
         other_prompts = []
@@ -527,6 +539,16 @@ class PromptYaml:
 
 
     def get_prompt_sentence(self):
+        # Get instruction rules
+        base_instruction = self.get_instruction_base_rules()
+        local_instruction = PromptSections()
+        local_instruction.add_sections(self.get_instruction_local_rules())
+        web_instruction = PromptSections()
+        web_instruction.add_sections(self.get_instruction_web_rules())
+        rag_instruction = PromptSections()
+        rag_instruction.add_sections(self.get_instruction_rag_rules())
+
+        # Get context rules
         base_context = self.get_context_base_rules()
         local_context = PromptSections()
         local_context.add_sections(self.get_context_local_rules())
@@ -535,6 +557,7 @@ class PromptYaml:
         rag_context = PromptSections()
         rag_context.add_sections(self.get_context_rag_rules())
 
+        # Get output rules
         base_output = self.get_output_base_rules()
         local_output = PromptSections()
         local_output.add_sections(self.get_output_local_rules())
@@ -545,7 +568,13 @@ class PromptYaml:
         
         query = self.get_query()
 
+        # Process parent dependencies
         for p in self.parents:
+            base_instruction += p.get_instruction_base_rules()
+            local_instruction.add_sections(p.get_instruction_local_rules())
+            web_instruction.add_sections(p.get_instruction_web_rules())
+            rag_instruction.add_sections(p.get_instruction_rag_rules())
+
             base_context += p.get_context_base_rules()
             local_context.add_sections(p.get_context_local_rules())
             web_context.add_sections(p.get_context_web_rules())
@@ -556,20 +585,41 @@ class PromptYaml:
             web_output.add_sections(p.get_output_web_rules())
             rag_output.add_sections(p.get_output_rag_rules())
 
+        # Process instruction data
+        base_instruction = list(set(base_instruction)) if isinstance(base_instruction, list) else [base_instruction] if base_instruction else []
+        local_instruction = local_instruction.get_lines()
+        web_instruction = web_instruction.get_lines()
+        rag_instruction = rag_instruction.get_lines()
+
+        # Process context data
         base_context = list(set(base_context)) if isinstance(base_context, list) else [base_context] if base_context else []
         local_context = local_context.get_lines()
         web_context = web_context.get_lines()
         rag_context = rag_context.get_lines()
         
+        # Process output data
         base_output = list(set(base_output)) if isinstance(base_output, list) else [base_output] if base_output else []
         local_output = local_output.get_lines()
         web_output = web_output.get_lines()
         rag_output = rag_output.get_lines()
 
+        # Combine all sections
+        all_instruction = base_instruction + local_instruction + web_instruction + rag_instruction
         all_context = base_context + local_context + web_context + rag_context
         all_output = base_output + local_output + web_output + rag_output
 
-        return '\n'.join([self.get_sentence('context', all_context), self.get_sentence('output', all_output), query])
+        # Build final prompt
+        prompt_parts = []
+        if all_instruction:
+            prompt_parts.append(self.get_sentence('instruction', all_instruction))
+        if all_context:
+            prompt_parts.append(self.get_sentence('context', all_context))
+        if all_output:
+            prompt_parts.append(self.get_sentence('output', all_output))
+        if query:
+            prompt_parts.append(query)
+
+        return '\n'.join(prompt_parts)
 
 
 

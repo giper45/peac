@@ -19,6 +19,7 @@ from peac.core.peac import PromptYaml
 from peac.gui_ctk.components.context_section import ContextSection
 from peac.gui_ctk.components.output_section import OutputSection
 from peac.gui_ctk.components.extends_section import ExtendsSection
+from peac.gui_ctk.components.instruction_section import InstructionSection
 
 
 class PeacApp(ctk.CTk):
@@ -143,14 +144,15 @@ class PeacApp(ctk.CTk):
         # Content tabs header (row 2)
         tab_frame = ctk.CTkFrame(main_frame, height=50)
         tab_frame.grid(row=2, column=0, sticky="ew", padx=10, pady=(5, 5))
-        tab_frame.grid_columnconfigure((0, 1, 2, 3), weight=1)  # Removed one column for Query
+        tab_frame.grid_columnconfigure((0, 1, 2, 3, 4), weight=1)  # Added one column for Instruction
         
-        # Tab buttons (removed Query tab)
+        # Tab buttons
         self.tab_buttons = {}
         self.create_tab_button(tab_frame, "YAML", 0, self.show_yaml_tab)
-        self.create_tab_button(tab_frame, "Context", 1, self.show_context_tab)
-        self.create_tab_button(tab_frame, "Output", 2, self.show_output_tab)
-        self.create_tab_button(tab_frame, "Extends", 3, self.show_extends_tab)
+        self.create_tab_button(tab_frame, "Instruction", 1, self.show_instruction_tab)
+        self.create_tab_button(tab_frame, "Context", 2, self.show_context_tab)
+        self.create_tab_button(tab_frame, "Output", 3, self.show_output_tab)
+        self.create_tab_button(tab_frame, "Extends", 4, self.show_extends_tab)
         
         # Content area (row 3)
         self.content_frame = ctk.CTkFrame(main_frame)
@@ -283,6 +285,13 @@ class PeacApp(ctk.CTk):
         """Create all tab content widgets"""
         # YAML section
         self.create_yaml_section()
+        
+        # Instruction section scrollable wrapper
+        self.instruction_scroll = ctk.CTkScrollableFrame(self.content_frame)
+        self.instruction_scroll.grid_columnconfigure(0, weight=1)
+        self.instruction_section = InstructionSection(self.instruction_scroll)
+        self.instruction_section.set_change_callback(self.on_section_changed)
+        self.instruction_section.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
         
         # Create scrollable frames for each section
         # Context section scrollable wrapper
@@ -492,6 +501,10 @@ class PeacApp(ctk.CTk):
         if not data:
             return
             
+        # Update instruction section
+        instruction_data = data.get('instruction', {})
+        self.instruction_section.load_data(instruction_data)
+            
         # Update sections
         context_data = data.get('context', {})
         self.context_section.load_data(context_data)
@@ -645,6 +658,15 @@ class PeacApp(ctk.CTk):
         self.update_tab_appearance("YAML")
         # Auto-sync GUI to YAML when showing YAML tab
         self.sync_gui_to_yaml()
+    
+    def show_instruction_tab(self):
+        """Show instruction tab"""
+        # Auto-sync YAML to GUI when leaving YAML tab
+        if hasattr(self, 'current_tab') and self.current_tab == "YAML":
+            self.sync_yaml_to_gui_silent()
+        self.hide_all_tabs()
+        self.instruction_scroll.grid(row=0, column=0, sticky="nsew")
+        self.update_tab_appearance("Instruction")
     
     def show_context_tab(self):
         """Show context tab"""
@@ -994,6 +1016,11 @@ class PeacApp(ctk.CTk):
         data = {}
         all_validation_errors = []
         
+        # Collect from instruction section
+        instruction_data = self.instruction_section.get_data()
+        if instruction_data:
+            data['instruction'] = instruction_data
+        
         # Collect from each section
         context_data = self.context_section.get_data()
         if context_data and "_validation_errors" in context_data:
@@ -1148,6 +1175,7 @@ class PeacApp(ctk.CTk):
         if 'prompt' in self.yaml_data:
             yaml_data = self.yaml_data['prompt']
             
+        self.instruction_section.load_data(yaml_data.get('instruction', {}))
         self.context_section.load_data(yaml_data.get('context', {}))
         self.output_section.load_data(yaml_data.get('output', {}))
         self.extends_section.load_data(yaml_data.get('extends', []))
@@ -1162,6 +1190,7 @@ class PeacApp(ctk.CTk):
         """Clear all sections"""
         self.enable_yaml_textbox()
         self.yaml_text.delete("1.0", "end")
+        self.instruction_section.clear_data()
         self.context_section.clear()
         self.output_section.clear()
         self.extends_section.clear()

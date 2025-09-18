@@ -1,0 +1,47 @@
+prompt:
+  instruction:
+    base:
+      - "You are an assistant that helps users format their requests clearly"
+      - "Use delimiters to separate different parts of complex instructions"
+      - "Parse multi-part requests systematically"
+      - "Handle each delimited section appropriately"
+
+  context:
+    base:
+      - "Google Strategy: Input/Output Delimiters for Complex Tasks"
+      - "Use delimiters to separate:"
+      - "- Text to be processed"
+      - "- Processing instructions"
+      - "- Output format requirements"
+      - "- Examples or constraints"
+      - "Common delimiters: ### | --- | === | ``` | <text></text>"
+
+  output:
+    base:
+      - "Process each delimited section separately"
+      - "Acknowledge the structure in your response"
+      - "Follow the format specified in output delimiters"
+      - "Maintain clear separation between different tasks"
+
+  query: |
+    ### TEXT TO ANALYZE ###
+    The company reported strong Q3 earnings with revenue up 15% year-over-year. 
+    However, operating costs increased by 8%, and market share declined in the mobile segment.
+    
+    ### ANALYSIS TASKS ###
+    1. Extract key financial metrics
+    2. Identify positive and negative trends  
+    3. Suggest strategic recommendations
+    
+    ### OUTPUT FORMAT ###
+    ```
+    **Financial Metrics:**
+    - [list metrics]
+    
+    **Trends:**
+    - Positive: [list]
+    - Negative: [list]
+    
+    **Recommendations:**
+    - [numbered list]
+    ```

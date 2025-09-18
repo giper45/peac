@@ -1,0 +1,141 @@
+@startuml modules
+!theme plain
+scale 0.8
+
+' Configuration for A4 vertical format
+skinparam page {
+    BackgroundColor white
+    BorderColor black
+    Margin 10
+}
+
+skinparam component {
+    Style rectangle
+    BackgroundColor lightblue
+    BorderColor navy
+    FontSize 12
+    FontStyle bold
+}
+
+skinparam package {
+    BackgroundColor lightyellow
+    BorderColor orange
+    FontSize 14
+    FontStyle bold
+}
+
+skinparam interface {
+    BackgroundColor lightgreen
+    BorderColor darkgreen
+    FontSize 11
+}
+
+skinparam arrow {
+    Color navy
+    FontSize 10
+}
+
+title PEaC Architecture Overview
+note top : The architecture consists of three main components:\nProviders, RAG Module, and Interactive GUI
+
+' Define the main architectural layers
+package "External Data Sources" as external {
+    component "Local Files\n(.txt, .pdf, .docx, .xlsx)" as localfiles
+    component "Web Resources\n(HTTP/HTTPS URLs)" as webres
+    component "Vector Database\n(FAISS Index)" as vectordb
+}
+
+package "PEaC Core Architecture" as core {
+    
+    package "Providers Module" as providers {
+        component "Local Provider" as localprov {
+            note right : Handles file system\nintegration with filtering\nand recursive search
+        }
+        component "Web Provider" as webprov {
+            note right : Manages HTTP requests\nand content extraction\nwith XPath support
+        }
+        component "RAG Provider" as ragprov {
+            note right : Implements vector\nsearch and retrieval\nwith configurable parameters
+        }
+    }
+    
+    package "RAG Module" as rag {
+        component "Vector Store\nManager" as vectorstore
+        component "Embedding\nProcessor" as embedding
+        component "Retrieval\nEngine" as retrieval
+        
+        vectorstore -down-> embedding : embeddings
+        embedding -down-> retrieval : similarity search
+    }
+    
+    package "Core Engine" as engine {
+        component "YAML Parser" as yamlparser
+        component "Prompt Generator" as promptgen
+        component "Template Engine" as template
+        
+        yamlparser -right-> template : configuration
+        template -down-> promptgen : structured data
+    }
+}
+
+package "User Interface Layer" as ui {
+    component "Interactive GUI" as gui {
+        note bottom : CustomTkinter-based interface\nfor creating and managing\nYAML configurations
+    }
+    component "Command Line\nInterface (CLI)" as cli {
+        note bottom : Terminal-based interface\nfor prompt generation\nand automation
+    }
+}
+
+package "Output Layer" as output {
+    component "Generated Prompt" as prompt {
+        note right : Final structured prompt\nwith integrated context\nfrom all providers
+    }
+    component "LLM Integration" as llm {
+        note right : Compatible with\nChatGPT, Claude, and\nother language models
+    }
+}
+
+' Data flow connections
+localfiles -down-> localprov : file content
+webres -down-> webprov : web content
+vectordb -down-> ragprov : vector data
+
+localprov -down-> yamlparser : processed content
+webprov -down-> yamlparser : extracted content
+ragprov -down-> vectorstore : query results
+
+ragprov -right-> rag : vector search
+rag -down-> promptgen : context data
+
+gui -down-> yamlparser : YAML configuration
+cli -down-> yamlparser : YAML files
+
+promptgen -down-> prompt : assembled prompt
+prompt -down-> llm : ready for LLM
+
+' Key interfaces
+interface "PEaC API" as api
+engine -down-> api : programmatic access
+api -down-> output : prompt generation
+
+' Legend
+legend bottom
+    |Component Type | Description |
+    |Provider | External data integration module |
+    |RAG | Retrieval-Augmented Generation component |
+    |Core | Central processing engine |
+    |UI | User interaction layer |
+    |Output | Final prompt delivery |
+endlegend
+
+note bottom of core
+**PEaC Framework Benefits:**
+• Modular architecture enables flexible data integration
+• Providers abstract different data source complexities
+• RAG module enhances context with semantic search
+• GUI democratizes prompt engineering workflow
+• CLI supports automation and CI/CD integration
+end note
+
+@enduml

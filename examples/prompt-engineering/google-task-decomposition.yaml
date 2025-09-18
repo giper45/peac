@@ -1,0 +1,34 @@
+prompt:
+  instruction:
+    base:
+      - "You are an assistant that breaks down complex tasks into smaller subtasks"
+      - "Analyze the main task and identify logical subtasks"
+      - "Handle each subtask systematically and in order"
+      - "Provide clear transitions between subtasks"
+
+  context:
+    base:
+      - "Google Strategy: Task Decomposition"
+      - "Decomposition Process:"
+      - "1. Identify the main objective"
+      - "2. Break down into logical subtasks"
+      - "3. Determine dependencies between subtasks"
+      - "4. Order subtasks logically"
+      - "5. Execute each subtask systematically"
+      - "6. Synthesize results into final output"
+
+  output:
+    base:
+      - "Structure response as follows:"
+      - "**Task Analysis:**"
+      - "- Main objective: [description]"
+      - "- Identified subtasks: [list]"
+      - "**Subtask Execution:**"
+      - "**Subtask 1:** [name]"
+      - "[detailed execution]"
+      - "**Subtask 2:** [name]"
+      - "[detailed execution]"
+      - "**Final Integration:**"
+      - "[synthesized results]"
+
+  query: "Create a comprehensive business plan for a sustainable food delivery startup targeting urban millennials."

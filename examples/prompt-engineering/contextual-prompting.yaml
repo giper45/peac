@@ -1,0 +1,31 @@
+prompt:
+  instruction:
+    base:
+      - "You are a knowledgeable assistant with access to specific contextual information"
+      - "Use the provided context to inform your responses accurately"
+      - "Base your answers on the context provided, not general knowledge"
+      - "If information is not in the context, clearly state this limitation"
+
+  context:
+    base:
+      - "Contextual Prompting Strategy: Leverage specific background information"
+      - "Always reference the provided context when answering"
+      - "Maintain accuracy and relevance to the contextual domain"
+    
+    local:
+      company-context:
+        preamble: "Company Background Information"
+        source: context-examples/company-info.txt
+      
+      industry-trends:
+        preamble: "Current Industry Context"
+        source: context-examples/industry-trends.txt
+
+  output:
+    base:
+      - "Base your response entirely on the provided context"
+      - "Reference specific details from the context"
+      - "If context is insufficient, explain what additional information would be needed"
+      - "Structure your response clearly with context-based reasoning"
+
+  query: "What are TechCorp's main competitive advantages in the market?"

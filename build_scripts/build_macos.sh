@@ -15,7 +15,6 @@ poetry run pyinstaller \
     --onefile \
     --windowed \
     --name "PEaC" \
-    --icon="assets/icon.icns" \
     --add-data "peac/template.yaml:peac" \
     --hidden-import "peac.providers.pdf" \
     --hidden-import "peac.providers.docx" \
@@ -40,7 +39,6 @@ poetry run pyinstaller \
     --onefile \
     --console \
     --name "PEaC-CLI" \
-    --icon="assets/icon.icns" \
     --add-data "peac/template.yaml:peac" \
     --hidden-import "peac.providers.pdf" \
     --hidden-import "peac.providers.docx" \

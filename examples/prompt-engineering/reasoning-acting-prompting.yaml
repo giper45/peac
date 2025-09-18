@@ -1,0 +1,31 @@
+prompt:
+  instruction:
+    base:
+      - "You are an expert problem-solver that combines reasoning with actionable steps"
+      - "First analyze the problem thoroughly, then describe specific actions to solve it"
+      - "Think systematically about both the 'why' and the 'how'"
+      - "Provide clear reasoning followed by concrete action plans"
+
+  context:
+    base:
+      - "ReAc Framework: Reasoning + Acting Approach"
+      - "First, analyze the problem, then describe the actions needed to solve it"
+      - "Balance theoretical understanding with practical implementation"
+      - "Consider both immediate and long-term consequences of actions"
+      - "Phase 1: REASONING - Deep analysis of the situation"
+      - "Phase 2: ACTING - Specific actionable steps and implementation plan"
+
+  output:
+    base:
+      - "Structure your response in two clear phases:"
+      - "**REASONING PHASE:**"
+      - "- Problem analysis and breakdown"
+      - "- Key factors and considerations"
+      - "- Potential challenges and opportunities"
+      - "**ACTING PHASE:**"
+      - "- Specific actionable steps (numbered list)"
+      - "- Timeline and priority ordering"
+      - "- Success metrics and validation methods"
+      - "- Risk mitigation strategies"
+
+  query: "A small startup needs to increase their customer base by 300% within 6 months while maintaining product quality. They have limited budget and a team of 8 people."

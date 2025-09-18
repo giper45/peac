@@ -1,0 +1,81 @@
+@startuml PEaC_Integration_Sequence
+!theme plain
+
+title PEaC Integration with LLM Pipelines
+
+actor "Developer" as Dev
+participant "LLM Pipeline\n(LangChain/Custom)" as Pipeline
+participant "PEaC Library\n(peac.core)" as PEaCLib
+participant "PEaC CLI" as PEaCCLI
+participant "LLM Service\n(OpenAI/Anthropic/etc.)" as LLM
+
+== Integration Method 1: Python Library Import ==
+
+Dev -> Pipeline: Import PEaC as Python module
+activate Pipeline
+
+Pipeline -> PEaCLib: from peac.core import PromptYaml
+activate PEaCLib
+
+Pipeline -> PEaCLib: py = PromptYaml(config_path)
+note right of PEaCLib: Loads YAML configuration\nand processes context sources
+
+Pipeline -> PEaCLib: prompt = py.get_prompt_sentence()
+PEaCLib -> PEaCLib: Generate structured prompt
+PEaCLib -> Pipeline: Return complete prompt
+deactivate PEaCLib
+
+Pipeline -> LLM: Send generated prompt
+activate LLM
+LLM -> Pipeline: Return AI response
+deactivate LLM
+
+Pipeline -> Dev: Return processed result
+
+== Integration Method 2: CLI Interface ==
+
+Dev -> Pipeline: Configure CLI integration
+Pipeline -> PEaCCLI: subprocess.run(['peac', 'prompt', 'config.yaml'])
+activate PEaCCLI
+
+PEaCCLI -> PEaCCLI: Process YAML configuration\nGenerate prompt
+PEaCCLI -> Pipeline: Output via stdout
+deactivate PEaCCLI
+
+Pipeline -> Pipeline: Parse CLI output
+Pipeline -> LLM: Send prompt to LLM
+activate LLM
+LLM -> Pipeline: AI response
+deactivate LLM
+
+Pipeline -> Dev: Return final result
+
+== Integration Method 3: LangChain Custom Tool ==
+
+Dev -> Pipeline: Create PEaC LangChain tool
+activate Pipeline
+
+Pipeline -> PEaCLib: class PEaCTool(BaseTool)
+activate PEaCLib
+
+note right of Pipeline: Custom LangChain tool\nthat wraps PEaC functionality
+
+Pipeline -> Pipeline: Initialize LLM chain with PEaC tool
+
+loop For each user query
+    Pipeline -> PEaCLib: tool.run(config_path, query)
+    PEaCLib -> PEaCLib: Generate contextual prompt
+    PEaCLib -> Pipeline: Return prompt
+    
+    Pipeline -> LLM: Send enriched prompt
+    activate LLM
+    LLM -> Pipeline: AI response
+    deactivate LLM
+    
+    Pipeline -> Dev: Return response
+end
+
+deactivate PEaCLib
+deactivate Pipeline
+
+@enduml
