@@ -1,0 +1,190 @@
+# PEaC Framework - Actual Implementation Structure
+# Based on codebase analysis as of 2024-12-12
+
+peac_framework:
+  description: "Prompt Engineering as Code framework for automated prompt generation and template management"
+  
+  core_modules:
+    - name: "Core Engine"
+      path: "peac/core/"
+      components:
+        - component: "PromptYaml Class"
+          file: "peac.py"
+          description: "Main processing engine for YAML configuration parsing and prompt generation"
+          features:
+            - "YAML configuration parsing"
+            - "Template processing"
+            - "Instruction section support"
+            - "Local/web/RAG rule integration"
+            - "Prompt assembly and generation"
+          
+    - name: "Local Parser"
+      path: "peac/"
+      components:
+        - component: "File Parser"
+          file: "local_parser.py"
+          description: "File system integration with provider routing and directory parsing"
+          features:
+            - "File type detection and routing"
+            - "Provider instantiation management"
+            - "Directory parsing with recursive options"
+            - "Filter regex support"
+            - "Extension-based file filtering"
+
+  provider_modules:
+    - name: "Base Provider"
+      path: "peac/providers/"
+      components:
+        - component: "FileProvider Abstract Class"
+          file: "base.py"
+          description: "Abstract base class for all file providers"
+          features:
+            - "Standard provider interface"
+            - "Page range parsing utilities"
+            - "Filter application support"
+            
+    - name: "PDF Provider"
+      path: "peac/providers/"
+      components:
+        - component: "PdfProvider"
+          file: "pdf.py"
+          description: "PDF document parsing with page range filtering"
+          features:
+            - "PDF text extraction"
+            - "Page range selection (e.g., '1-3', '1,5,7')"
+            - "Filter regex support"
+          dependencies:
+            - "PyPDF2"
+            
+    - name: "DOCX Provider"
+      path: "peac/providers/"
+      components:
+        - component: "DocxProvider"
+          file: "docx.py"
+          description: "Microsoft Word document parsing"
+          features:
+            - "DOCX paragraph extraction"
+            - "Filter regex support"
+          dependencies:
+            - "python-docx"
+            
+    - name: "XLSX Provider"
+      path: "peac/providers/"
+      components:
+        - component: "XlsxProvider"
+          file: "xlsx.py"
+          description: "Excel spreadsheet parsing with sheet selection"
+          features:
+            - "XLSX data extraction"
+            - "Sheet selection by name or index"
+            - "Sheet range specification"
+            - "Filter regex support"
+          dependencies:
+            - "openpyxl"
+            
+    - name: "RAG Provider"
+      path: "peac/providers/"
+      components:
+        - component: "RagProvider"
+          file: "rag.py"
+          description: "Retrieval-Augmented Generation using FAISS vector search"
+          features:
+            - "FAISS index creation from source documents"
+            - "Vector embedding with sentence-transformers"
+            - "Semantic similarity search"
+            - "Configurable chunk size and overlap"
+            - "Top-k result retrieval"
+            - "GPU/MPS/CPU device optimization"
+          dependencies:
+            - "faiss-cpu"
+            - "sentence-transformers"
+
+  user_interface_modules:
+    - name: "GUI Interface"
+      path: "peac/gui_ctk/"
+      components:
+        - component: "Main Application"
+          file: "main_app.py"
+          description: "CustomTkinter-based graphical user interface"
+          features:
+            - "Visual YAML configuration editor"
+            - "Provider options management"
+            - "Real-time prompt preview"
+            - "File browser integration"
+            - "Copy/export functionality"
+          dependencies:
+            - "customtkinter"
+            
+        - component: "Output Section"
+          file: "components/output_section.py"
+          description: "Output configuration UI components"
+          features:
+            - "Local rules management"
+            - "Web rules configuration"
+            - "RAG rules setup"
+            
+        - component: "Shared Rule Components"
+          file: "components/shared_rule_components.py"
+          description: "Reusable UI components for rule configuration"
+          features:
+            - "LocalRuleCard for file-based rules"
+            - "Provider-specific option handling"
+            - "Path browsing and validation"
+            
+    - name: "CLI Interface"
+      path: "peac/"
+      components:
+        - component: "Main CLI"
+          file: "main.py"
+          description: "Command-line interface for automation"
+          features:
+            - "YAML file processing"
+            - "Batch prompt generation"
+            - "CI/CD integration support"
+
+  entry_points:
+    - name: "GUI Launcher"
+      file: "peac/gui_launcher.py"
+      description: "Entry point for graphical interface"
+      command: "poetry run peac gui"
+      
+    - name: "CLI Application"
+      file: "peac/main.py"
+      description: "Entry point for command-line interface"
+      command: "poetry run peac"
+
+  configuration:
+    - name: "Template System"
+      file: "peac/template.yaml"
+      description: "Default YAML template for prompt configuration"
+      
+    - name: "Project Configuration"
+      file: "pyproject.toml"
+      description: "Poetry project configuration with dependencies"
+      
+    - name: "Build Scripts"
+      path: "build_scripts/"
+      description: "Platform-specific build automation scripts"
+
+  dependencies:
+    required:
+      - "pyyaml"
+      - "validators"
+      - "requests"
+      - "beautifulsoup4"
+      - "markdown"
+      - "pathlib"
+      
+    optional:
+      - "PyPDF2 (for PDF provider)"
+      - "python-docx (for DOCX provider)"
+      - "openpyxl (for XLSX provider)"
+      - "faiss-cpu (for RAG provider)"
+      - "sentence-transformers (for RAG provider)"
+      - "customtkinter (for GUI interface)"
+
+  current_limitations:
+    - "Web provider referenced in GUI but not implemented as separate class"
+    - "Output layer is conceptual - no separate LLM integration module"
+    - "RAG module is single provider class, not separate architecture layer"
+    - "No built-in web scraping capabilities (only local file and RAG support)"

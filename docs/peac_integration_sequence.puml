@@ -1,7 +1,6 @@
 @startuml PEaC_Integration_Sequence
 !theme plain
 
-title PEaC Integration with LLM Pipelines
 
 actor "Developer" as Dev
 participant "LLM Pipeline\n(LangChain/Custom)" as Pipeline

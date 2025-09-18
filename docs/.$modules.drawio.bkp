@@ -1,0 +1,160 @@
+<mxfile host="Electron" modified="2025-09-18T05:12:28.880Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.2.1 Chrome/112.0.5615.87 Electron/24.1.2 Safari/537.36" etag="WquVGznjVdeNrAxpMpMH" version="21.2.1" type="device">
+  <diagram name="PEaC Architecture" id="peac-architecture">
+    <mxGraphModel dx="1026" dy="1509" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="external-package" value="External Data Sources" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;fillColor=none;" parent="1" vertex="1">
+          <mxGeometry x="20" y="130" width="280" height="146" as="geometry" />
+        </mxCell>
+        <mxCell id="localfiles" value="Local Files&#xa;(.txt, .pdf, .docx, .xlsx)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontStyle=1" parent="external-package" vertex="1">
+          <mxGeometry y="26" width="280" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="vectordb" value="Vector Database&#xa;(FAISS)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontStyle=1" parent="external-package" vertex="1">
+          <mxGeometry y="86" width="280" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="core-package" value="PEaC Core Architecture" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;fillColor=none;" parent="1" vertex="1">
+          <mxGeometry x="360" y="80" width="640" height="420" as="geometry" />
+        </mxCell>
+        <mxCell id="providers-package" value="Providers Module (/peac/providers/)" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;fillColor=none;" parent="core-package" vertex="1">
+          <mxGeometry x="20" y="40" width="380" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="localparser" value="Local File Parser&#xa;(local_parser.py)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontStyle=1" parent="providers-package" vertex="1">
+          <mxGeometry x="20" y="40" width="110" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="baseprov" value="Base Provider&#xa;(base.py)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontStyle=1" parent="providers-package" vertex="1">
+          <mxGeometry x="20" y="110" width="110" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="pdfprov" value="PDF Provider&#xa;(pdf.py)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontStyle=1" parent="providers-package" vertex="1">
+          <mxGeometry x="150" y="40" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="docxprov" value="DOCX Provider&#xa;(docx.py)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontStyle=1" parent="providers-package" vertex="1">
+          <mxGeometry x="270" y="40" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="xlsxprov" value="XLSX Provider&#xa;(xlsx.py)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontStyle=1" parent="providers-package" vertex="1">
+          <mxGeometry x="150" y="110" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="ragprov" value="RAG Provider&#xa;(rag.py)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontStyle=1" parent="providers-package" vertex="1">
+          <mxGeometry x="270" y="110" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="engine-package" value="Core Engine (/peac/core/)" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;fillColor=none;" parent="core-package" vertex="1">
+          <mxGeometry x="430" y="40" width="180" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="promptyaml" value="PromptYaml Class&#xa;(peac.py)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontStyle=1" parent="engine-package" vertex="1">
+          <mxGeometry x="20" y="40" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="yamlparser" value="YAML Parser" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontStyle=1" parent="engine-package" vertex="1">
+          <mxGeometry x="20" y="110" width="140" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="promptgen" value="Prompt Generator" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontStyle=1" parent="engine-package" vertex="1">
+          <mxGeometry x="20" y="160" width="140" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ui-package" value="User Interface Layer" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;fillColor=none;" parent="1" vertex="1">
+          <mxGeometry x="570" y="-160" width="280" height="146" as="geometry" />
+        </mxCell>
+        <mxCell id="gui" value="CustomTkinter GUI&#xa;(/peac/gui_ctk/)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontStyle=1" parent="ui-package" vertex="1">
+          <mxGeometry y="26" width="280" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="cli" value="CLI Interface&#xa;(main.py)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontStyle=1" parent="ui-package" vertex="1">
+          <mxGeometry y="86" width="280" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="output" value="final prompt text" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="650" y="570" width="140" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="api" value="PEaC API" style="ellipse;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="1150" y="320" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="conn1" value="file content" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="localfiles" target="localparser" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="400" y="350" as="sourcePoint" />
+            <mxPoint x="450" y="300" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="conn2" value="vector search" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="vectordb" target="ragprov" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="400" y="350" as="sourcePoint" />
+            <mxPoint x="450" y="300" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="conn3" value="processed content" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="localparser" target="promptyaml" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="400" y="350" as="sourcePoint" />
+            <mxPoint x="450" y="300" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="conn4" value="retrieved context" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="ragprov" target="promptyaml" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="400" y="350" as="sourcePoint" />
+            <mxPoint x="450" y="300" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="conn5" value="implements" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="baseprov" target="pdfprov" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="400" y="350" as="sourcePoint" />
+            <mxPoint x="450" y="300" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="conn6" value="implements" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="baseprov" target="xlsxprov" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="400" y="350" as="sourcePoint" />
+            <mxPoint x="450" y="300" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="conn7" value="implements" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="baseprov" target="docxprov" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="400" y="350" as="sourcePoint" />
+            <mxPoint x="450" y="300" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="conn8" value="uses" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="localparser" target="pdfprov" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="400" y="350" as="sourcePoint" />
+            <mxPoint x="450" y="300" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="conn9" value="parses to" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="yamlparser" target="promptyaml" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="400" y="350" as="sourcePoint" />
+            <mxPoint x="450" y="300" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="conn10" value="generates" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="promptyaml" target="promptgen" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="400" y="350" as="sourcePoint" />
+            <mxPoint x="450" y="300" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="conn11" value="YAML configuration" style="endArrow=classic;html=1;rounded=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;edgeStyle=orthogonalEdgeStyle;fontSize=13;" parent="1" source="gui" target="promptyaml" edge="1">
+          <mxGeometry x="-0.6577" y="16" width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="930" y="-70" as="sourcePoint" />
+            <mxPoint x="450" y="300" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="conn12" value="YAML files" style="endArrow=classic;html=1;rounded=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;edgeStyle=orthogonalEdgeStyle;fontSize=13;" parent="1" source="cli" target="promptyaml" edge="1">
+          <mxGeometry x="-0.0029" y="40" width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="400" y="350" as="sourcePoint" />
+            <mxPoint x="450" y="300" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="960" y="-44" />
+              <mxPoint x="960" y="185" />
+            </Array>
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="conn13" value="assembled data" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="promptgen" target="output" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="400" y="350" as="sourcePoint" />
+            <mxPoint x="450" y="300" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="conn14" value="programmatic access" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="engine-package" target="api" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="400" y="350" as="sourcePoint" />
+            <mxPoint x="450" y="300" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

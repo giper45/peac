@@ -1,141 +1,115 @@
 @startuml modules
 !theme plain
-scale 0.8
+scale 1.0
 
-' Configuration for A4 vertical format
 skinparam page {
     BackgroundColor white
     BorderColor black
-    Margin 10
+    Margin 20
 }
 
 skinparam component {
     Style rectangle
-    BackgroundColor lightblue
-    BorderColor navy
+    BackgroundColor white
+    BorderColor black
     FontSize 12
     FontStyle bold
+    Padding 10
 }
 
 skinparam package {
-    BackgroundColor lightyellow
-    BorderColor orange
+    BackgroundColor white
+    BorderColor black
     FontSize 14
     FontStyle bold
+    Padding 15
 }
 
 skinparam interface {
-    BackgroundColor lightgreen
-    BorderColor darkgreen
+    BackgroundColor white
+    BorderColor black
     FontSize 11
 }
 
 skinparam arrow {
-    Color navy
-    FontSize 10
+    Color black
+    FontSize 14
 }
 
-title PEaC Architecture Overview
-note top : The architecture consists of three main components:\nProviders, RAG Module, and Interactive GUI
+skinparam linetype ortho
 
-' Define the main architectural layers
+title PEaC Architecture Overview
+
 package "External Data Sources" as external {
-    component "Local Files\n(.txt, .pdf, .docx, .xlsx)" as localfiles
-    component "Web Resources\n(HTTP/HTTPS URLs)" as webres
-    component "Vector Database\n(FAISS Index)" as vectordb
+    component "Local Files (.txt, .pdf, .docx, .xlsx)" as localfiles
+    component "Vector Database (FAISS)" as vectordb
 }
 
 package "PEaC Core Architecture" as core {
     
-    package "Providers Module" as providers {
-        component "Local Provider" as localprov {
-            note right : Handles file system\nintegration with filtering\nand recursive search
-        }
-        component "Web Provider" as webprov {
-            note right : Manages HTTP requests\nand content extraction\nwith XPath support
-        }
-        component "RAG Provider" as ragprov {
-            note right : Implements vector\nsearch and retrieval\nwith configurable parameters
-        }
-    }
-    
-    package "RAG Module" as rag {
-        component "Vector Store\nManager" as vectorstore
-        component "Embedding\nProcessor" as embedding
-        component "Retrieval\nEngine" as retrieval
+    package "Providers Module (/peac/providers/)" as providers {
+        component "Local File Parser\n(local_parser.py)" as localparser
+        component "PDF Provider\n(pdf.py)" as pdfprov
+        component "DOCX Provider\n(docx.py)" as docxprov
+        component "XLSX Provider\n(xlsx.py)" as xlsxprov
+        component "RAG Provider\n(rag.py)" as ragprov
+        component "Base Provider\n(base.py)" as baseprov
         
-        vectorstore -down-> embedding : embeddings
-        embedding -down-> retrieval : similarity search
+        baseprov --> pdfprov : implements
+        baseprov --> docxprov : implements  
+        baseprov --> xlsxprov : implements
+        localparser --> pdfprov : uses
+        localparser --> docxprov : uses
+        localparser --> xlsxprov : uses
+        localparser --> ragprov : uses
     }
     
-    package "Core Engine" as engine {
+    package "Core Engine (/peac/core/)" as engine {
+        component "PromptYaml Class\n(peac.py)" as promptyaml
         component "YAML Parser" as yamlparser
         component "Prompt Generator" as promptgen
-        component "Template Engine" as template
         
-        yamlparser -right-> template : configuration
-        template -down-> promptgen : structured data
+        yamlparser --> promptyaml : parses to
+        promptyaml --> promptgen : generates
     }
 }
 
 package "User Interface Layer" as ui {
-    component "Interactive GUI" as gui {
-        note bottom : CustomTkinter-based interface\nfor creating and managing\nYAML configurations
-    }
-    component "Command Line\nInterface (CLI)" as cli {
-        note bottom : Terminal-based interface\nfor prompt generation\nand automation
-    }
-}
-
-package "Output Layer" as output {
-    component "Generated Prompt" as prompt {
-        note right : Final structured prompt\nwith integrated context\nfrom all providers
-    }
-    component "LLM Integration" as llm {
-        note right : Compatible with\nChatGPT, Claude, and\nother language models
-    }
+    component "CustomTkinter GUI\n(/peac/gui_ctk/)" as gui
+    component "CLI Interface\n(main.py)" as cli
 }
 
 ' Data flow connections
-localfiles -down-> localprov : file content
-webres -down-> webprov : web content
-vectordb -down-> ragprov : vector data
+localfiles --> localparser : file content
+vectordb --> ragprov : vector search
 
-localprov -down-> yamlparser : processed content
-webprov -down-> yamlparser : extracted content
-ragprov -down-> vectorstore : query results
+localparser --> promptyaml : processed content
+ragprov --> promptyaml : retrieved context
 
-ragprov -right-> rag : vector search
-rag -down-> promptgen : context data
+gui --> promptyaml : YAML configuration
+cli --> promptyaml : YAML files
 
-gui -down-> yamlparser : YAML configuration
-cli -down-> yamlparser : YAML files
+promptyaml --> promptgen : assembled data
+promptgen --> output : final prompt text
 
-promptgen -down-> prompt : assembled prompt
-prompt -down-> llm : ready for LLM
-
-' Key interfaces
 interface "PEaC API" as api
-engine -down-> api : programmatic access
-api -down-> output : prompt generation
+engine --> api : programmatic access
 
-' Legend
-legend bottom
-    |Component Type | Description |
-    |Provider | External data integration module |
-    |RAG | Retrieval-Augmented Generation component |
-    |Core | Central processing engine |
-    |UI | User interaction layer |
-    |Output | Final prompt delivery |
-endlegend
+' External data sources include local files (.txt, .pdf, .docx, .xlsx) and vector databases (FAISS Index)
 
-note bottom of core
-**PEaC Framework Benefits:**
-• Modular architecture enables flexible data integration
-• Providers abstract different data source complexities
-• RAG module enhances context with semantic search
-• GUI democratizes prompt engineering workflow
-• CLI supports automation and CI/CD integration
-end note
+' Providers implement file-specific parsing:
+' • PDF: Page range filtering with PyPDF2
+' • DOCX: Paragraph extraction with python-docx  
+' • XLSX: Sheet selection with openpyxl
+' • RAG: FAISS vector search with sentence-transformers
+
+' Core engine components:
+' • PromptYaml: Main processing class
+' • YAML parsing: Configuration management
+' • Prompt generation: Template assembly
+
+' User interfaces:
+' • GUI: CustomTkinter visual editor
+' • CLI: Command-line automation
 
 @enduml

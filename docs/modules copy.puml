@@ -1,0 +1,131 @@
+@startuml modules
+!theme plain
+scale 0.8
+
+skinparam page {
+    BackgroundColor white
+    BorderColor black
+    Margin 10
+}
+
+skinparam component {
+    Style rectangle
+    BackgroundColor lightblue
+    BorderColor navy
+    FontSize 12
+    FontStyle bold
+}
+
+skinparam package {
+    BackgroundColor lightyellow
+    BorderColor orange
+    FontSize 14
+    FontStyle bold
+}
+
+skinparam interface {
+    BackgroundColor lightgreen
+    BorderColor darkgreen
+    FontSize 11
+}
+
+skinparam arrow {
+    Color navy
+    FontSize 10
+}
+
+title PEaC Architecture Overview
+
+package "External Data Sources" as external {
+    component "Local Files" as localfiles
+    component "Web Resources" as webres
+    component "Vector Database" as vectordb
+}
+
+package "PEaC Core Architecture" as core {
+    
+    package "Providers Module" as providers {
+        component "Local Provider" as localprov
+        component "Web Provider" as webprov
+        component "RAG Provider" as ragprov
+    }
+    
+    package "RAG Module" as rag {
+        component "Vector Store Manager" as vectorstore
+        component "Embedding Processor" as embedding
+        component "Retrieval Engine" as retrieval
+        
+        vectorstore --> embedding : embeddings
+        embedding --> retrieval : similarity search
+    }
+    
+    package "Core Engine" as engine {
+        component "YAML Parser" as yamlparser
+        component "Prompt Generator" as promptgen
+        component "Template Engine" as template
+        
+        yamlparser --> template : configuration
+        template --> promptgen : structured data
+    }
+}
+
+package "User Interface Layer" as ui {
+    component "Interactive GUI" as gui
+    component "Command Line Interface" as cli
+}
+
+package "Output Layer" as output {
+    component "Generated Prompt" as prompt
+    component "LLM Integration" as llm
+}
+
+' Data flow connections
+localfiles --> localprov : file content
+webres --> webprov : web content
+vectordb --> ragprov : vector data
+
+localprov --> yamlparser : processed content
+webprov --> yamlparser : extracted content
+ragprov --> vectorstore : query results
+
+ragprov --> rag : vector search
+rag --> promptgen : context data
+
+gui --> yamlparser : YAML configuration
+cli --> yamlparser : YAML files
+
+promptgen --> prompt : assembled prompt
+prompt --> llm : ready for LLM
+
+interface "PEaC API" as api
+engine --> api : programmatic access
+api --> output : prompt generation
+
+note top of external
+External data sources include:
+• Local files (.txt, .pdf, .docx, .xlsx)
+• Web resources (HTTP/HTTPS URLs)
+• Vector databases (FAISS Index)
+end note
+
+note right of providers
+Providers abstract data source complexity:
+• Local: file system integration with filtering
+• Web: HTTP requests with XPath support
+• RAG: vector search with configurable parameters
+end note
+
+note bottom of rag
+RAG Module implements:
+• Vector store management
+• Embedding processing
+• Semantic retrieval engine
+end note
+
+note left of ui
+User interfaces support:
+• GUI: CustomTkinter-based visual editor
+• CLI: Terminal automation and CI/CD
+end note
+
+@enduml

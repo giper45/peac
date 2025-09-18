@@ -1,7 +1,6 @@
 @startuml PEaC_UseCase_Sequence
 !theme plain
 
-title PEaC Use Case - Generating Prompts for ChatGPT
 
 actor "User" as User
 participant "PEaC GUI" as GUI
