@@ -618,7 +618,6 @@ class PromptYaml:
             prompt_parts.append(self.get_sentence('output', all_output))
         if query:
             prompt_parts.append(query)
-
         return '\n'.join(prompt_parts)
 
 
