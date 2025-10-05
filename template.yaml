@@ -1,0 +1,96 @@
+prompt:
+  extends: 
+    - another.yaml
+  context:
+      base:
+          - base A 
+          - base B
+      local: 
+        local-file:
+          preamble: template-file-example
+          filter: \b(public|private)\b
+          source: example-file.txt
+
+        local-folder:
+          preamble: template-folder-example
+          recursive: true
+          filter: \b(public|private)\b
+          extension: java
+          source: example-folder
+          
+        pdf-example:
+          preamble: PDF pages example
+          source: document.pdf
+          filter: Figure.*
+          options:
+            pages: "1-5,10,15-20"
+            
+        docx-example:
+          preamble: DOCX paragraphs example
+          source: document.docx
+          filter: "Table.*"
+          options:
+            pages: "1-10"
+            
+        xlsx-example:
+          preamble: Excel sheets example
+          source: spreadsheet.xlsx
+          filter: "Total.*"
+          options:
+            sheets: "1-3"  # First 3 sheets
+            
+        xlsx-named-sheets:
+          preamble: Specific Excel sheets
+          source: data.xlsx
+          filter: "^[A-Z]+"  # Lines starting with uppercase letters
+          options:
+            sheets: "Summary,Data,Results"  # Named sheets
+        web:
+          example:
+            preamble: web template
+            source: https://github.com/giper45/peac/
+            xpath: //div/text()
+      rag:
+        knowledge-base:
+          preamble: Search in knowledge base (GPU accelerated)
+          faiss_file: kb.faiss
+          query: "What is the main concept?"
+          source_folder: docs/
+          top_k: 3
+          chunk_size: 512
+          overlap: 50
+          filter: ".*important.*"
+          
+        code-search:
+          preamble: Search in codebase (GPU accelerated)
+          faiss_file: code_vectors.faiss
+          query: "Find function definitions"
+          source_folder: src/
+          top_k: 5
+  output:
+      base:
+        - base A
+        - base B
+      local-file:
+        preamble: template-file-example
+        filter: \b(public|private)\b
+        source: example-file.txt
+
+      local-folder:
+        preamble: template-folder-example
+        recursive: true
+        filter: \b(public|private)\b
+        extension: java
+        source: example-folder
+      web:
+        example:
+          preamble: web template
+          source: https://github.com/giper45/peac/
+          xpath: //div/text()
+      rag:
+        analysis:
+          preamble: Analyze documents (GPU accelerated)
+          faiss_file: analysis.faiss
+          query: "Find relevant analysis data"
+          source_folder: data/
+          top_k: 3

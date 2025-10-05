@@ -17,8 +17,11 @@ app = typer.Typer()
 
 
 @app.command()
-def prompt(yaml_path: str):
-    py = PromptYaml(yaml_path)
+def prompt(
+    yaml_path: str,
+    section_headers: bool = typer.Option(True, help="Enable section headers in the output."),
+    ):
+    py = PromptYaml(yaml_path, add_section_headers=section_headers)
     py.print()
 
 

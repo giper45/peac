@@ -187,17 +187,19 @@ def parse_input_string(input_string):
 
 
 
-def get_preamble_phrase(prompt_element: str):
+def get_preamble_phrase(prompt_element: str, add_section_headers=True):
     # return f"{prompt_element.capitalize()} - use these rules for all next questions:"
+    if not add_section_headers:
+        return ""
     return f"[{prompt_element.capitalize()}]\n"
 
-def _create_answer_line(prompt_element, information):
+def _create_answer_line(prompt_element, information, add_section_headers=True):
     lines = []
     index = 1
     for i, line in enumerate(information, 1):
         lines.append(f"{line}")
 
-    return "{}{}".format(get_preamble_phrase(prompt_element), "\n".join(lines))
+    return "{}{}".format(get_preamble_phrase(prompt_element, add_section_headers), "\n".join(lines))
 
 def find_path(p, parent_path = ''):
     """
@@ -216,11 +218,12 @@ def find_path(p, parent_path = ''):
     return resolved_path, parent_path
 
 class PromptYaml:
-    def __init__(self, yaml_path, parent_path = ''):
+    def __init__(self, yaml_path, parent_path = '', add_section_headers=True):
         # Resolve the YAML file path and set parent_path to its directory
         if not os.path.isabs(yaml_path) and parent_path:
             yaml_path = os.path.normpath(os.path.join(parent_path, yaml_path))
         
+        self.add_section_headers = add_section_headers
         # Set parent_path to the directory containing the YAML file
         self.parent_path = os.path.dirname(os.path.abspath(yaml_path))
 
@@ -229,7 +232,7 @@ class PromptYaml:
             yaml_data = file.read()
             self.parsed_data = yaml.safe_load(yaml_data)
         # context lines
-        self.parents : List[PromptYaml] = PromptYaml.find_dependencies(self.parsed_data, self.parent_path)
+        self.parents : List[PromptYaml] = PromptYaml.find_dependencies(self.parsed_data, self.parent_path, self.add_section_headers)
 
 
     def find_index(self, keyword):
@@ -252,7 +255,7 @@ class PromptYaml:
 
 
     def get_sentence(self, prompt_element, lines):
-        return _create_answer_line(prompt_element, lines)
+        return _create_answer_line(prompt_element, lines, self.add_section_headers)
 
 
 
@@ -524,13 +527,13 @@ class PromptYaml:
         return self.get_rag_rules('instruction')
 
 
-    def find_dependencies(yaml_data, parent_path):
+    def find_dependencies(yaml_data, parent_path, add_section_headers=True):
         other_prompts = []
         prompt = yaml_data['prompt']
         if 'extends' in prompt:
             others_yaml = prompt['extends']
             for o in others_yaml:
-                other_prompts.append(PromptYaml(o, parent_path))
+                other_prompts.append(PromptYaml(o, parent_path, add_section_headers))
 
         return other_prompts
 
@@ -586,7 +589,11 @@ class PromptYaml:
             rag_output.add_sections(p.get_output_rag_rules())
 
         # Process instruction data
-        base_instruction = list(set(base_instruction)) if isinstance(base_instruction, list) else [base_instruction] if base_instruction else []
+        def dedup_preserve_order(seq):
+            seen = set()
+            return [x for x in seq if not (x in seen or seen.add(x))]
+
+        base_instruction = dedup_preserve_order(base_instruction) if isinstance(base_instruction, list) else [base_instruction] if base_instruction else []
         local_instruction = local_instruction.get_lines()
         web_instruction = web_instruction.get_lines()
         rag_instruction = rag_instruction.get_lines()
