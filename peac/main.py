@@ -44,5 +44,16 @@ def gui():
     from peac.gui.main_app import start_flet_gui
     start_flet_gui()
 
+def _default_entrypoint():
+    """If no args are provided, launch the GUI; otherwise, use the CLI."""
+    import sys
+
+    # No subcommand provided -> open GUI directly
+    if len(sys.argv) <= 1:
+        gui()
+    else:
+        app()
+
+
 if __name__ == "__main__":
-    app()
+    _default_entrypoint()

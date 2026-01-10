@@ -157,15 +157,24 @@ class RuleCard(ft.Container):
             )
             self.all_fields.append(self.path_field)
 
-            browse = ft.IconButton(
-                ft.icons.FOLDER_OPEN,
+            browse_file_btn = ft.IconButton(
+                ft.icons.INSERT_DRIVE_FILE,
                 icon_color="#1877f2",
-                tooltip="Browse",
-                on_click=lambda _: self.pick_file(),
+                tooltip="Browse Files",
+                on_click=lambda _: self.pick_file_local(),
                 icon_size=24,
                 disabled=not self.editing_mode,
             )
-            self.browse_buttons.append(browse)
+            
+            browse_folder_btn = ft.IconButton(
+                ft.icons.FOLDER_OPEN,
+                icon_color="#2ecc71",
+                tooltip="Browse Folders",
+                on_click=lambda _: self.pick_folder_local(),
+                icon_size=24,
+                disabled=not self.editing_mode,
+            )
+            self.browse_buttons.extend([browse_file_btn, browse_folder_btn])
 
             # Recursive checkbox
             self.recursive_checkbox = ft.Checkbox(
@@ -198,7 +207,7 @@ class RuleCard(ft.Container):
                 ft.Column(
                     [
                         ft.Text("Source Path:", weight=ft.FontWeight.BOLD, size=14, color="#1f2937"),
-                        ft.Row([self.path_field, browse], spacing=8),
+                        ft.Row([self.path_field, browse_file_btn, browse_folder_btn], spacing=8),
                         self.recursive_checkbox,
                         ft.Row(
                             [self.extension_field, self.local_filter_field],
@@ -501,13 +510,54 @@ class RuleCard(ft.Container):
         if self.rule_type == "rag":
             fp.pick_files(dialog_title="Select FAISS index file", allowed_extensions=["faiss", "index"], allow_multiple=False)
         elif self.rule_type == "local":
-            # For local rules, allow picking either files or directories
-            fp.get_directory_path(dialog_title="Select file or folder")
+            # For local rules, allow picking both files and directories
+            # Use wildcard to show all files on Windows
+            fp.pick_files(dialog_title="Select file or folder", allowed_extensions=["*"], allow_multiple=False)
         else:
             # For extends rules, pick files
             fp.pick_files(dialog_title="Select configuration file", allow_multiple=False)
     
-    def pick_folder(self):
+    def pick_file_local(self):
+        """Pick file for local rules"""
+        def on_result(e: ft.FilePickerResultEvent):
+            if self.path_field and e.files and len(e.files) > 0:
+                selected_path = e.files[0].path
+                # Normalize path (remove platform-specific prefixes)
+                selected_path = PathResolverService.normalize_path(selected_path)
+                # Convert to relative path if we have a base directory
+                if self.get_base_dir:
+                    base_dir = self.get_base_dir()
+                    if base_dir:
+                        selected_path = PathResolverService.get_relative_path(selected_path, base_dir)
+                self.path_field.value = selected_path
+                self.path_field.update()
+                self._on_change()
+
+        fp = ft.FilePicker(on_result=on_result)
+        self.page.overlay.append(fp)
+        self.page.update()
+        fp.pick_files(dialog_title="Select file", allowed_extensions=["*"], allow_multiple=False)
+    
+    def pick_folder_local(self):
+        """Pick folder for local rules"""
+        def on_result(e: ft.FilePickerResultEvent):
+            if self.path_field and e.path:
+                selected_path = e.path
+                # Normalize path (remove platform-specific prefixes)
+                selected_path = PathResolverService.normalize_path(selected_path)
+                # Convert to relative path if we have a base directory
+                if self.get_base_dir:
+                    base_dir = self.get_base_dir()
+                    if base_dir:
+                        selected_path = PathResolverService.get_relative_path(selected_path, base_dir)
+                self.path_field.value = selected_path
+                self.path_field.update()
+                self._on_change()
+
+        fp = ft.FilePicker(on_result=on_result)
+        self.page.overlay.append(fp)
+        self.page.update()
+        fp.get_directory_path(dialog_title="Select folder")
         """Pick folder for RAG source directory"""
         def on_result(e: ft.FilePickerResultEvent):
             if e.path and self.source_folder_field:

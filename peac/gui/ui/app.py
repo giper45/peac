@@ -13,6 +13,7 @@ from peac.gui.services.prompt_service import PromptService
 from peac.gui.services.config_service import GuiConfig
 from peac.gui.services.path_resolver_service import PathResolverService
 from peac.gui.services.rule_parsing_service import RuleParsingService
+from peac.gui.services.file_service import FileService
 from peac.gui.models.rule import RuleData
 
 
@@ -624,50 +625,21 @@ class PeacFletApp:
             self.on_change()
         
         def browse_file():
-            def pick_file(e: ft.FilePickerResultEvent):
+            def on_file_selected(selected_path: Optional[str]):
                 try:
-                    print(f"[DEBUG] FilePicker result: files={e.files}, path={e.path if hasattr(e, 'path') else 'N/A'}")
-                    if e.files and len(e.files) > 0:
-                        selected_path = e.files[0].path
-                        print(f"[DEBUG] Selected path (raw): {selected_path}")
-                        
-                        # Normalize path first (remove /Volumes/Macintosh HD/ prefix)
-                        selected_path = PathResolverService.normalize_path(selected_path)
-                        print(f"[DEBUG] Selected path (normalized): {selected_path}")
-                        
-                        # Check if file exists
-                        if os.path.exists(selected_path):
-                            print(f"[DEBUG] File exists: YES")
-                        else:
-                            print(f"[DEBUG] File exists: NO - trying to find it...")
-                        
-                        # Convert to relative path based on last_directory
-                        base_dir = self.config.get_last_directory()
-                        print(f"[DEBUG] Base directory for relative path: {base_dir}")
-                        rel_path = PathResolverService.get_relative_path(selected_path, base_dir)
-                        print(f"[DEBUG] Relative path: {rel_path}")
-                        
-                        extends_card.source_field.value = rel_path
-                        print(f"[DEBUG] Set source_field.value to: {extends_card.source_field.value}")
-                        
+                    if selected_path:
+                        extends_card.source_field.value = selected_path
                         self.page.update()
                         self.on_change()
-                        self.page.update()
-                        print(f"[DEBUG] File picker completed successfully")
-                    else:
-                        print(f"[DEBUG] No files selected")
                 except Exception as ex:
                     error_msg = f"Error in file picker: {str(ex)}\n{traceback.format_exc()}"
                     print(f"[ERROR] {error_msg}")
                     logging.error(error_msg)
                     self.show_status(f"Error selecting file: {str(ex)}", ft.colors.RED)
             
-            picker = ft.FilePicker(on_result=pick_file)
-            self.page.overlay.append(picker)
-            self.page.update()
-            picker.pick_files(
-                allowed_extensions=["yaml", "yml"], 
-                dialog_title="Select YAML file to extend",
+            FileService.pick_yaml_file_for_extends(
+                self.page,
+                on_file_selected,
                 initial_directory=self.config.get_last_directory()
             )
         
@@ -827,7 +799,7 @@ class PeacFletApp:
         
         # Save empty file immediately
         try:
-            YamlService.save_file(new_filepath, file_tab.yaml_data)
+            FileService.save_yaml_file(new_filepath, file_tab.yaml_data)
             # Update last directory in config
             self.config.set_last_directory(os.path.dirname(new_filepath))
             self.show_status(f"Created: {os.path.basename(new_filepath)}", ft.colors.GREEN)
@@ -835,17 +807,15 @@ class PeacFletApp:
             self.show_status(f"Error creating file: {str(e)}", ft.colors.RED)
 
     def open_file(self):
-        def pick_file_result(e: ft.FilePickerResultEvent):
-            if e.files:
-                self.load_file(e.files[0].path)
+        def on_file_selected(filepath: Optional[str]):
+            if filepath:
+                self.load_file(filepath)
 
-        picker = ft.FilePicker(on_result=pick_file_result)
-        self.page.overlay.append(picker)
-        self.page.update()
-        picker.pick_files(
-            allowed_extensions=["yaml", "yml"], 
-            dialog_title="Open YAML file",
-            initial_directory=self.config.get_last_directory()
+        FileService.open_yaml_file_picker(
+            self.page,
+            on_file_selected,
+            initial_directory=self.config.get_last_directory(),
+            dialog_title="Open YAML file"
         )
 
     def load_file(self, filepath: str):
@@ -862,7 +832,7 @@ class PeacFletApp:
                 return
 
             file_tab = FileTab(filepath)
-            file_tab.yaml_data = YamlService.load_file(filepath)
+            file_tab.yaml_data = FileService.load_yaml_file(filepath)
             self._add_file_tab(file_tab)
             self.update_ui_from_data()
             # Update last directory in config
@@ -886,19 +856,17 @@ class PeacFletApp:
                 need_save_as = True
         
         if need_save_as:
-            def save_file_result(e: ft.FilePickerResultEvent):
-                if e.path:
-                    self.current_tab.file_path = e.path
+            def on_file_selected(filepath: Optional[str]):
+                if filepath:
+                    self.current_tab.file_path = filepath
                     self.do_save()
 
-            picker = ft.FilePicker(on_result=save_file_result)
-            self.page.overlay.append(picker)
-            self.page.update()
-            picker.save_file(
-                allowed_extensions=["yaml"], 
-                dialog_title="Save YAML file", 
+            FileService.save_yaml_file_picker(
+                self.page,
+                on_file_selected,
+                initial_directory=self.config.get_last_directory(),
                 file_name="untitled.yaml",
-                initial_directory=self.config.get_last_directory()
+                dialog_title="Save YAML file"
             )
         else:
             self.do_save()
@@ -909,7 +877,7 @@ class PeacFletApp:
             
         try:
             self.sync_ui_to_yaml()
-            YamlService.save_file(self.current_tab.file_path, self.current_tab.yaml_data)
+            FileService.save_yaml_file(self.current_tab.file_path, self.current_tab.yaml_data)
             self.current_tab.unsaved_changes = False
             
             # Update last directory in config

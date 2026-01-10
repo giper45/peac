@@ -1,0 +1,78 @@
+name: Build and Release PEaC
+
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger on version tags (v0.2.3, v1.0.0, etc.)
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'  # Use 3.11 for better compatibility
+    
+    - name: Install Poetry
+      run: |
+        pip install poetry
+        poetry config virtualenvs.create true
+        poetry config virtualenvs.in-project true
+    
+    - name: Install dependencies
+      run: |
+        poetry install --with dev
+    
+    - name: Install UPX (for compression)
+      run: |
+        choco install upx -y
+    
+    - name: Build executables
+      run: |
+        poetry run pyinstaller --clean --onedir --windowed --name "PeacGUI_${{ github.ref_name }}" --add-data "peac/template.yaml;peac" --hidden-import=flet.core --hidden-import=flet.controls --hidden-import=flet.connection --collect-all=flet --hidden-import=yaml --hidden-import=bs4 --hidden-import=requests --hidden-import=pdfplumber --strip peac/main.py
+        poetry run pyinstaller --clean --onefile --console --name "PeacCLI_${{ github.ref_name }}" --add-data "peac/template.yaml;peac" --hidden-import=typer.testing --hidden-import=yaml --hidden-import=bs4 --hidden-import=requests --hidden-import=pdfplumber --upx-dir="C:\ProgramData\chocolatey\lib\upx\tools" --strip peac/main.py
+    
+    - name: Create GUI portable ZIP
+      run: |
+        Compress-Archive -Path "dist\PeacGUI_${{ github.ref_name }}" -DestinationPath "dist\PeacGUI_${{ github.ref_name }}_portable.zip" -Force
+    
+    - name: List built files
+      run: |
+        Get-ChildItem dist\*.exe | Select-Object Name, @{Name="Size(MB)";Expression={[math]::Round($_.Length/1MB,2)}}
+    
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref_name }}
+        release_name: PEaC ${{ github.ref_name }}
+        draft: false
+        prerelease: false
+    
+    - name: Upload GUI executable
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./dist/PeacGUI_${{ github.ref_name }}_portable.zip
+        asset_name: PeacGUI_${{ github.ref_name }}_portable.zip
+        asset_content_type: application/zip
+    
+    - name: Upload CLI executable
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./dist/PeacCLI_${{ github.ref_name }}.exe
+        asset_name: PeacCLI_${{ github.ref_name }}.exe
+        asset_content_type: application/octet-stream
