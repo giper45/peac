@@ -33,13 +33,29 @@ class PeacApp(ctk.CTk):
         self.geometry("1400x900")
         self.minsize(1000, 600)
         
-        # Set theme
-        ctk.set_appearance_mode("dark")
+        # Set light theme Facebook style
+        ctk.set_appearance_mode("light")
         ctk.set_default_color_theme("blue")
+        
+        # Facebook-inspired color palette
+        self.colors = {
+            'bg_dark': '#ffffff',
+            'bg_medium': '#f0f2f5',
+            'bg_light': '#e4e6eb',
+            'accent': '#1877f2',
+            'accent_hover': '#166fe5',
+            'success': '#42b72a',
+            'warning': '#f59e0b',
+            'error': '#dc2626',
+            'text_primary': '#050505',
+            'text_secondary': '#3a3b3c',
+            'border': '#dadde1'
+        }
         
         # Configure grid layout (responsive)
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)
+        self.configure(fg_color=self.colors['bg_medium'])
         
         # Initialize multi-file data structures
         self.current_file_path = None  # Current active file
@@ -61,48 +77,71 @@ class PeacApp(ctk.CTk):
     
     def create_toolbar(self):
         """Create responsive toolbar"""
-        toolbar_frame = ctk.CTkFrame(self, height=60)
-        toolbar_frame.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
+        toolbar_frame = ctk.CTkFrame(
+            self, 
+            height=70,
+            fg_color=self.colors['bg_medium'],
+            corner_radius=12
+        )
+        toolbar_frame.grid(row=0, column=0, sticky="ew", padx=15, pady=(15, 8))
         toolbar_frame.grid_columnconfigure(1, weight=1)  # Spacer
         
         # Left side buttons
         left_frame = ctk.CTkFrame(toolbar_frame, fg_color="transparent")
         left_frame.grid(row=0, column=0, sticky="w", padx=10, pady=10)
         
-        # File operations
+        # File operations with modern styling
         new_btn = ctk.CTkButton(
             left_frame,
-            text="📄 New",
-            width=80,
-            command=self.new_file
+            text="✨ New",
+            width=90,
+            height=38,
+            command=self.new_file,
+            fg_color=self.colors['accent'],
+            hover_color=self.colors['accent_hover'],
+            corner_radius=8,
+            font=ctk.CTkFont(size=13, weight="bold"),
+            text_color="white"
         )
-        new_btn.grid(row=0, column=0, padx=(0, 5))
+        new_btn.grid(row=0, column=0, padx=(0, 8))
         
         open_btn = ctk.CTkButton(
             left_frame,
-            text="📂 Open",
-            width=80,
-            command=self.open_file
+            text="📁 Open",
+            width=90,
+            height=38,
+            command=self.open_file,
+            fg_color=self.colors['accent'],
+            hover_color=self.colors['accent_hover'],
+            corner_radius=8,
+            font=ctk.CTkFont(size=13, weight="bold"),
+            text_color="white"
         )
-        open_btn.grid(row=0, column=1, padx=5)
+        open_btn.grid(row=0, column=1, padx=8)
         
         save_btn = ctk.CTkButton(
             left_frame,
             text="💾 Save",
-            width=80,
-            command=self.save_file
+            width=90,
+            height=38,
+            command=self.save_file,
+            fg_color=self.colors['accent'],
+            hover_color=self.colors['accent_hover'],
+            corner_radius=8,
+            font=ctk.CTkFont(size=13, weight="bold"),
+            text_color="white"
         )
-        save_btn.grid(row=0, column=2, padx=5)
+        save_btn.grid(row=0, column=2, padx=8)
         self.save_btn = save_btn  # Store reference for enable/disable
         
-        # Center filename display
+        # Center filename display with modern styling
         self.filename_label = ctk.CTkLabel(
             toolbar_frame,
             text="No file loaded",
-            font=ctk.CTkFont(size=14, weight="bold"),
-            text_color=("gray10", "gray90")
+            font=ctk.CTkFont(size=15, weight="bold"),
+            text_color=self.colors['text_primary']
         )
-        self.filename_label.grid(row=0, column=1, pady=10)
+        self.filename_label.grid(row=0, column=1, pady=12)
         
         # Right side buttons
         right_frame = ctk.CTkFrame(toolbar_frame, fg_color="transparent")
@@ -110,28 +149,44 @@ class PeacApp(ctk.CTk):
         
         self.preview_btn = ctk.CTkButton(
             right_frame,
-            text="👁️ Preview",
-            width=100,
-            command=self.preview_prompt
+            text="👁 Preview",
+            width=110,
+            height=38,
+            command=self.preview_prompt,
+            fg_color=self.colors['accent'],
+            hover_color=self.colors['accent_hover'],
+            corner_radius=8,
+            font=ctk.CTkFont(size=13, weight="bold"),
+            text_color="white"
         )
-        self.preview_btn.grid(row=0, column=0, padx=5)
+        self.preview_btn.grid(row=0, column=0, padx=8)
         
         self.copy_btn = ctk.CTkButton(
             right_frame,
             text="📋 Copy",
-            width=100,
-            command=self.copy_prompt
+            width=110,
+            height=38,
+            command=self.copy_prompt,
+            fg_color=self.colors['accent'],
+            hover_color=self.colors['accent_hover'],
+            corner_radius=8,
+            font=ctk.CTkFont(size=13, weight="bold"),
+            text_color="white"
         )
-        self.copy_btn.grid(row=0, column=1, padx=(5, 0))
+        self.copy_btn.grid(row=0, column=1, padx=(8, 0))
         
         # Initially disable preview and copy buttons
         self.update_action_buttons_state()
     
     def create_main_content(self):
         """Create main content area with file tabs and content tabs"""
-        # Main container
-        main_frame = ctk.CTkFrame(self)
-        main_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=(5, 10))
+        # Main container with modern styling
+        main_frame = ctk.CTkFrame(
+            self,
+            fg_color=self.colors['bg_medium'],
+            corner_radius=12
+        )
+        main_frame.grid(row=1, column=0, sticky="nsew", padx=15, pady=(8, 15))
         main_frame.grid_columnconfigure(0, weight=1)
         main_frame.grid_rowconfigure(3, weight=1)  # Content area gets weight (moved to row 3)
         
@@ -141,9 +196,14 @@ class PeacApp(ctk.CTk):
         # Query field (row 1)
         self.create_query_field(main_frame)
         
-        # Content tabs header (row 2)
-        tab_frame = ctk.CTkFrame(main_frame, height=50)
-        tab_frame.grid(row=2, column=0, sticky="ew", padx=10, pady=(5, 5))
+        # Content tabs header (row 2) with modern styling
+        tab_frame = ctk.CTkFrame(
+            main_frame, 
+            height=55,
+            fg_color=self.colors['bg_light'],
+            corner_radius=10
+        )
+        tab_frame.grid(row=2, column=0, sticky="ew", padx=12, pady=(8, 8))
         tab_frame.grid_columnconfigure((0, 1, 2, 3, 4), weight=1)  # Added one column for Instruction
         
         # Tab buttons
@@ -154,9 +214,13 @@ class PeacApp(ctk.CTk):
         self.create_tab_button(tab_frame, "Output", 3, self.show_output_tab)
         self.create_tab_button(tab_frame, "Extends", 4, self.show_extends_tab)
         
-        # Content area (row 3)
-        self.content_frame = ctk.CTkFrame(main_frame)
-        self.content_frame.grid(row=3, column=0, sticky="nsew", padx=10, pady=(5, 10))
+        # Content area (row 3) with modern styling
+        self.content_frame = ctk.CTkFrame(
+            main_frame,
+            fg_color=self.colors['bg_dark'],
+            corner_radius=10
+        )
+        self.content_frame.grid(row=3, column=0, sticky="nsew", padx=12, pady=(8, 12))
         self.content_frame.grid_columnconfigure(0, weight=1)
         self.content_frame.grid_rowconfigure(0, weight=1)
         
@@ -172,17 +236,22 @@ class PeacApp(ctk.CTk):
     
     def create_status_bar(self):
         """Create status bar for informative messages"""
-        self.status_frame = ctk.CTkFrame(self, height=30)
-        self.status_frame.grid(row=2, column=0, sticky="ew", padx=10, pady=(0, 10))
+        self.status_frame = ctk.CTkFrame(
+            self, 
+            height=40,
+            fg_color=self.colors['bg_medium'],
+            corner_radius=10
+        )
+        self.status_frame.grid(row=2, column=0, sticky="ew", padx=15, pady=(0, 15))
         self.status_frame.grid_columnconfigure(0, weight=1)
         
         self.status_label = ctk.CTkLabel(
             self.status_frame,
             text="",
-            font=ctk.CTkFont(size=14),
-            text_color=("gray50", "gray60")
+            font=ctk.CTkFont(size=13),
+            text_color=self.colors['text_secondary']
         )
-        self.status_label.grid(row=0, column=0, sticky="w", padx=10, pady=5)
+        self.status_label.grid(row=0, column=0, sticky="w", padx=15, pady=8)
         
         # Initially hide the status bar
         self.status_frame.grid_remove()
@@ -216,32 +285,46 @@ class PeacApp(ctk.CTk):
     
     def create_query_field(self, parent):
         """Create the query input field above the tabs"""
-        query_frame = ctk.CTkFrame(parent, height=60)
-        query_frame.grid(row=1, column=0, sticky="ew", padx=10, pady=(5, 5))
+        query_frame = ctk.CTkFrame(
+            parent, 
+            height=70,
+            fg_color=self.colors['bg_light'],
+            corner_radius=10
+        )
+        query_frame.grid(row=1, column=0, sticky="ew", padx=12, pady=(8, 8))
         query_frame.grid_columnconfigure(1, weight=1)
         
-        # Query label
+        # Query label with modern styling
         query_label = ctk.CTkLabel(
             query_frame,
-            text="Query:",
-            font=ctk.CTkFont(size=12, weight="bold"),
-            width=60
+            text="💬 Query:",
+            font=ctk.CTkFont(size=13, weight="bold"),
+            width=80,
+            text_color=self.colors['text_primary']
         )
-        query_label.grid(row=0, column=0, sticky="w", padx=(10, 5), pady=10)
+        query_label.grid(row=0, column=0, sticky="w", padx=(15, 8), pady=12)
         
-        # Query text entry
+        # Query text entry with modern styling
         self.query_entry = ctk.CTkEntry(
             query_frame,
-            placeholder_text="Enter your query",
-            font=ctk.CTkFont(size=11),
-            height=32
+            placeholder_text="Enter your query here...",
+            font=ctk.CTkFont(size=12),
+            height=40,
+            fg_color="white",
+            border_color=self.colors['border'],
+            corner_radius=8,
+            text_color=self.colors['text_primary']
         )
-        self.query_entry.grid(row=0, column=1, sticky="ew", padx=(5, 10), pady=10)
+        self.query_entry.grid(row=0, column=1, sticky="ew", padx=(8, 15), pady=12)
 
     def create_file_tabs_bar(self, parent):
         """Create the file tabs bar at the top"""
-        file_tabs_frame = ctk.CTkFrame(parent, height=45)
-        file_tabs_frame.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
+        file_tabs_frame = ctk.CTkFrame(
+            parent, 
+            height=50,
+            fg_color="transparent"
+        )
+        file_tabs_frame.grid(row=0, column=0, sticky="ew", padx=12, pady=(12, 8))
         file_tabs_frame.grid_columnconfigure(0, weight=1)
         
         # Scrollable frame for file tabs
@@ -268,17 +351,31 @@ class PeacApp(ctk.CTk):
         new_file_btn.grid(row=0, column=1, padx=(5, 10), pady=5)
     
     def create_tab_button(self, parent, text, column, command):
-        """Create a tab button"""
+        """Create a tab button with modern styling"""
+        # Map tab names to icons
+        icons = {
+            'YAML': '📄',
+            'Instruction': '📝',
+            'Context': '📚',
+            'Output': '📤',
+            'Extends': '🔗'
+        }
+        
+        icon = icons.get(text, '')
+        display_text = f"{icon} {text}" if icon else text
+        
         btn = ctk.CTkButton(
             parent,
-            text=text,
-            height=35,
+            text=display_text,
+            height=40,
             command=command,
             fg_color="transparent",
-            text_color=("gray10", "gray90"),
-            hover_color=("gray70", "gray30")
+            text_color=self.colors['text_secondary'],
+            hover_color=self.colors['bg_dark'],
+            corner_radius=8,
+            font=ctk.CTkFont(size=13, weight="bold")
         )
-        btn.grid(row=0, column=column, padx=5, pady=5, sticky="ew")
+        btn.grid(row=0, column=column, padx=6, pady=8, sticky="ew")
         self.tab_buttons[text] = btn
     
     def create_tab_contents(self):
@@ -526,26 +623,35 @@ class PeacApp(ctk.CTk):
 
 
     def create_yaml_section(self):
-        """Create YAML editor section"""
-        self.yaml_frame = ctk.CTkFrame(self.content_frame)
+        """Create YAML editor section with modern styling"""
+        self.yaml_frame = ctk.CTkFrame(
+            self.content_frame,
+            fg_color="transparent"
+        )
         self.yaml_frame.grid_columnconfigure(0, weight=1)
         self.yaml_frame.grid_rowconfigure(1, weight=1)
         
-        # Title
+        # Title with modern styling
         self.yaml_title = ctk.CTkLabel(
             self.yaml_frame,
-            text="YAML Preview",
-            font=ctk.CTkFont(size=20, weight="bold")
+            text="📄 YAML Editor",
+            font=ctk.CTkFont(size=18, weight="bold"),
+            text_color=self.colors['text_primary']
         )
-        self.yaml_title.grid(row=0, column=0, pady=(20, 10), sticky="w", padx=20)
+        self.yaml_title.grid(row=0, column=0, pady=(15, 10), sticky="w", padx=15)
 
-        # YAML text area  
+        # YAML text area with modern styling
         self.yaml_text = ctk.CTkTextbox(
             self.yaml_frame,
             wrap="none",
-            font=ctk.CTkFont(family="Courier", size=12)
+            font=ctk.CTkFont(family="Menlo", size=12),
+            fg_color="white",
+            border_color=self.colors['border'],
+            corner_radius=8,
+            border_width=1,
+            text_color=self.colors['text_primary']
         )
-        self.yaml_text.grid(row=1, column=0, sticky="nsew", padx=20, pady=(10, 20))
+        self.yaml_text.grid(row=1, column=0, sticky="nsew", padx=15, pady=(10, 15))
         
         # Sync button
         # sync_btn = ctk.CTkButton(
@@ -701,17 +807,19 @@ class PeacApp(ctk.CTk):
             widget.grid_forget()
     
     def update_tab_appearance(self, active_tab):
-        """Update tab button appearance"""
+        """Update tab button appearance with modern styling"""
         for tab_name, button in self.tab_buttons.items():
             if tab_name == active_tab:
                 button.configure(
-                    fg_color=("gray75", "gray25"),
-                    text_color=("gray10", "white")
+                    fg_color=self.colors['accent'],
+                    text_color=self.colors['text_primary'],
+                    font=ctk.CTkFont(size=13, weight="bold")
                 )
             else:
                 button.configure(
                     fg_color="transparent",
-                    text_color=("gray10", "gray90")
+                    text_color=self.colors['text_secondary'],
+                    font=ctk.CTkFont(size=13, weight="bold")
                 )
         self.current_tab = active_tab
     

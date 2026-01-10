@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "peac"
-version = "0.2.2"
+version = "0.2.3"
 description = "Prompt Engineering as Code"
 authors = ["gx1 <18548727+giper45@users.noreply.github.com>"]
 license = "MIT"
@@ -12,6 +12,7 @@ include = ["peac/template.yaml"]
 python = ">=3.11,<3.15"
 # Dipendenze core - versioni stabili per Windows
 typer = "^0.9.0"
+click = "~8.1.7"
 pyyaml = "^6.0"
 requests = "^2.31.0"
 rich = "^13.0.0"
@@ -20,6 +21,7 @@ markdown = "^3.5.0"
 
 # GUI dependencies - versioni stabili
 customtkinter = "^5.2.0"
+flet = "^0.24.0"
 
 # Rimuovi le dipendenze problematiche come g4f e pythonnet
 # g4f = "^0.1.0"  # RIMOSSO - problematico su Windows

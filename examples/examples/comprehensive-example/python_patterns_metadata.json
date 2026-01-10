@@ -1,0 +1,235 @@
+{
+  "embedding_model": "all-MiniLM-L6-v2",
+  "chunks": [
+    {
+      "source": "examples/comprehensive-example/docs/cli-design-guidelines.md",
+      "chunk_id": 0,
+      "text": "# C L I Design Guidelines ## Introduction Command-line interfaces (C L I) are powerful tools for developers and power users. Well-designed C LI s follow consistent patterns and conventions that make them intuitive and efficient to use. ## Core Principles ### 1. Be Predictable Users should be able to guess how your C L I works based on common conventions: - Use standard flags: `-h` or `--help`, `-v` or `--version` - Follow P O S I X conventions for flag syntax - Use consistent naming patterns across"
+    },
+    {
+      "source": "examples/comprehensive-example/docs/cli-design-guidelines.md",
+      "chunk_id": 1,
+      "text": "ag syntax - Use consistent naming patterns across commands ### 2. Be Helpful Provide clear, actionable help: - Display help when no arguments are given - Show context-sensitive help for subcommands - Include examples in help text - Suggest corrections for typos ### 3. Be Composable Design for integration with other tools: - Accept input from stdin - Write output to stdout - Use stderr for errors and diagnostics - Return meaningful exit codes ### 4."
+    },
+    {
+      "source": "examples/comprehensive-example/docs/cli-design-guidelines.md",
+      "chunk_id": 2,
+      "text": "diagnostics - Return meaningful exit codes ### 4. Be Consistent Maintain consistency throughout your C L I: - Use the same terminology everywhere - Apply uniform formatting to output - Standardize flag naming conventions ## Command Structure ### Hierarchical Commands Organize complex C LI s with subcommands: ``` app <command> [<subcommand>] [options] [arguments] ``` Example: ```bash peac gui config.yaml # Simple command peac parse --format json input.md # Command with options ``` ### Flags and Options"
+    },
+    {
+      "source": "examples/comprehensive-example/docs/cli-design-guidelines.md",
+      "chunk_id": 3,
+      "text": "# Command with options ``` ### Flags and Options #### Short vs Long Flags - Short: `-f`, `-v`, `-h` (single dash, single letter) - Long: `--file`, `--verbose`, `--help` (double dash, full word) - Support both when possible #### Flag Conventions ```bash # Boolean flags (no argument) --verbose, --quiet, --force # Value flags (require argument) --output <file>, --config <path> --format json, --format=json # Multiple values --tag python --tag cli --tags python,cli,tools ``` ## Input and Output ### Input"
+    },
+    {
+      "source": "examples/comprehensive-example/docs/cli-design-guidelines.md",
+      "chunk_id": 4,
+      "text": "ython,cli,tools ``` ## Input and Output ### Input Sources Support multiple input methods: ```python # From file peac process input.txt # From stdin cat input.txt | peac process # From argument peac process --text \"inline text\" ``` ### Output Formatting Provide multiple output formats: - Human-readable (default) - J SO N (for machine processing) - Quiet mode (minimal output) - Verbose mode (detailed output) ### Color and Styling Use colors meaningfully: - **Green**: Success messages - **Yellow**: Warnings -"
+    },
+    {
+      "source": "examples/comprehensive-example/docs/cli-design-guidelines.md",
+      "chunk_id": 5,
+      "text": "reen**: Success messages - **Yellow**: Warnings - **Red**: Errors - **Blue**: Information - **Gray**: Secondary information Always provide a `--no-color` option and respect `N O _C O L O R` environment variable. ## Error Handling ### Error Messages Craft helpful error messages: ``` # Bad Error: Invalid input # Good Error: Could not read file 'config.yaml' File not found at path: /home/user/config.yaml Did you mean: - config.yml (in current directory) - config-example.yaml (in current directory) ``` ###"
+    },
+    {
+      "source": "examples/comprehensive-example/docs/cli-design-guidelines.md",
+      "chunk_id": 6,
+      "text": "onfig-example.yaml (in current directory) ``` ### Exit Codes Use standard exit codes: - `0`: Success - `1`: General errors - `2`: Misuse of shell command - `126`: Command cannot execute - `127`: Command not found - `128+N`: Fatal error signal N ## Progress and Feedback ### Progress Indicators Show progress for long-running operations: - Spinner for indefinite operations - Progress bar for operations with known duration - Percentage completion - E T A estimates ### Interactive Mode Provide interactive"
+    },
+    {
+      "source": "examples/comprehensive-example/docs/cli-design-guidelines.md",
+      "chunk_id": 7,
+      "text": "stimates ### Interactive Mode Provide interactive prompts when appropriate: ```python # Confirmation prompts \"Are you sure you want to delete all files? (y/N)\" # Selection prompts \"Select provider: [1] Open AI [2] Anthropic [3] Local\" # Input prompts \"Enter A P I key: \" ``` ## Configuration ### Configuration Sources Support multiple configuration methods (in order of precedence): 1. Command-line flags (highest priority) 2. Environment variables 3. Configuration files 4."
+    },
+    {
+      "source": "examples/comprehensive-example/docs/cli-design-guidelines.md",
+      "chunk_id": 8,
+      "text": "2. Environment variables 3. Configuration files 4. Default values (lowest priority) ### Configuration Files ```yaml # Support standard locations ~/.config/app/config.yaml ~/.app.yaml ./.app.yaml (project-specific) # Use common formats Y AM L, J SO N, T OM L, I N I ``` ### Environment Variables ```bash # Use consistent naming A PP _A PI _K E Y=xxx A PP _M O D E L=gpt-4 A PP _V E RBO S E=true # Prefix with app name to avoid conflicts P E A C _P R OVID E R=openai P E A C _O U TPU T _D I R=./output ``` ##"
+    },
+    {
+      "source": "examples/comprehensive-example/docs/cli-design-guidelines.md",
+      "chunk_id": 9,
+      "text": "=openai P E A C _O U TPU T _D I R=./output ``` ## Documentation ### Help Text Structure ``` Usage: peac [O P TIO N S] C O MMA N D [A RG S]... P E a C - Prompt Engineering as Code Structure and manage L L M prompts using Y AM L configurations. Options: -v, --version Show version and exit -h, --help Show this message and exit --config P AT H Configuration file path --verbose Enable verbose output Commands: gui Launch G U I interface parse Parse Y AM L and generate prompt validate Validate Y AM L"
+    },
+    {
+      "source": "examples/comprehensive-example/docs/cli-design-guidelines.md",
+      "chunk_id": 10,
+      "text": "AM L and generate prompt validate Validate Y AM L configuration Examples: # Launch G U I with configuration peac gui config.yaml # Generate prompt from Y AM L peac parse --output prompt.txt config.yaml # Validate configuration peac validate config.yaml For more information, visit: https://github.com/user/peac ``` ### Command-Specific Help ```bash peac gui --help # Show help for 'gui' command peac parse -h # Short form works too ``` ## Performance ### Startup Time Optimize for fast startup: - Lazy load"
+    },
+    {
+      "source": "examples/comprehensive-example/docs/cli-design-guidelines.md",
+      "chunk_id": 11,
+      "text": "artup Time Optimize for fast startup: - Lazy load modules - Minimize initial imports - Cache expensive operations - Use compiled extensions for heavy lifting ### Resource Usage Be mindful of resources: - Stream large files instead of loading entirely - Provide options to limit memory usage - Clean up temporary files - Cancel operations on S I GI N T (Ctrl+C) ## Testing C LI s ### Test Coverage Test different aspects: - Unit tests for business logic - Integration tests for command flow - E2E tests for"
+    },
+    {
+      "source": "examples/comprehensive-example/docs/cli-design-guidelines.md",
+      "chunk_id": 12,
+      "text": "ntegration tests for command flow - E2E tests for complete workflows - Help text and documentation tests ### Automated Testing ```python # Use click.testing. Cli Runner or similar from click.testing import Cli Runner def test_cli(): runner = Cli Runner() result = runner.invoke(cli, ['--help']) assert result.exit_code == 0 assert 'Usage:' in result.output ``` ## Accessibility ### Screen Reader Support - Use semantic output structure - Avoid A S C I I art for essential information - Provide text alternatives"
+    },
+    {
+      "source": "examples/comprehensive-example/docs/cli-design-guidelines.md",
+      "chunk_id": 13,
+      "text": "essential information - Provide text alternatives for visual elements ### Keyboard Navigation - Support standard navigation keys - Provide keyboard shortcuts - Allow Tab completion where possible ## Best Practices Summary 1. **Follow conventions**: Use standard patterns users expect 2. **Provide help**: Make help easy to discover and understand 3. **Be forgiving**: Accept flexible input, suggest corrections 4. **Give feedback**: Show progress, confirm actions 5."
+    },
+    {
+      "source": "examples/comprehensive-example/docs/cli-design-guidelines.md",
+      "chunk_id": 14,
+      "text": "Give feedback**: Show progress, confirm actions 5. **Support automation**: Design for scripting and integration 6. **Document thoroughly**: Include examples and common use cases 7. **Test extensively**: Validate behavior across platforms 8. **Version carefully**: Use semantic versioning, maintain compatibility ## Tools and Libraries ### Python C L I Frameworks - **Click**: Composable command-line interface toolkit - **Typer**: Modern C L I framework with type hints - **argparse**: Standard library option"
+    },
+    {
+      "source": "examples/comprehensive-example/docs/cli-design-guidelines.md",
+      "chunk_id": 15,
+      "text": "ype hints - **argparse**: Standard library option parser - **Rich**: Beautiful terminal formatting - **Questionary**: Interactive prompts ### Testing Tools - **pytest**: Testing framework - **click.testing**: C L I testing utilities - **pexpect**: Automation for interactive programs ## Conclusion A well-designed C L I is a joy to use and integrates seamlessly into workflows. Follow these guidelines to create C LI s that users will love."
+    },
+    {
+      "source": "examples/comprehensive-example/docs/python-architecture-patterns.md",
+      "chunk_id": 0,
+      "text": "# Python Architecture Patterns ## Overview Python architecture patterns are essential for building maintainable, scalable applications. This document covers key architectural patterns commonly used in Python projects. ## Modular Design Pattern The modular design pattern emphasizes separating concerns into distinct modules, each with a specific responsibility. This approach enhances code organization and maintainability."
+    },
+    {
+      "source": "examples/comprehensive-example/docs/python-architecture-patterns.md",
+      "chunk_id": 1,
+      "text": "ch enhances code organization and maintainability. ### Benefits of Modular Architecture - **Separation of Concerns**: Each module handles a specific aspect of functionality - **Reusability**: Modules can be reused across different projects - **Testability**: Individual modules can be tested in isolation - **Maintainability**: Changes in one module don't affect others ### Implementation Example ```python # Good modular structure project/ ├── core/ # Core business logic ├── providers/ # External service"
+    },
+    {
+      "source": "examples/comprehensive-example/docs/python-architecture-patterns.md",
+      "chunk_id": 2,
+      "text": "business logic ├── providers/ # External service integrations ├── gui/ # User interface components └── utils/ # Utility functions ``` ## Command Pattern for C L I Applications The Command pattern is ideal for C L I applications, encapsulating requests as objects and allowing for parameterization of commands."
+    },
+    {
+      "source": "examples/comprehensive-example/docs/python-architecture-patterns.md",
+      "chunk_id": 3,
+      "text": "cts and allowing for parameterization of commands. ### C L I Design Principles - Clear command structure with intuitive subcommands - Consistent flag naming conventions - Comprehensive help documentation - Progressive disclosure of complexity ## Model-View-Controller (M V C) Pattern While traditionally associated with web frameworks, M V C principles apply to Python C L I and desktop applications."
+    },
+    {
+      "source": "examples/comprehensive-example/docs/python-architecture-patterns.md",
+      "chunk_id": 4,
+      "text": "es apply to Python C L I and desktop applications. ### Components - **Model**: Data and business logic - **View**: Presentation layer (C L I output, G U I) - **Controller**: Handles user input and coordinates model-view interaction ## Factory Pattern The Factory pattern provides an interface for creating objects without specifying exact classes, promoting loose coupling."
+    },
+    {
+      "source": "examples/comprehensive-example/docs/python-architecture-patterns.md",
+      "chunk_id": 5,
+      "text": "pecifying exact classes, promoting loose coupling. ### Use Cases - Creating different types of providers (Open AI, Anthropic, local models) - Instantiating parsers based on file types - Dynamic object creation based on configuration ## Strategy Pattern The Strategy pattern enables selecting algorithms at runtime, perfect for swappable implementations."
+    },
+    {
+      "source": "examples/comprehensive-example/docs/python-architecture-patterns.md",
+      "chunk_id": 6,
+      "text": "at runtime, perfect for swappable implementations. ### Applications in Python - Different parsing strategies for various file formats - Multiple rendering options for output - Configurable processing pipelines ## Singleton Pattern Use sparingly, but valuable for managing shared resources like configuration or connection pools."
+    },
+    {
+      "source": "examples/comprehensive-example/docs/python-architecture-patterns.md",
+      "chunk_id": 7,
+      "text": "resources like configuration or connection pools. ### When to Use - Configuration management - Logging systems - Database connection pools - Cache managers ## Best Practices ### Code Organization - Keep modules focused and cohesive - Use clear, descriptive naming conventions - Document module purposes and interfaces - Maintain consistent project structure ### Dependency Management - Use dependency injection for testability - Avoid circular dependencies - Keep dependencies explicit and minimal - Use"
+    },
+    {
+      "source": "examples/comprehensive-example/docs/python-architecture-patterns.md",
+      "chunk_id": 8,
+      "text": "es - Keep dependencies explicit and minimal - Use virtual environments for isolation ### Configuration Management - Separate configuration from code - Support multiple configuration sources (files, environment variables) - Validate configuration at startup - Use type hints for configuration schemas ## Anti-Patterns to Avoid ### God Objects Avoid creating objects that know too much or do too much. Split responsibilities across multiple classes. ### Tight Coupling Minimize dependencies between modules."
+    },
+    {
+      "source": "examples/comprehensive-example/docs/python-architecture-patterns.md",
+      "chunk_id": 9,
+      "text": "ht Coupling Minimize dependencies between modules. Use interfaces and dependency injection. ### Premature Optimization Focus on clean, maintainable code first. Optimize based on profiling data. ## Modern Python Features ### Type Hints Use type hints for better I D E support and early error detection: ```python from typing import List, Dict, Optional def process_data(items: List[str], config: Dict[str, Any]) -> Optional[str]: pass ``` ### Dataclasses Leverage dataclasses for clean data structures: ```python"
+    },
+    {
+      "source": "examples/comprehensive-example/docs/python-architecture-patterns.md",
+      "chunk_id": 10,
+      "text": "dataclasses for clean data structures: ```python from dataclasses import dataclass @dataclass class Config: api_key: str model: str temperature: float = 0.7 ``` ### Context Managers Use context managers for resource management: ```python class Database Connection: def __enter__(self): # Setup return self def __exit__(self, exc_type, exc_val, exc_tb): # Cleanup pass ``` ## Conclusion Applying these architectural patterns leads to more maintainable, testable, and scalable Python applications."
+    },
+    {
+      "source": "examples/comprehensive-example/docs/python-architecture-patterns.md",
+      "chunk_id": 11,
+      "text": "nable, testable, and scalable Python applications. Choose patterns based on specific project needs rather than applying them universally."
+    },
+    {
+      "source": "examples/comprehensive-example/docs/yaml-configuration-practices.md",
+      "chunk_id": 0,
+      "text": "# Y AM L Configuration Best Practices ## Introduction Y AM L (Y AM L Ain't Markup Language) is a human-friendly data serialization format commonly used for configuration files. This guide covers best practices for designing and using Y AM L configurations. ## Structure and Organization ### Keep It Simple Y AM L should be easy to read and understand: ```yaml # Good: Clear and simple database: host: localhost port: 5432 name: myapp # Avoid: Overly complex nesting configuration: settings: database:"
+    },
+    {
+      "source": "examples/comprehensive-example/docs/yaml-configuration-practices.md",
+      "chunk_id": 1,
+      "text": "omplex nesting configuration: settings: database: connection: parameters: host: localhost ``` ### Use Meaningful Keys Choose descriptive, consistent key names: ```yaml # Good: Clear intent max_retry_attempts: 3 connection_timeout: 30 enable_logging: true # Avoid: Unclear abbreviations max_ret: 3 conn_to: 30 log: true ``` ### Group Related Settings Organize configuration logically: ```yaml # Group by functionality server: host: 0.0.0.0 port: 8080 workers: 4 database: host: localhost port: 5432 pool_size: 10"
+    },
+    {
+      "source": "examples/comprehensive-example/docs/yaml-configuration-practices.md",
+      "chunk_id": 2,
+      "text": "atabase: host: localhost port: 5432 pool_size: 10 logging: level: I NF O format: json output: stdout ``` ## Data Types ### Strings ```yaml # Plain strings (no quotes needed) name: John Doe message: Hello world # Quoted strings (when needed) special_chars: \"Line 1\\n Line 2\" with_colon: \"Key: Value\" # Multi-line strings description: | This is a multi-line description that preserves line breaks. folded_text: > This is folded text that will be combined into a single line."
+    },
+    {
+      "source": "examples/comprehensive-example/docs/yaml-configuration-practices.md",
+      "chunk_id": 3,
+      "text": "ded text that will be combined into a single line. ``` ### Numbers ```yaml # Integers count: 42 negative: -10 # Floats temperature: 98.6 scientific: 1.23e-4 # Preserve as string if needed version: \"1.0\" # Not 1.0 float zip_code: \"00123\" # Not 123 integer ``` ### Booleans ```yaml # Various ways to express boolean enabled: true disabled: false flag_yes: yes flag_no: no on_switch: on off_switch: off # Recommended: Use true/false for clarity is_active: true is_public: false ``` ### Lists ```yaml # Inline list"
+    },
+    {
+      "source": "examples/comprehensive-example/docs/yaml-configuration-practices.md",
+      "chunk_id": 4,
+      "text": "public: false ``` ### Lists ```yaml # Inline list tags: [python, yaml, config] # Block list (preferred for readability) features: - authentication - authorization - logging - monitoring # List of objects users: - name: Alice role: admin - name: Bob role: user ``` ### Dictionaries ```yaml # Inline dictionary metadata: {version: 1.0, author: John} # Block dictionary (preferred) metadata: version: 1.0 author: John created: 2026-01-09 ``` ## Advanced Features ### Anchors and Aliases Reuse configuration blocks:"
+    },
+    {
+      "source": "examples/comprehensive-example/docs/yaml-configuration-practices.md",
+      "chunk_id": 5,
+      "text": "# Anchors and Aliases Reuse configuration blocks: ```yaml # Define anchor with & defaults: &defaults timeout: 30 retries: 3 logging: true # Reference with * development: <<: *defaults debug: true production: <<: *defaults debug: false timeout: 60 # Override specific value ``` ### Multiple Documents Separate multiple configurations in one file: ```yaml # Document 1 --- name: Config 1 setting: value1 # Document 2 --- name: Config 2 setting: value2 ``` ### Comments Use comments liberally: ```yaml # Main"
+    },
+    {
+      "source": "examples/comprehensive-example/docs/yaml-configuration-practices.md",
+      "chunk_id": 6,
+      "text": "# Comments Use comments liberally: ```yaml # Main configuration section server: host: localhost # Listen on local interface port: 8080 # Default H TT P port # Worker configuration workers: 4 # Number of parallel workers ``` ## Validation and Schema ### Define Expected Structure Document your configuration schema: ```yaml # config.schema.yaml type: object properties: server: type: object required: [host, port] properties: host: type: string port: type: integer minimum: 1 maximum: 65535 ``` ### Provide"
+    },
+    {
+      "source": "examples/comprehensive-example/docs/yaml-configuration-practices.md",
+      "chunk_id": 7,
+      "text": "integer minimum: 1 maximum: 65535 ``` ### Provide Defaults Include sensible defaults: ```yaml # Default configuration defaults: server: host: localhost port: 8080 workers: 4 logging: level: I NF O format: text # User only needs to override what's different ``` ### Validate Early Check configuration at startup: ```python import yaml from schema import Schema, And, Use # Define schema config_schema = Schema({ 'server': { 'host': str, 'port': And(int, lambda n: 1 <= n <= 65535) } }) # Validate config ="
+    },
+    {
+      "source": "examples/comprehensive-example/docs/yaml-configuration-practices.md",
+      "chunk_id": 8,
+      "text": "mbda n: 1 <= n <= 65535) } }) # Validate config = yaml.safe_load(open('config.yaml')) config_schema.validate(config) ``` ## Security Considerations ### Sensitive Data Don't store secrets in Y AM L: ```yaml # Bad: Secrets in config database: password: supersecret123 # Good: Reference environment variables database: password: ${D B _P A SSWO R D} # Or use external secrets management database: password_from_vault: /secret/db/password ``` ### Safe Loading Always use safe_load: ```python import yaml # Safe:"
+    },
+    {
+      "source": "examples/comprehensive-example/docs/yaml-configuration-practices.md",
+      "chunk_id": 9,
+      "text": "ways use safe_load: ```python import yaml # Safe: Only load basic types with open('config.yaml') as f: config = yaml.safe_load(f) # Unsafe: Can execute arbitrary Python code # config = yaml.load(f) # D O N'T DO T HI S ``` ## File Organization ### Split Large Configs Break down large configurations: ``` config/ ├── base.yaml # Base configuration ├── development.yaml # Dev overrides ├── production.yaml # Prod overrides └── secrets.yaml.example # Template for secrets ``` ### Use Inheritance Extend"
+    },
+    {
+      "source": "examples/comprehensive-example/docs/yaml-configuration-practices.md",
+      "chunk_id": 10,
+      "text": "mplate for secrets ``` ### Use Inheritance Extend configurations: ```yaml # base.yaml server: host: localhost port: 8080 # production.yaml extends: base.yaml server: host: 0.0.0.0 workers: 8 ``` ## Common Patterns ### Feature Flags ```yaml features: new_ui: true beta_api: false experimental_mode: false ``` ### Environment-Specific Config ```yaml # Pattern 1: Separate sections development: debug: true database: dev.db production: debug: false database: prod.db # Pattern 2: Separate files #"
+    },
+    {
+      "source": "examples/comprehensive-example/docs/yaml-configuration-practices.md",
+      "chunk_id": 11,
+      "text": "e database: prod.db # Pattern 2: Separate files # config/development.yaml # config/production.yaml ``` ### Plugin Configuration ```yaml plugins: - name: authentication enabled: true config: method: oauth2 provider: google - name: caching enabled: true config: backend: redis ttl: 3600 ``` ## Documentation ### Self-Documenting Config ```yaml # Application Configuration # Version: 1.0 # Last updated: 2026-01-09 # Server Settings # Configure the web server behavior server: # Hostname or IP address to bind to #"
+    },
+    {
+      "source": "examples/comprehensive-example/docs/yaml-configuration-practices.md",
+      "chunk_id": 12,
+      "text": "ior server: # Hostname or IP address to bind to # Use 0.0.0.0 to listen on all interfaces host: localhost # Port number (1-65535) # Standard H TT P port is 80, H T T P S is 443 port: 8080 # Number of worker processes # Recommended: 2 * C PU _C O R E S workers: 4 ``` ### Include Examples Provide example configurations: ```yaml # Example: Basic configuration # Copy this to config.yaml and customize # Minimal required settings required_setting: value # Optional settings with defaults shown # optional_setting:"
+    },
+    {
+      "source": "examples/comprehensive-example/docs/yaml-configuration-practices.md",
+      "chunk_id": 13,
+      "text": "settings with defaults shown # optional_setting: default_value # Advanced options (uncomment to use) # advanced: # option1: value1 # option2: value2 ``` ## Testing Configurations ### Validation Tests ```python def test_config_valid(): config = yaml.safe_load(open('config.yaml')) assert 'server' in config assert config['server']['port'] > 0 def test_config_has_required_keys(): config = yaml.safe_load(open('config.yaml')) required = ['server', 'database', 'logging'] for key in required: assert key in config"
+    },
+    {
+      "source": "examples/comprehensive-example/docs/yaml-configuration-practices.md",
+      "chunk_id": 14,
+      "text": "gging'] for key in required: assert key in config ``` ### Environment Testing Test configs for each environment: ```python def test_production_config(): config = yaml.safe_load(open('config/production.yaml')) assert config['debug'] is False assert config['server']['workers'] >= 4 ``` ## Tools and Libraries ### Python Libraries - **Py Y AM L**: Standard Y AM L parser - **ruamel.yaml**: Preserves formatting and comments - **pydantic**: Validation with type hints - **python-dotenv**: Environment variable"
+    },
+    {
+      "source": "examples/comprehensive-example/docs/yaml-configuration-practices.md",
+      "chunk_id": 15,
+      "text": "e hints - **python-dotenv**: Environment variable management ### Validation Tools - **yamllint**: Y AM L file linter - **jsonschema**: Schema validation - **cerberus**: Data validation ### I DE s and Editors - VS Code: Y AM L extension with validation - Py Charm: Built-in Y AM L support - Vim: yaml-vim plugin ## Common Pitfalls ### Avoid 1. **Deep nesting**: Keep structure flat when possible 2. **Inconsistent formatting**: Use consistent indentation (2 or 4 spaces) 3."
+    },
+    {
+      "source": "examples/comprehensive-example/docs/yaml-configuration-practices.md",
+      "chunk_id": 16,
+      "text": "g**: Use consistent indentation (2 or 4 spaces) 3. **Complex anchors**: Use sparingly, prefer explicit values 4. **Ambiguous types**: Quote strings that look like numbers/booleans 5. **Large files**: Split into multiple files for maintainability ### Remember 1. **Indentation matters**: Y AM L is whitespace-sensitive 2. **No tabs**: Use spaces only 3. **Quote special characters**: Especially `:`, `{`, `[`, `]`, `&`, `*` 4. **Version your schema**: Track changes to configuration structure 5."
+    },
+    {
+      "source": "examples/comprehensive-example/docs/yaml-configuration-practices.md",
+      "chunk_id": 17,
+      "text": "ema**: Track changes to configuration structure 5. **Validate on load**: Catch errors early ## Conclusion Well-structured Y AM L configurations make applications easier to deploy, configure, and maintain. Follow these best practices to create robust, maintainable configuration files."
+    }
+  ]
+}

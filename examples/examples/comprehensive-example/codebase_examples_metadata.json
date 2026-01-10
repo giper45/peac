@@ -1,0 +1,395 @@
+{
+  "embedding_model": "all-MiniLM-L6-v2",
+  "chunks": [
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 0,
+      "text": "\"\"\" Y AM L Configuration Parser Module This module provides robust parsing and validation of Y AM L configuration files. It supports multiple formats, inheritance, and environment variable substitution."
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 1,
+      "text": "nheritance, and environment variable substitution. \"\"\" import yaml import re import os from typing import Any, Dict, List, Optional from pathlib import Path class Config Parser: \"\"\" Parse and validate Y AM L configuration files with support for: -"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 2,
+      "text": "te Y AM L configuration files with support for: - Environment variable substitution - Configuration inheritance (extends) - Schema validation - Type conversion \"\"\" def __init__(self, config_path: str): \"\"\" Initialize the config parser."
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 3,
+      "text": "nfig_path: str): \"\"\" Initialize the config parser. Args: config_path: Path to the Y AM L configuration file \"\"\" self.config_path = Path(config_path) self.config_data: Dict[str, Any] = {} self.schema: Optional[Dict] = None def load(self) -> Dict[str, Any]:"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 4,
+      "text": "al[Dict] = None def load(self) -> Dict[str, Any]: \"\"\" Load and parse the configuration file. Returns: Parsed configuration dictionary Raises: File Not Found Error: If config file doesn't exist yaml."
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 5,
+      "text": "ot Found Error: If config file doesn't exist yaml. Y A ML E rror: If Y AM L is malformed \"\"\" if not self.config_path.exists(): raise File Not Found Error(f\"Config file not found: {self.config_path}\") with open(self.config_path, 'r') as f: self.config_data"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 6,
+      "text": "pen(self.config_path, 'r') as f: self.config_data = yaml.safe_load(f) # Process inheritance if 'extends' in self.config_data: self._process_inheritance() # Substitute environment variables self.config_data = self._substitute_env_vars(self.config_data)"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 7,
+      "text": "ata = self._substitute_env_vars(self.config_data) return self.config_data def _process_inheritance(self): \"\"\"Process the 'extends' directive to inherit from parent configs.\"\"\" extends = self.config_data.get('extends', []) if isinstance(extends, str):"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 8,
+      "text": "a.get('extends', []) if isinstance(extends, str): extends = [extends] base_config = {} for parent_file in extends: parent_path = self.config_path.parent / parent_file if parent_path.exists(): with open(parent_path, 'r') as f: parent_data ="
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 9,
+      "text": ": with open(parent_path, 'r') as f: parent_data = yaml.safe_load(f) base_config = self._deep_merge(base_config, parent_data) # Merge current config over base self.config_data = self._deep_merge(base_config, self.config_data) # Remove extends key"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 10,
+      "text": "se_config, self.config_data) # Remove extends key self.config_data.pop('extends', None) def _deep_merge(self, base: Dict, override: Dict) -> Dict: \"\"\" Deep merge two dictionaries."
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 11,
+      "text": "e: Dict) -> Dict: \"\"\" Deep merge two dictionaries. Args: base: Base configuration override: Override configuration Returns: Merged configuration \"\"\" result = base.copy() for key, value in override.items(): if key in result and isinstance(result[key],"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 12,
+      "text": "s(): if key in result and isinstance(result[key], dict) and isinstance(value, dict): result[key] = self._deep_merge(result[key], value) else: result[key] = value return result def _substitute_env_vars(self, data: Any) -> Any: \"\"\" Recursively substitute"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 13,
+      "text": "lf, data: Any) -> Any: \"\"\" Recursively substitute environment variables in the format ${V AR _N AM E}. Args: data: Configuration data (dict, list, or string) Returns: Data with environment variables substituted \"\"\" if isinstance(data, dict): return {k:"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 14,
+      "text": "tituted \"\"\" if isinstance(data, dict): return {k: self._substitute_env_vars(v) for k, v in data.items()} elif isinstance(data, list): return [self._substitute_env_vars(item) for item in data] elif isinstance(data, str): # Find all ${V A R} patterns"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 15,
+      "text": "instance(data, str): # Find all ${V A R} patterns pattern = r'\\$\\{([^}]+)\\}' matches = re.finditer(pattern, data) result = data for match in matches: var_name = match.group(1) var_value = os.environ.get(var_name, '') result ="
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 16,
+      "text": "var_value = os.environ.get(var_name, '') result = result.replace(match.group(0), var_value) return result else: return data def validate(self, schema: Dict) -> bool: \"\"\" Validate configuration against a schema."
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 17,
+      "text": "bool: \"\"\" Validate configuration against a schema. Args: schema: Validation schema Returns: True if valid Raises: Value Error: If configuration is invalid \"\"\" self.schema = schema self._validate_dict(self.config_data, schema) return True def"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 18,
+      "text": "te_dict(self.config_data, schema) return True def _validate_dict(self, data: Dict, schema: Dict, path: str = \"\"): \"\"\" Recursively validate dictionary against schema."
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 19,
+      "text": "\"\" Recursively validate dictionary against schema. Args: data: Configuration data to validate schema: Schema definition path: Current path in the config tree (for error messages) \"\"\" schema_props = schema.get('properties', {}) required ="
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 20,
+      "text": "a_props = schema.get('properties', {}) required = schema.get('required', []) # Check required fields for field in required: if field not in data: raise Value Error(f\"Missing required field: {path}.{field}\" if path else field) # Validate each field for"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 21,
+      "text": "d}\" if path else field) # Validate each field for key, value in data.items(): field_path = f\"{path}.{key}\" if path else key if key in schema_props: field_schema = schema_props[key] self._validate_value(value, field_schema, field_path) def"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 22,
+      "text": "lidate_value(value, field_schema, field_path) def _validate_value(self, value: Any, schema: Dict, path: str): \"\"\"Validate a single value against its schema.\"\"\" expected_type = schema.get('type') if expected_type == 'string' and not isinstance(value, str):"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 23,
+      "text": "_type == 'string' and not isinstance(value, str): raise Value Error(f\"Field {path} must be a string\") elif expected_type == 'integer' and not isinstance(value, int): raise Value Error(f\"Field {path} must be an integer\") elif expected_type == 'number' and"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 24,
+      "text": "e an integer\") elif expected_type == 'number' and not isinstance(value, (int, float)): raise Value Error(f\"Field {path} must be a number\") elif expected_type == 'boolean' and not isinstance(value, bool): raise Value Error(f\"Field {path} must be a"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 25,
+      "text": "bool): raise Value Error(f\"Field {path} must be a boolean\") elif expected_type == 'array' and not isinstance(value, list): raise Value Error(f\"Field {path} must be an array\") elif expected_type == 'object' and isinstance(value, dict):"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 26,
+      "text": "ted_type == 'object' and isinstance(value, dict): self._validate_dict(value, schema, path) # Validate constraints if 'minimum' in schema and value < schema['minimum']: raise Value Error(f\"Field {path} must be >= {schema['minimum']}\") if 'maximum' in"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 27,
+      "text": "must be >= {schema['minimum']}\") if 'maximum' in schema and value > schema['maximum']: raise Value Error(f\"Field {path} must be <= {schema['maximum']}\") def get(self, key: str, default: Any = None) -> Any: \"\"\" Get a configuration value using dot"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 28,
+      "text": ") -> Any: \"\"\" Get a configuration value using dot notation. Args: key: Configuration key (e.g., 'server.host') default: Default value if key not found Returns: Configuration value or default \"\"\" keys = key.split('.') value = self.config_data for k in"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 29,
+      "text": "key.split('.') value = self.config_data for k in keys: if isinstance(value, dict) and k in value: value = value[k] else: return default return value def set(self, key: str, value: Any): \"\"\" Set a configuration value using dot notation."
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 30,
+      "text": "\"\"\" Set a configuration value using dot notation. Args: key: Configuration key (e.g., 'server.host') value: Value to set \"\"\" keys = key.split('.') target = self.config_data for k in keys[:-1]: if k not in target: target[k] = {} target = target[k]"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 31,
+      "text": "not in target: target[k] = {} target = target[k] target[keys[-1]] = value def save(self, output_path: Optional[str] = None): \"\"\" Save configuration to a Y AM L file."
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 32,
+      "text": "= None): \"\"\" Save configuration to a Y AM L file. Args: output_path: Path to save to (defaults to original path) \"\"\" path = Path(output_path) if output_path else self.config_path with open(path, 'w') as f: yaml.dump(self.config_data, f,"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 33,
+      "text": "n(path, 'w') as f: yaml.dump(self.config_data, f, default_flow_style=False, sort_keys=False) def load_config(config_path: str) -> Dict[str, Any]: \"\"\" Convenience function to load a configuration file."
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 34,
+      "text": "Convenience function to load a configuration file. Args: config_path: Path to the Y AM L configuration file Returns: Parsed configuration dictionary \"\"\" parser = Config Parser(config_path) return parser.load() # Example usage if __name__ == \"__main__\": #"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 35,
+      "text": "ad() # Example usage if __name__ == \"__main__\": # Load configuration config = load_config(\"config.yaml\") # Access values host = config.get('server', {}).get('host', 'localhost') port = config.get('server', {}).get('port', 8080) print(f\"Server:"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/config_parser.py",
+      "chunk_id": 36,
+      "text": "t('server', {}).get('port', 8080) print(f\"Server: {host}:{port}\")"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 0,
+      "text": "\"\"\" Prompt Engineering Module This module provides utilities for constructing, managing, and optimizing prompts for large language models (L LM s). \"\"\" from typing import List, Dict, Any, Optional from dataclasses import dataclass, field from enum import"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 1,
+      "text": "aclasses import dataclass, field from enum import Enum class Prompt Role(Enum): \"\"\"Roles for different parts of a prompt.\"\"\" S Y ST E M = \"system\" U SE R = \"user\" A S SISTA N T = \"assistant\" C O NTE X T = \"context\" @dataclass class Prompt Section: \"\"\""
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 2,
+      "text": "= \"context\" @dataclass class Prompt Section: \"\"\" Represents a section of a prompt with metadata. Attributes: role: The role of this section (system, user, etc.) content: The actual text content priority: Priority level for ordering (higher = more"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 3,
+      "text": "ority: Priority level for ordering (higher = more important) tokens: Estimated token count metadata: Additional metadata \"\"\" role: Prompt Role content: str priority: int = 0 tokens: Optional[int] = None metadata: Dict[str, Any] ="
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 4,
+      "text": ": Optional[int] = None metadata: Dict[str, Any] = field(default_factory=dict) def estimate_tokens(self) -> int: \"\"\" Estimate token count for this section. Uses rough estimation: ~4 characters per token."
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 5,
+      "text": "n. Uses rough estimation: ~4 characters per token. Returns: Estimated token count \"\"\" if self.tokens is None: # Rough estimation self.tokens = len(self.content) // 4 return self.tokens @dataclass class Prompt Template: \"\"\" A template for constructing"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 6,
+      "text": "Prompt Template: \"\"\" A template for constructing prompts with placeholders. Example: template = Prompt Template( template=\"Analyze this code:\\n\\n{code}\\n\\n Focus on: {focus_areas}\", variables={\"focus_areas\": \"security, performance\"} ) prompt ="
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 7,
+      "text": "focus_areas\": \"security, performance\"} ) prompt = template.render(code=\"def foo(): pass\") \"\"\" template: str variables: Dict[str, Any] = field(default_factory=dict) def render(self, **kwargs) -> str: \"\"\" Render the template with provided variables."
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 8,
+      "text": ": \"\"\" Render the template with provided variables. Args: **kwargs: Variables to substitute in the template Returns: Rendered prompt string \"\"\" # Merge provided kwargs with default variables context = {**self.variables, **kwargs} return"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 9,
+      "text": "les context = {**self.variables, **kwargs} return self.template.format(**context) def get_required_variables(self) -> List[str]: \"\"\" Extract required variable names from template."
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 10,
+      "text": "\"\"\" Extract required variable names from template. Returns: List of variable names \"\"\" import re pattern = r'\\{(\\w+)\\}' return re.findall(pattern, self.template) class Prompt Builder: \"\"\" Builder class for constructing complex prompts from multiple"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 11,
+      "text": "ss for constructing complex prompts from multiple sections. Example: builder = Prompt Builder() builder.add_system(\"You are a helpful assistant.\") builder.add_context(\"Project uses Python 3.11\") builder.add_user(\"How do I optimize this code?\") prompt ="
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 12,
+      "text": "add_user(\"How do I optimize this code?\") prompt = builder.build() \"\"\" def __init__(self, max_tokens: Optional[int] = None): \"\"\" Initialize the prompt builder."
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 13,
+      "text": "l[int] = None): \"\"\" Initialize the prompt builder. Args: max_tokens: Maximum token limit for the prompt \"\"\" self.sections: List[Prompt Section] = [] self.max_tokens = max_tokens self.total_tokens = 0 def add_section(self, section: Prompt Section) ->"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 14,
+      "text": "def add_section(self, section: Prompt Section) -> 'Prompt Builder': \"\"\" Add a section to the prompt. Args: section: Prompt Section to add Returns: Self for method chaining \"\"\" self.sections.append(section) self.total_tokens += section.estimate_tokens()"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 15,
+      "text": "n) self.total_tokens += section.estimate_tokens() return self def add_system(self, content: str, priority: int = 100) -> 'Prompt Builder': \"\"\"Add a system instruction section.\"\"\" section = Prompt Section(Prompt Role."
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 16,
+      "text": "section.\"\"\" section = Prompt Section(Prompt Role. S Y ST E M, content, priority) return self.add_section(section) def add_context(self, content: str, priority: int = 50, metadata: Optional[Dict] = None) -> 'Prompt Builder': \"\"\"Add a context section.\"\"\""
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 17,
+      "text": "-> 'Prompt Builder': \"\"\"Add a context section.\"\"\" section = Prompt Section( Prompt Role. C O NTE X T, content, priority, metadata=metadata or {} ) return self.add_section(section) def add_user(self, content: str, priority: int = 10) -> 'Prompt Builder':"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 18,
+      "text": "nt: str, priority: int = 10) -> 'Prompt Builder': \"\"\"Add a user query section.\"\"\" section = Prompt Section(Prompt Role. U SE R, content, priority) return self.add_section(section) def optimize(self) -> 'Prompt Builder': \"\"\" Optimize the prompt by removing"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 19,
+      "text": "mpt Builder': \"\"\" Optimize the prompt by removing low-priority sections if over token limit. Returns: Self for method chaining \"\"\" if self.max_tokens is None or self.total_tokens <= self.max_tokens: return self # Sort by priority (ascending) to remove"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 20,
+      "text": "urn self # Sort by priority (ascending) to remove lowest priority first sorted_sections = sorted(self.sections, key=lambda s: s.priority) kept_sections = [] current_tokens = 0 # Keep highest priority sections that fit for section in"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 21,
+      "text": "highest priority sections that fit for section in reversed(sorted_sections): section_tokens = section.estimate_tokens() if current_tokens + section_tokens <= self.max_tokens: kept_sections.append(section) current_tokens += section_tokens self.sections ="
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 22,
+      "text": "current_tokens += section_tokens self.sections = list(reversed(kept_sections)) self.total_tokens = current_tokens return self def build(self, separator: str = \"\\n\\n\") -> str: \"\"\" Build the final prompt string."
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 23,
+      "text": "\"\\n\\n\") -> str: \"\"\" Build the final prompt string. Args: separator: String to use between sections Returns: Complete prompt string \"\"\" # Sort by priority (descending) for output sorted_sections = sorted(self.sections, key=lambda s: s.priority,"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 24,
+      "text": "= sorted(self.sections, key=lambda s: s.priority, reverse=True) # Group by role role_groups: Dict[Prompt Role, List[str]] = {} for section in sorted_sections: if section.role not in role_groups: role_groups[section.role] = []"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 25,
+      "text": "ot in role_groups: role_groups[section.role] = [] role_groups[section.role].append(section.content) # Build prompt with role headers parts = [] # System instructions first if Prompt Role."
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 26,
+      "text": "s = [] # System instructions first if Prompt Role. S Y ST E M in role_groups: parts.append(\"# System Instructions\") parts.extend(role_groups[Prompt Role. S Y ST E M]) # Context next if Prompt Role."
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 27,
+      "text": "Role. S Y ST E M]) # Context next if Prompt Role. C O NTE X T in role_groups: parts.append(\"# Context\") parts.extend(role_groups[Prompt Role. C O NTE X T]) # User query last if Prompt Role."
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 28,
+      "text": "e. C O NTE X T]) # User query last if Prompt Role. U SE R in role_groups: parts.append(\"# Query\") parts.extend(role_groups[Prompt Role. U SE R]) return separator.join(parts) def get_stats(self) -> Dict[str, Any]: \"\"\" Get statistics about the prompt."
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 29,
+      "text": "ct[str, Any]: \"\"\" Get statistics about the prompt. Returns: Dictionary with stats (tokens, sections, roles) \"\"\" role_counts = {} for section in self.sections: role = section.role.value role_counts[role] = role_counts.get(role, 0) + 1 return {"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 30,
+      "text": "nts[role] = role_counts.get(role, 0) + 1 return { 'total_tokens': self.total_tokens, 'total_sections': len(self.sections), 'role_distribution': role_counts, 'max_tokens': self.max_tokens, 'token_usage_percent': (self.total_tokens / self.max_tokens * 100)"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 31,
+      "text": "ent': (self.total_tokens / self.max_tokens * 100) if self.max_tokens else None } class Prompt Library: \"\"\" A library for storing and retrieving reusable prompt templates."
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 32,
+      "text": "storing and retrieving reusable prompt templates. \"\"\" def __init__(self): \"\"\"Initialize an empty prompt library.\"\"\" self.templates: Dict[str, Prompt Template] = {} def register(self, name: str, template: Prompt Template): \"\"\" Register a template in the"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 33,
+      "text": "Prompt Template): \"\"\" Register a template in the library. Args: name: Unique name for the template template: Prompt Template to register \"\"\" self.templates[name] = template def get(self, name: str) -> Optional[Prompt Template]: \"\"\" Retrieve a template by"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 34,
+      "text": "onal[Prompt Template]: \"\"\" Retrieve a template by name. Args: name: Template name Returns: Prompt Template or None if not found \"\"\" return self.templates.get(name) def render(self, name: str, **kwargs) -> Optional[str]: \"\"\" Render a template directly."
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 35,
+      "text": "-> Optional[str]: \"\"\" Render a template directly. Args: name: Template name **kwargs: Variables for rendering Returns: Rendered prompt or None if template not found \"\"\" template = self.get(name) return template.render(**kwargs) if template else None def"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 36,
+      "text": "mplate.render(**kwargs) if template else None def list_templates(self) -> List[str]: \"\"\" List all registered template names. Returns: List of template names \"\"\" return list(self.templates.keys()) # Example usage if __name__ == \"__main__\": # Create a"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 37,
+      "text": "ample usage if __name__ == \"__main__\": # Create a prompt builder builder = Prompt Builder(max_tokens=1000) # Add sections builder.add_system( \"You are an expert code reviewer with deep knowledge of Python best practices.\" ) builder.add_context( \"This is a"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 38,
+      "text": "est practices.\" ) builder.add_context( \"This is a Python C L I application that processes Y AM L configurations.\", metadata={\"source\": \"R E AD M E.md\"} ) builder.add_context( \"The codebase follows P E P 8 style guidelines and uses type hints.\","
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 39,
+      "text": "s P E P 8 style guidelines and uses type hints.\", priority=40 ) builder.add_user( \"Review the following code and suggest improvements:\\n\\n\" \"def process_config(config):\\n\" \" return config['settings']['value']\" ) # Build and print prompt = builder.build()"
+    },
+    {
+      "source": "examples/comprehensive-example/code-examples/prompt_engineering.py",
+      "chunk_id": 40,
+      "text": "e']\" ) # Build and print prompt = builder.build() print(prompt) print(\"\\n\" + \"=\"*50) print(\"Stats:\", builder.get_stats())"
+    }
+  ]
+}

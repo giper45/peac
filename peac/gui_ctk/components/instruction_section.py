@@ -59,7 +59,7 @@ class InstructionSection(ctk.CTkFrame):
             self,
             text="Define the core instructions and task for your prompt",
             font=ctk.CTkFont(size=14),
-            text_color="gray70"
+            text_color="#3a3b3c"
         )
         description.grid(row=1, column=0, pady=(0, 20), sticky="w")
         
@@ -92,7 +92,7 @@ class InstructionSection(ctk.CTkFrame):
             base_frame,
             text="Enter the main task instructions for your prompt (one instruction per line)",
             font=ctk.CTkFont(size=12),
-            text_color="gray70"
+            text_color="#3a3b3c"
         )
         base_desc.grid(row=1, column=0, pady=(0, 10), padx=15, sticky="w")
         
@@ -124,7 +124,7 @@ class InstructionSection(ctk.CTkFrame):
             additional_frame,
             text="Optional: Additional behavioral instructions or constraints",
             font=ctk.CTkFont(size=12),
-            text_color="gray70"
+            text_color="#3a3b3c"
         )
         additional_desc.grid(row=1, column=0, pady=(0, 10), padx=15, sticky="w")
         

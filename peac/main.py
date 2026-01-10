@@ -19,7 +19,11 @@ app = typer.Typer()
 @app.command()
 def prompt(
     yaml_path: str,
-    section_headers: bool = typer.Option(True, help="Enable section headers in the output."),
+    section_headers: bool = typer.Option(
+        True, 
+        "--section-headers/--no-section-headers",
+        help="Enable section headers in the output."
+    ),
     ):
     py = PromptYaml(yaml_path, add_section_headers=section_headers)
     py.print()
@@ -36,9 +40,9 @@ def init(name: str):
 
 @app.command()
 def gui():
-    from peac.gui_ctk.main_app import PeacApp
-    app = PeacApp()
-    app.mainloop()
+    """Launch the modern desktop GUI (Flet) - Fast & Cross-platform"""
+    from peac.gui.main_app import start_flet_gui
+    start_flet_gui()
 
 if __name__ == "__main__":
     app()

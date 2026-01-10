@@ -1,6 +1,13 @@
 # PEaC Build Scripts
 
-This directory contains scripts to build PEaC executables for different platforms.
+Build PEaC executables for Windows, macOS, and Linux using PyInstaller.
+
+## Updates (2025)
+
+- ✅ Migrated from CustomTkinter to **Flet** framework
+- ✅ Cross-platform GUI with Flutter support
+- ✅ Updated build scripts for all platforms
+- ✅ Simplified module structure (peac.gui instead of peac.gui_ctk)
 
 ## Requirements
 
@@ -33,19 +40,29 @@ chmod +x build_scripts/build.sh
 ./build_scripts/build.sh
 ```
 
+## Build Scripts
+
+- `build_macos.sh` - Full macOS build with Poetry (recommended)
+- `build_macos_simple.sh` - Minimal macOS build using pip
+- `build_linux.sh` - Full Linux build with Poetry (recommended)
+- `build_linux_simple.sh` - Minimal Linux build using pip
+- `build_windows.bat` - Full Windows build with Poetry (recommended)
+- `build_auto.sh` - Auto-detect OS and run appropriate script
+
 ## Output
 
 Each build script creates two executables in the `dist/` directory:
 
-- **PEaC** (or **PEaC.exe** on Windows) - GUI version
+- **PEaC** (or **PEaC.exe** on Windows) - Flet-based GUI version
 - **PEaC-CLI** (or **PEaC-CLI.exe** on Windows) - Command-line version
 
-## Icons
+## GUI Framework
 
-Place your application icons in the `assets/` directory:
-- `icon.ico` - Windows icon
-- `icon.icns` - macOS icon
-- `icon.png` - Linux icon (optional)
+The new GUI uses **Flet** for cross-platform support:
+- Single codebase for Windows, macOS, Linux, iOS, Android
+- Modern Material Design 3 interface
+- Fast performance (Flutter-based)
+- No dependency on native toolkits
 
 ## Advanced Building
 

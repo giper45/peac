@@ -1,0 +1,140 @@
+prompt:
+  # Instruction section - Guides the model behavior
+  instruction:
+    base:
+      - "You are an expert Python software architect and code quality analyst."
+      - "Analyze the provided code structure and documentation to generate comprehensive technical insights."
+      - "Focus on code organization, architectural patterns, and best practices."
+      - "Provide detailed explanations with specific examples from the codebase."
+  
+  # Context section - Provides background information
+  context:
+    base:
+      - "This analysis is for the PEaC (Prompt Engineering as Code) project."
+      - "The project is a Python CLI tool that structures prompts using YAML configurations."
+      - "Consider modern Python development practices and industry standards."
+      - "Pay attention to code structure, modularity, and maintainability."
+    
+    local:
+      # Main entry point analysis
+      main-module:
+        preamble: "Main entry point of the application"
+        source: "peac/main.py"
+        filter: "def|class|import"
+      
+      # Core modules analysis
+      core-modules:
+        preamble: "Core modules implementing the main functionality"
+        source: "peac/core/"
+        recursive: true
+        extension: "py"
+        filter: "class|def|@"
+      
+      # Configuration files
+      project-config:
+        preamble: "Project configuration and dependencies"
+        source: "pyproject.toml"
+      
+      # Documentation
+      readme:
+        preamble: "Project README documentation"
+        source: "README.md"
+        filter: "##|###|Feature|Usage"
+      
+      # Example configurations
+      example-configs:
+        preamble: "Example YAML configurations showing usage patterns"
+        source: "examples/"
+        recursive: false
+        extension: "yaml"
+    
+    # Uncomment these sections if you have the required resources
+    
+    # web:
+    #   # Python best practices
+    #   python-patterns:
+    #     preamble: "Python architectural patterns and best practices"
+    #     source: "https://docs.python.org/3/howto/index.html"
+    #     xpath: "//div[@class='section']//p"
+    #   
+    #   # CLI design patterns
+    #   cli-design:
+    #     preamble: "Command-line interface design guidelines"
+    #     source: "https://clig.dev/"
+    #     xpath: "//article//p"
+    
+    rag:
+      # Knowledge base search for Python patterns
+      python-knowledge:
+        preamble: "Python architectural patterns from knowledge base"
+        faiss_file: "examples/comprehensive-example/python_patterns.faiss"
+        source_folder: "examples/comprehensive-example/docs/"
+        query: "python architecture patterns cli design modular structure"
+        top_k: 5
+        chunk_size: 512
+        overlap: 50
+        filter: "architecture|pattern|design|module"
+      
+      # Codebase examples search
+      codebase-patterns:
+        preamble: "Relevant code patterns from similar projects"
+        faiss_file: "examples/comprehensive-example/codebase_examples.faiss"
+        source_folder: "examples/comprehensive-example/code-examples/"
+        query: "yaml configuration parser prompt engineering"
+        top_k: 3
+        chunk_size: 256
+        filter: "yaml|config|parse"
+  
+  output:
+    base:
+      - "Structure your response with clear sections using markdown headers."
+      - "Use markdown formatting: **bold** for important terms, `code` for code elements."
+      - "Include specific file references and line numbers when discussing code."
+      - "Provide actionable recommendations prioritized by impact."
+      - "Use bullet points for lists and numbered lists for sequential steps."
+    
+    local:
+      # Output structure template
+      output-template:
+        preamble: "Follow this analysis report structure"
+        source: "examples/academic.yaml"
+        filter: "preamble|instruction"
+      
+      # Previous examples for reference
+      example-outputs:
+        preamble: "Reference example configurations for output style"
+        source: "examples/cfp.yaml"
+    
+    # Uncomment if you have web resources for output standards
+    # web:
+    #   documentation-standards:
+    #     preamble: "Technical documentation standards"
+    #     source: "https://www.writethedocs.org/guide/"
+    #     xpath: "//article//p"
+    
+    rag:
+      output-examples:
+        preamble: "High-quality technical analysis examples"
+        faiss_file: "examples/comprehensive-example/analysis_examples.faiss"
+        source_folder: "examples/comprehensive-example/output-examples/"
+        query: "technical analysis report code review recommendations"
+        top_k: 3
+        filter: "analysis|review|recommendation"
+  
+  # Final query
+  query: |
+    Based on the provided context about the PEaC project, provide a comprehensive technical analysis covering:
+    
+    1. **Architecture Overview**: Describe the overall structure and organization of the codebase
+    2. **Key Components**: Identify and explain the main modules and their responsibilities
+    3. **Design Patterns**: Recognize any design patterns or architectural patterns being used
+    4. **Code Quality**: Assess code organization, naming conventions, and modularity
+    5. **Best Practices**: Identify adherence to Python best practices and areas for improvement
+    6. **Recommendations**: Provide specific, actionable recommendations for:
+       - Code structure improvements
+       - Enhanced modularity
+       - Better documentation
+       - Testing strategies
+       - Performance optimizations
+    
+    Focus on practical insights and prioritize recommendations by impact and feasibility.

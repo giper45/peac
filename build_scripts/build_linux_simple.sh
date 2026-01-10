@@ -18,15 +18,15 @@ pyinstaller \
     --add-data "peac/template.yaml:peac" \
     --hidden-import "peac.providers.pdf" \
     --hidden-import "peac.providers.docx" \
-    --hidden-import "peac.gui_ctk.main_app" \
-    --hidden-import "peac.gui_ctk.components.context_section" \
-    --hidden-import "peac.gui_ctk.components.output_section" \
-    --hidden-import "peac.gui_ctk.components.extends_section" \
-    --hidden-import "peac.gui_ctk.components.shared_rule_components" \
-    --hidden-import "customtkinter" \
-    --hidden-import "PIL" \
-    --hidden-import "PIL.Image" \
-    --hidden-import "PIL.ImageTk" \
+    --hidden-import "peac.gui.main_app" \
+    --hidden-import "peac.gui.ui.app" \
+    --hidden-import "peac.gui.ui.components" \
+    --hidden-import "peac.gui.ui.rule_card" \
+    --hidden-import "flet" \
+    --hidden-import "flet.core" \
+    --hidden-import "bs4" \
+    --hidden-import "requests" \
+    --hidden-import "pdfplumber" \
     --exclude-module "matplotlib" \
     --exclude-module "numpy" \
     --exclude-module "scipy" \
@@ -41,13 +41,11 @@ pyinstaller \
     --add-data "peac/template.yaml:peac" \
     --hidden-import "peac.providers.pdf" \
     --hidden-import "peac.providers.docx" \
-    --exclude-module "customtkinter" \
-    --exclude-module "PIL" \
+    --exclude-module "flet" \
     --exclude-module "matplotlib" \
     --exclude-module "numpy" \
     --exclude-module "scipy" \
     peac/main.py
-
 # Make executables executable
 chmod +x dist/PEaC-GUI
 chmod +x dist/PEaC-CLI
