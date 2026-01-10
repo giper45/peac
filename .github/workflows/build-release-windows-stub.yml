@@ -1,0 +1,103 @@
+name: Build and Release PEaC - Windows (STUB TEST)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
+jobs:
+  build-windows-stub:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Create stub build directory
+      run: |
+        mkdir -p dist\PeacGUI_stub
+        mkdir -p dist\PeacGUI_stub\peac
+        echo "This is a stub GUI executable" > dist\PeacGUI_stub\PeacGUI.exe
+        echo "template.yaml stub content" > dist\PeacGUI_stub\peac\template.yaml
+        echo "This is a stub CLI executable" > dist\PeacCLI_stub.exe
+      shell: pwsh
+    
+    - name: Create GUI portable ZIP
+      run: |
+        Compress-Archive -Path "dist\PeacGUI_stub" -DestinationPath "dist\PeacGUI_stub_portable.zip" -Force
+      shell: pwsh
+    
+    - name: List built files
+      run: |
+        Get-ChildItem dist\*.exe, dist\*.zip | Select-Object Name, @{Name="Size(KB)";Expression={[math]::Round($_.Length/1KB,2)}}
+      shell: pwsh
+    
+    - name: Generate Release Notes
+      run: |
+        $releaseNotes = @"
+        # PEaC Stub Release (Test Build)
+        
+        This is a **test build** to verify GitHub Actions permissions and release workflow.
+        
+        ## Contents
+        - Stub GUI executable
+        - Stub CLI executable
+        - Packaged as ZIP for distribution
+        
+        ## Test Date
+        Generated: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
+        "@
+        $releaseNotes | Out-File -FilePath release_notes.md -Encoding utf8
+        cat release_notes.md
+      shell: pwsh
+    
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: stub-test-${{ github.run_number }}
+        release_name: PEaC Stub Test ${{ github.run_number }}
+        body_path: release_notes.md
+        draft: false
+        prerelease: true
+    
+    - name: Upload GUI executable
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./dist/PeacGUI_stub_portable.zip
+        asset_name: PeacGUI_stub_portable.zip
+        asset_content_type: application/zip
+    
+    - name: Upload CLI executable
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./dist/PeacCLI_stub.exe
+        asset_name: PeacCLI_stub.exe
+        asset_content_type: application/octet-stream
+    
+    - name: ✅ Success Summary
+      run: |
+        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Green
+        Write-Host "✅ Stub Build Completed Successfully!" -ForegroundColor Green
+        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Green
+        Write-Host ""
+        Write-Host "Release: stub-test-${{ github.run_number }}"
+        Write-Host "URL: ${{ steps.create_release.outputs.html_url }}"
+        Write-Host ""
+      shell: pwsh

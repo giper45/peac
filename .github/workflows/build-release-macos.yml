@@ -1,0 +1,84 @@
+name: Build and Release PEaC - macOS
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install Poetry
+      run: |
+        pip install poetry
+        poetry config virtualenvs.create true
+        poetry config virtualenvs.in-project true
+    
+    - name: Install dependencies
+      run: |
+        poetry install --with dev
+    
+    - name: Build GUI executable
+      run: |
+        poetry run pyinstaller --clean --onedir --windowed --name "PeacGUI_${{ github.ref_name }}" --add-data "peac/template.yaml:peac" --hidden-import=flet.core --hidden-import=flet.controls --hidden-import=flet.connection --collect-all=flet --hidden-import=yaml --hidden-import=bs4 --hidden-import=requests --hidden-import=pdfplumber --strip peac/main.py
+    
+    - name: Build CLI executable
+      run: |
+        poetry run pyinstaller --clean --onefile --console --name "PeacCLI_${{ github.ref_name }}" --add-data "peac/template.yaml:peac" --hidden-import=typer.testing --hidden-import=yaml --hidden-import=bs4 --hidden-import=requests --hidden-import=pdfplumber --strip peac/main.py
+    
+    - name: Create GUI portable DMG
+      run: |
+        cd dist
+        hdiutil create -volname "PeacGUI_${{ github.ref_name }}" -srcfolder "PeacGUI_${{ github.ref_name }}" -ov -format UDZO "PeacGUI_${{ github.ref_name }}_macos.dmg"
+        cd ..
+    
+    - name: List built files
+      run: |
+        ls -lh dist/*.dmg dist/PeacCLI_* 2>/dev/null | awk '{print $9, "(" $5 ")"}'
+    
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref_name }}-macos
+        release_name: PEaC ${{ github.ref_name }} (macOS)
+        draft: false
+        prerelease: false
+    
+    - name: Upload GUI executable
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./dist/PeacGUI_${{ github.ref_name }}_macos.dmg
+        asset_name: PeacGUI_${{ github.ref_name }}_macos.dmg
+        asset_content_type: application/octet-stream
+    
+    - name: Upload CLI executable
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./dist/PeacCLI_${{ github.ref_name }}
+        asset_name: PeacCLI_${{ github.ref_name }}_macos
+        asset_content_type: application/octet-stream
