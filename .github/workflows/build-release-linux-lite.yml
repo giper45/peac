@@ -37,7 +37,7 @@ jobs:
     
     - name: Install LITE dependencies (no RAG/torch)
       run: |
-        poetry install --with dev --without rag
+        poetry install --with dev
     
     - name: Build LITE GUI executable
       run: |
