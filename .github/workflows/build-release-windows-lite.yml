@@ -1,0 +1,104 @@
+name: Build and Release PEaC - Windows LITE
+
+on:
+  push:
+    tags:
+      - 'v*-lite'  # Trigger on lite version tags (v0.2.3-lite)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
+jobs:
+  build-windows-lite:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install Poetry
+      run: |
+        pip install poetry
+        poetry config virtualenvs.create true
+        poetry config virtualenvs.in-project true
+    
+    - name: Install LITE dependencies (no RAG/torch)
+      run: |
+        poetry install --with dev --without rag
+    
+    - name: Install UPX (for compression)
+      run: |
+        choco install upx -y
+    
+    - name: Build LITE executables
+      run: |
+        poetry run pyinstaller --clean --onedir --windowed --name "PeacGUI_LITE_${{ github.ref_name }}" --add-data "peac/template.yaml;peac" --hidden-import=flet.core --hidden-import=flet.controls --hidden-import=flet.connection --collect-all=flet --hidden-import=yaml --hidden-import=bs4 --hidden-import=requests --hidden-import=pdfplumber --strip peac/main.py
+        poetry run pyinstaller --clean --onefile --console --name "PeacCLI_LITE_${{ github.ref_name }}" --add-data "peac/template.yaml;peac" --hidden-import=typer.testing --hidden-import=yaml --hidden-import=bs4 --hidden-import=requests --hidden-import=pdfplumber --upx-dir="C:\ProgramData\chocolatey\lib\upx\tools" --strip peac/main.py
+    
+    - name: Create GUI portable ZIP
+      run: |
+        Compress-Archive -Path "dist\PeacGUI_LITE_${{ github.ref_name }}" -DestinationPath "dist\PeacGUI_LITE_${{ github.ref_name }}_portable.zip" -Force
+    
+    - name: List built files
+      run: |
+        Get-ChildItem dist\*.exe, dist\*.zip | Select-Object Name, @{Name="Size(MB)";Expression={[math]::Round($_.Length/1MB,2)}}
+    
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref_name }}
+        release_name: PEaC ${{ github.ref_name }} (Windows LITE - No RAG)
+        body: |
+          # PEaC LITE Version (Windows)
+          
+          **Lightweight build without heavy AI/RAG dependencies**
+          
+          ✅ Included:
+          - All LLM provider APIs (OpenAI, Anthropic, etc.)
+          - Document parsing (PDF, DOCX, Excel)
+          - GUI and CLI interfaces
+          - All core features
+          
+          ❌ Not included:
+          - Local embeddings (sentence-transformers)
+          - PyTorch/Torch
+          - FAISS vector store
+          - Jupyter notebook support
+          
+          📦 **Size**: ~50-100 MB (vs ~500+ MB full version)
+          ⚡ **Build time**: ~3-5 minutes (vs 10+ minutes)
+          
+          Perfect for users who only need API-based LLM access without local RAG.
+        draft: false
+        prerelease: false
+    
+    - name: Upload GUI executable
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./dist/PeacGUI_LITE_${{ github.ref_name }}_portable.zip
+        asset_name: PeacGUI_LITE_${{ github.ref_name }}_portable.zip
+        asset_content_type: application/zip
+    
+    - name: Upload CLI executable
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./dist/PeacCLI_LITE_${{ github.ref_name }}.exe
+        asset_name: PeacCLI_LITE_${{ github.ref_name }}.exe
+        asset_content_type: application/octet-stream

@@ -1,0 +1,103 @@
+name: Build and Release PEaC - macOS LITE
+
+on:
+  push:
+    tags:
+      - 'v*-lite'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
+jobs:
+  build-macos-lite:
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install Poetry
+      run: |
+        pip install poetry
+        poetry config virtualenvs.create true
+        poetry config virtualenvs.in-project true
+    
+    - name: Install LITE dependencies (no RAG/torch)
+      run: |
+        poetry install --with dev --without rag
+    
+    - name: Build LITE GUI executable
+      run: |
+        poetry run pyinstaller --clean --onedir --windowed --name "PeacGUI_LITE_${{ github.ref_name }}" --add-data "peac/template.yaml:peac" --hidden-import=flet.core --hidden-import=flet.controls --hidden-import=flet.connection --collect-all=flet --hidden-import=yaml --hidden-import=bs4 --hidden-import=requests --hidden-import=pdfplumber --strip peac/main.py
+    
+    - name: Build LITE CLI executable
+      run: |
+        poetry run pyinstaller --clean --onefile --console --name "PeacCLI_LITE_${{ github.ref_name }}" --add-data "peac/template.yaml:peac" --hidden-import=typer.testing --hidden-import=yaml --hidden-import=bs4 --hidden-import=requests --hidden-import=pdfplumber --strip peac/main.py
+    
+    - name: Create GUI portable DMG
+      run: |
+        cd dist
+        hdiutil create -volname "PeacGUI_LITE_${{ github.ref_name }}" -srcfolder "PeacGUI_LITE_${{ github.ref_name }}" -ov -format UDZO "PeacGUI_LITE_${{ github.ref_name }}_macos.dmg"
+        cd ..
+    
+    - name: List built files
+      run: |
+        ls -lh dist/*.dmg dist/PeacCLI_LITE_* 2>/dev/null | awk '{print $9, "(" $5 ")"}'
+    
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref_name }}-macos
+        release_name: PEaC ${{ github.ref_name }} (macOS LITE - No RAG)
+        body: |
+          # PEaC LITE Version (macOS)
+          
+          **Lightweight build without heavy AI/RAG dependencies**
+          
+          ✅ Included:
+          - All LLM provider APIs (OpenAI, Anthropic, etc.)
+          - Document parsing (PDF, DOCX, Excel)
+          - GUI and CLI interfaces
+          - All core features
+          
+          ❌ Not included:
+          - Local embeddings (sentence-transformers)
+          - PyTorch/Torch
+          - FAISS vector store
+          - Jupyter notebook support
+          
+          📦 **Size**: ~50-100 MB (vs ~500+ MB full version)
+          ⚡ **Build time**: ~3-5 minutes (vs 10+ minutes)
+        draft: false
+        prerelease: false
+    
+    - name: Upload GUI executable
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./dist/PeacGUI_LITE_${{ github.ref_name }}_macos.dmg
+        asset_name: PeacGUI_LITE_${{ github.ref_name }}_macos.dmg
+        asset_content_type: application/octet-stream
+    
+    - name: Upload CLI executable
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./dist/PeacCLI_LITE_${{ github.ref_name }}
+        asset_name: PeacCLI_LITE_${{ github.ref_name }}_macos
+        asset_content_type: application/octet-stream
