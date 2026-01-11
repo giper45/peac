@@ -51,7 +51,26 @@ jobs:
       run: |
         Get-ChildItem dist\*.exe | Select-Object Name, @{Name="Size(MB)";Expression={[math]::Round($_.Length/1MB,2)}}
     
+    - name: Check if release already exists
+      if: github.ref_type == 'tag'
+      id: release_check
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const tag = '${{ github.ref_name }}';
+          try {
+            await github.rest.repos.getReleaseByTag({ owner: context.repo.owner, repo: context.repo.repo, tag });
+            core.setOutput('exists', 'true');
+          } catch (error) {
+            if (error.status === 404) {
+              core.setOutput('exists', 'false');
+            } else {
+              throw error;
+            }
+          }
+
     - name: Create Release
+      if: github.ref_type == 'tag' && steps.release_check.outputs.exists != 'true'
       id: create_release
       uses: actions/create-release@v1
       env:
@@ -63,6 +82,7 @@ jobs:
         prerelease: false
     
     - name: Upload GUI executable
+      if: github.ref_type == 'tag' && steps.release_check.outputs.exists != 'true'
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -73,6 +93,7 @@ jobs:
         asset_content_type: application/zip
     
     - name: Upload CLI executable
+      if: github.ref_type == 'tag' && steps.release_check.outputs.exists != 'true'
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
