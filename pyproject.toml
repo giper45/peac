@@ -44,19 +44,15 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.extras]
 rag = [
-    "faiss-cpu",
-    "sentence-transformers", 
-    "torch",
-    "numpy"  # Necessario per embeddings
+    "fastembed",
+    "numpy"
 ]
 jupyter = [
     "notebook",
     "ipykernel"
 ]
 full = [
-    "faiss-cpu",
-    "sentence-transformers",
-    "torch",
+    "fastembed",
     "numpy",
     "notebook", 
     "ipykernel"

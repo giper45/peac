@@ -54,20 +54,20 @@ def get_rag_provider():
         from peac.providers.rag import RagProvider
         return RagProvider()
     except ImportError:
-        print("RAG provider import error - faiss-cpu or sentence-transformers may not be installed")
+        print("RAG provider import error - fastembed may not be installed")
         return None
 
 
 def parse_rag(faiss_file, options=None):
-    """Parse RAG request using FAISS vector database
+    """Parse RAG request using FastEmbed vector search
     
     Args:
-        faiss_file (str): Path to FAISS index file
+        faiss_file (str): Path to vector index file (.json format)
         options (dict): RAG options containing query, source_folder, etc.
     """
     provider = get_rag_provider()
     if not provider:
-        return "Error: RAG provider not available. Install dependencies: pip install faiss-cpu sentence-transformers"
+        return "Error: RAG provider not available. Install dependencies: pip install fastembed"
     
     try:
         content = provider.parse(faiss_file, options)

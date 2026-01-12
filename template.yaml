@@ -52,21 +52,23 @@ prompt:
             xpath: //div/text()
       rag:
         knowledge-base:
-          preamble: Search in knowledge base (GPU accelerated)
-          faiss_file: kb.faiss
+          preamble: Search in knowledge base (FastEmbed)
+          faiss_file: kb.json
           query: "What is the main concept?"
           source_folder: docs/
           top_k: 3
           chunk_size: 512
           overlap: 50
+          embedding_model: "BAAI/bge-small-en-v1.5"
           filter: ".*important.*"
           
         code-search:
-          preamble: Search in codebase (GPU accelerated)
-          faiss_file: code_vectors.faiss
+          preamble: Search in codebase (FastEmbed)
+          faiss_file: code_vectors.json
           query: "Find function definitions"
           source_folder: src/
           top_k: 5
+          embedding_model: "BAAI/bge-small-en-v1.5"
   output:
       base:
         - base A
@@ -89,8 +91,9 @@ prompt:
           xpath: //div/text()
       rag:
         analysis:
-          preamble: Analyze documents (GPU accelerated)
-          faiss_file: analysis.faiss
+          preamble: Analyze documents (FastEmbed)
+          faiss_file: analysis.json
           query: "Find relevant analysis data"
           source_folder: data/
           top_k: 3
+          embedding_model: "BAAI/bge-small-en-v1.5"

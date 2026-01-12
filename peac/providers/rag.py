@@ -1,84 +1,47 @@
 import os
-import pickle
 import json
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 import re
 
+
 class RagProvider:
-    """RAG (Retrieval-Augmented Generation) provider using FAISS for vector search"""
+    """RAG (Retrieval-Augmented Generation) provider using FastEmbed for lightweight embeddings"""
     
     def __init__(self):
-        self.embeddings = None
-        self.index = None
-        self.documents = None
         self.model = None
-        self.device = self._get_optimal_device()
+        self.embeddings_cache = {}
+        self._current_model_name = None
     
-    def _get_optimal_device(self):
-        """Detect and return the optimal device (GPU, MPS, or CPU)"""
+    def _initialize_model(self, model_name: str = 'BAAI/bge-small-en-v1.5'):
+        """Initialize FastEmbed model (lightweight, no PyTorch dependency)"""
         try:
-            import torch
+            from fastembed import TextEmbedding
             
-            # Check for CUDA (NVIDIA GPU)
-            if torch.cuda.is_available():
-                device = torch.device("cuda")
-                print(f"Using CUDA GPU: {torch.cuda.get_device_name(0)}")
-                return device
-            
-            # Check for MPS (Apple Silicon GPU)
-            elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
-                device = torch.device("mps")
-                print("Using Apple Silicon GPU (MPS)")
-                return device
-            
-            # Fallback to CPU
-            else:
-                device = torch.device("cpu")
-                print("Using CPU (no GPU available)")
-                return device
-                
-        except ImportError:
-            # PyTorch not available, will use CPU with sentence-transformers default
-            print("PyTorch not available, using CPU")
-            return "cpu"
-    
-    def _initialize_model(self, model_name: str = 'all-MiniLM-L6-v2'):
-        """Initialize the sentence transformer model with optimal device"""
-        try:
-            from sentence_transformers import SentenceTransformer
-            # Always reload model if model_name is different or model is None
-            if self.model is None or getattr(self, '_current_model_name', None) != model_name:
-                print(f"Loading sentence transformer model: {model_name}")
-                self.model = SentenceTransformer(model_name, device=self.device)
+            # Reload model only if model_name is different or model is None
+            if self.model is None or self._current_model_name != model_name:
+                print(f"Loading FastEmbed model: {model_name}")
+                self.model = TextEmbedding(model_name=model_name)
                 self._current_model_name = model_name
-                print(f"Model loaded successfully on {self.device}")
+                print(f"Model loaded successfully")
             return self.model
         except ImportError:
-            raise ImportError("sentence-transformers library not installed. Install with: pip install sentence-transformers")
-    
-    def _initialize_faiss(self):
-        """Initialize FAISS library"""
-        try:
-            import faiss
-            return faiss
-        except ImportError:
-            raise ImportError("faiss-cpu library not installed. Install with: pip install faiss-cpu")
+            raise ImportError("fastembed library not installed. Install with: pip install fastembed")
     
     def parse(self, faiss_file: str, options: Optional[Dict[str, Any]] = None) -> str:
         """
         Parse RAG request and return relevant documents
         
         Args:
-            faiss_file: Path to the FAISS index file
+            faiss_file: Path to the vector index file (JSON format)
             options: Dictionary containing:
                 - query: Search query for RAG retrieval
-                - source_folder: Folder/file to embed if FAISS file doesn't exist
+                - source_folder: Folder/file to embed if index file doesn't exist
                 - top_k: Number of top results to return (default: 5)
                 - chunk_size: Size of text chunks for embedding (default: 512)
                 - overlap: Overlap between chunks (default: 50)
-                - force_override: Force recreation of FAISS index (default: False)
-                - embedding_model: Model name for embedding (default: 'all-MiniLM-L6-v2')
+                - force_override: Force recreation of index (default: False)
+                - embedding_model: Model name for embedding (default: 'BAAI/bge-small-en-v1.5')
         
         Returns:
             Retrieved and ranked text content
@@ -95,38 +58,37 @@ class RagProvider:
         chunk_size = options.get('chunk_size', 512)
         overlap = options.get('overlap', 50)
         force_override = options.get('force_override', False)
-        embedding_model = options.get('embedding_model', 'all-MiniLM-L6-v2')
+        embedding_model = options.get('embedding_model', 'BAAI/bge-small-en-v1.5')
         
-        # Check if FAISS file exists and if we should override it
+        # Check if index file exists and if we should override it
         should_create_index = force_override or not os.path.exists(faiss_file)
         
         if should_create_index:
             if not source_folder:
                 if force_override:
-                    return f"Error: Force override enabled but no source folder provided to recreate FAISS index"
+                    return f"Error: Force override enabled but no source folder provided to recreate index"
                 else:
-                    return f"Error: FAISS file '{faiss_file}' does not exist and no source folder provided"
+                    return f"Error: Index file '{faiss_file}' does not exist and no source folder provided"
             
             if force_override:
-                print(f"Force override enabled. Recreating FAISS index: {faiss_file}")
+                print(f"Force override enabled. Recreating index: {faiss_file}")
             else:
-                print(f"FAISS file '{faiss_file}' not found. Creating from source: {source_folder}")
+                print(f"Index file '{faiss_file}' not found. Creating from source: {source_folder}")
                 
-            success = self._create_faiss_index(faiss_file, source_folder, chunk_size, overlap, embedding_model)
+            success = self._create_index(faiss_file, source_folder, chunk_size, overlap, embedding_model)
             if not success:
-                return f"Error: Failed to create FAISS index from {source_folder}"
+                return f"Error: Failed to create index from {source_folder}"
         
-        # Load FAISS index and perform search (using the same model used for creation)
+        # Load index and perform search
         try:
-            results = self._search_faiss(faiss_file, query, top_k, embedding_model)
+            results = self._search_index(faiss_file, query, top_k, embedding_model)
             return self._format_results(results, query)
         except Exception as e:
             return f"Error during RAG search: {str(e)}"
     
-    def _create_faiss_index(self, faiss_file: str, source_folder: str, chunk_size: int, overlap: int, embedding_model: str = 'all-MiniLM-L6-v2') -> bool:
-        """Create FAISS index from source folder/file"""
+    def _create_index(self, index_file: str, source_folder: str, chunk_size: int, overlap: int, embedding_model: str = 'BAAI/bge-small-en-v1.5') -> bool:
+        """Create vector index from source folder/file using FastEmbed"""
         try:
-            faiss = self._initialize_faiss()
             model = self._initialize_model(embedding_model)
             
             # Collect all text documents
@@ -151,80 +113,33 @@ class RagProvider:
                         'text': chunk
                     })
             
-            print(f"Created {len(chunks)} chunks. Generating embeddings...")
+            print(f"Created {len(chunks)} chunks. Generating embeddings with FastEmbed...")
             
-            # Generate embeddings with batch processing for GPU efficiency
-            # Adjust batch size based on device capabilities
-            if str(self.device) == "cuda":
-                batch_size = 64  # Larger batch for CUDA
-            elif str(self.device) == "mps":
-                batch_size = 32  # Medium batch for Apple Silicon
-            else:
-                batch_size = 16  # Smaller batch for CPU
-                
-            print(f"Using batch size: {batch_size} for device: {self.device}")
+            # Generate embeddings using FastEmbed (very fast, no GPU needed)
+            embeddings_list = list(model.embed(chunks, batch_size=256))
             
-            try:
-                embeddings = model.encode(
-                    chunks, 
-                    show_progress_bar=True,
-                    batch_size=batch_size,
-                    convert_to_tensor=True,
-                    normalize_embeddings=True
-                )
-            except Exception as e:
-                if "out of memory" in str(e).lower() or "memory" in str(e).lower():
-                    print(f"GPU memory error, falling back to smaller batch size...")
-                    batch_size = max(1, batch_size // 2)
-                    embeddings = model.encode(
-                        chunks, 
-                        show_progress_bar=True,
-                        batch_size=batch_size,
-                        convert_to_tensor=True,
-                        normalize_embeddings=True
-                    )
-                else:
-                    raise e
-            
-            # Create FAISS index
-            # Convert tensor to numpy if needed
-            if hasattr(embeddings, 'cpu'):
-                embeddings_np = embeddings.cpu().numpy()
-            else:
-                embeddings_np = embeddings
-                
-            dimension = embeddings_np.shape[1]
-            index = faiss.IndexFlatIP(dimension)  # Inner product similarity
-            
-            # Normalize embeddings for cosine similarity (if not already normalized)
-            if not hasattr(embeddings, 'cpu'):  # If not from tensor (already normalized)
-                faiss.normalize_L2(embeddings_np)
-            
-            index.add(embeddings_np)
-            
-            # Save FAISS index and metadata
-            faiss_dir = os.path.dirname(faiss_file)
-            if faiss_dir:
-                os.makedirs(faiss_dir, exist_ok=True)
-            
-            faiss.write_index(index, faiss_file)
-            
-            # Save metadata including model information
-            metadata_file = faiss_file.replace('.faiss', '_metadata.json')
-            metadata_with_info = {
+            # Create index structure
+            index_data = {
                 'embedding_model': embedding_model,
-                'chunks': chunk_metadata
+                'chunks': chunk_metadata,
+                'embeddings': embeddings_list  # Store as lists (JSON serializable)
             }
-            with open(metadata_file, 'w', encoding='utf-8') as f:
-                json.dump(metadata_with_info, f, ensure_ascii=False, indent=2)
             
-            print(f"FAISS index created successfully: {faiss_file}")
-            print(f"Metadata saved: {metadata_file}")
+            # Save index to file
+            index_dir = os.path.dirname(index_file)
+            if index_dir:
+                os.makedirs(index_dir, exist_ok=True)
+            
+            with open(index_file, 'w', encoding='utf-8') as f:
+                json.dump(index_data, f, ensure_ascii=False, indent=2)
+            
+            print(f"Index created successfully: {index_file}")
+            print(f"Total chunks: {len(chunks)}")
             print(f"Used embedding model: {embedding_model}")
             return True
             
         except Exception as e:
-            print(f"Error creating FAISS index: {str(e)}")
+            print(f"Error creating index: {str(e)}")
             return False
     
     def _collect_documents(self, source_path: str) -> List[tuple]:
@@ -377,70 +292,65 @@ class RagProvider:
         
         return chunks
     
-    def _search_faiss(self, faiss_file: str, query: str, top_k: int, embedding_model: str = 'all-MiniLM-L6-v2') -> List[Dict]:
-        """Search FAISS index for relevant documents"""
-        faiss = self._initialize_faiss()
+    def _search_index(self, index_file: str, query: str, top_k: int, embedding_model: str = 'BAAI/bge-small-en-v1.5') -> List[Dict]:
+        """Search index for relevant documents using FastEmbed"""
         model = self._initialize_model(embedding_model)
         
-        # Load FAISS index
-        index = faiss.read_index(faiss_file)
+        # Load index
+        with open(index_file, 'r', encoding='utf-8') as f:
+            index_data = json.load(f)
         
-        # Load metadata
-        metadata_file = faiss_file.replace('.faiss', '_metadata.json')
-        with open(metadata_file, 'r', encoding='utf-8') as f:
-            metadata_data = json.load(f)
+        # Check if index was created with same model
+        saved_model = index_data.get('embedding_model', 'BAAI/bge-small-en-v1.5')
+        chunks_metadata = index_data['chunks']
+        embeddings = index_data['embeddings']
         
-        # Handle both old and new metadata formats
-        if isinstance(metadata_data, dict) and 'chunks' in metadata_data:
-            # New format with model information
-            saved_model = metadata_data.get('embedding_model', 'all-MiniLM-L6-v2')
-            chunks_metadata = metadata_data['chunks']
-            
-            # Warning if different model is used
-            if saved_model != embedding_model:
-                print(f"Warning: FAISS index was created with model '{saved_model}' but searching with '{embedding_model}'")
-                print("This may lead to suboptimal results. Consider recreating the index with force override.")
-        else:
-            # Old format - assume default model
-            chunks_metadata = metadata_data
-            saved_model = 'all-MiniLM-L6-v2'
+        if saved_model != embedding_model:
+            print(f"Warning: Index was created with model '{saved_model}' but searching with '{embedding_model}'")
+            print("Consider recreating the index with force_override for better results")
         
-        # Generate query embedding with GPU acceleration
-        query_embedding = model.encode(
-            [query], 
-            convert_to_tensor=True,
-            normalize_embeddings=True
-        )
+        # Generate query embedding
+        query_embedding = list(model.embed([query]))[0]
         
-        # Convert to numpy for FAISS
-        if hasattr(query_embedding, 'cpu'):
-            query_embedding_np = query_embedding.cpu().numpy()
-        else:
-            query_embedding_np = query_embedding
-            if not hasattr(query_embedding, 'cpu'):  # If not normalized tensor
-                faiss.normalize_L2(query_embedding_np)
+        # Compute cosine similarity scores
+        scores_and_indices = []
+        for idx, embedding in enumerate(embeddings):
+            # Cosine similarity
+            score = self._cosine_similarity(query_embedding, embedding)
+            scores_and_indices.append((score, idx))
         
-        # Search
-        scores, indices = index.search(query_embedding_np, top_k)
+        # Sort by score and get top_k
+        scores_and_indices.sort(key=lambda x: x[0], reverse=True)
+        top_results = scores_and_indices[:top_k]
         
         # Prepare results
         results = []
-        for i, (score, idx) in enumerate(zip(scores[0], indices[0])):
-            if idx < len(chunks_metadata):
-                result = chunks_metadata[idx].copy()
-                result['score'] = float(score)
-                result['rank'] = i + 1
-                results.append(result)
+        for rank, (score, idx) in enumerate(top_results, 1):
+            result = chunks_metadata[idx].copy()
+            result['score'] = float(score)
+            result['rank'] = rank
+            results.append(result)
         
         return results
     
+    @staticmethod
+    def _cosine_similarity(vec1: List[float], vec2: List[float]) -> float:
+        """Compute cosine similarity between two vectors"""
+        dot_product = sum(a * b for a, b in zip(vec1, vec2))
+        norm1 = sum(a ** 2 for a in vec1) ** 0.5
+        norm2 = sum(b ** 2 for b in vec2) ** 0.5
+        
+        if norm1 == 0 or norm2 == 0:
+            return 0.0
+        
+        return dot_product / (norm1 * norm2)
+    
     def _format_results(self, results: List[Dict], query: str) -> str:
-        """Format search results for output with improved text formatting"""
+        """Format search results for output"""
         if not results:
             return f"No relevant documents found for query: '{query}'"
         
         output = f"RAG Search Results for: '{query}'\n"
-        output += f"Device used: {self.device}\n"
         output += "=" * 50 + "\n\n"
         
         for result in results:

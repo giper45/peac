@@ -616,7 +616,7 @@ class WebRuleCard(ctk.CTkFrame):
 
 
 class RagRuleCard(ctk.CTkFrame):
-    """Card component for RAG rules with FAISS vector search"""
+    """Card component for RAG rules with FastEmbed vector search"""
     
     def __init__(self, parent, rule_data=None, on_delete=None, default_name=None, current_file_path=None, **kwargs):
         super().__init__(parent, **kwargs)
@@ -682,24 +682,24 @@ class RagRuleCard(ctk.CTkFrame):
         
         row += 1
         
-        # FAISS file path with browse button
-        faiss_label = ctk.CTkLabel(self, text="FAISS File:", width=100)
-        faiss_label.grid(row=row, column=0, sticky="w", padx=(10, 5), pady=5)
+        # Index file path with browse button
+        index_label = ctk.CTkLabel(self, text="Index File:", width=100)
+        index_label.grid(row=row, column=0, sticky="w", padx=(10, 5), pady=5)
         
-        faiss_frame = ctk.CTkFrame(self, fg_color="transparent")
-        faiss_frame.grid(row=row, column=1, columnspan=2, sticky="ew", padx=(5, 10), pady=5)
-        faiss_frame.grid_columnconfigure(0, weight=1)
+        index_frame = ctk.CTkFrame(self, fg_color="transparent")
+        index_frame.grid(row=row, column=1, columnspan=2, sticky="ew", padx=(5, 10), pady=5)
+        index_frame.grid_columnconfigure(0, weight=1)
         
-        self.faiss_entry = ctk.CTkEntry(faiss_frame, placeholder_text="Path to FAISS index file (.faiss)")
-        self.faiss_entry.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        self.index_entry = ctk.CTkEntry(index_frame, placeholder_text="Path to vector index file (.json)")
+        self.index_entry.grid(row=0, column=0, sticky="ew", padx=(0, 5))
         
-        browse_faiss_btn = ctk.CTkButton(
-            faiss_frame, 
+        browse_index_btn = ctk.CTkButton(
+            index_frame, 
             text="📁", 
             width=40,
-            command=self.browse_faiss_file
+            command=self.browse_index_file
         )
-        browse_faiss_btn.grid(row=0, column=1)
+        browse_index_btn.grid(row=0, column=1)
         
         row += 1
         
@@ -711,7 +711,7 @@ class RagRuleCard(ctk.CTkFrame):
         source_frame.grid(row=row, column=1, columnspan=2, sticky="ew", padx=(5, 10), pady=5)
         source_frame.grid_columnconfigure(0, weight=1)
         
-        self.source_entry = ctk.CTkEntry(source_frame, placeholder_text="Folder to embed if FAISS doesn't exist")
+        self.source_entry = ctk.CTkEntry(source_frame, placeholder_text="Folder to embed if index doesn't exist")
         self.source_entry.grid(row=0, column=0, sticky="ew", padx=(0, 5))
         
         browse_source_btn = ctk.CTkButton(
@@ -742,7 +742,7 @@ class RagRuleCard(ctk.CTkFrame):
         self.force_override_var = ctk.BooleanVar()
         self.force_override_checkbox = ctk.CTkCheckBox(
             options_frame1,
-            text="Force Recreate FAISS",
+            text="Force Recreate Index",
             variable=self.force_override_var,
             command=self.notify_change
         )
@@ -752,16 +752,16 @@ class RagRuleCard(ctk.CTkFrame):
         model_label = ctk.CTkLabel(options_frame1, text="Embedding Model:")
         model_label.grid(row=0, column=1, sticky="w", padx=(0, 5))
         
-        self.model_var = ctk.StringVar(value="all-MiniLM-L6-v2")
+        self.model_var = ctk.StringVar(value="BAAI/bge-small-en-v1.5")
         self.model_menu = ctk.CTkOptionMenu(
             options_frame1,
             variable=self.model_var,
             values=[
-                "all-MiniLM-L6-v2",
-                "paraphrase-multilingual-MiniLM-L12-v2",
-                "all-mpnet-base-v2",
-                "multi-qa-MiniLM-L6-cos-v1",
-                "paraphrase-MiniLM-L6-v2"
+                "BAAI/bge-small-en-v1.5",
+                "BAAI/bge-small-zh-v1.5",
+                "BAAI/bge-base-en-v1.5",
+                "BAAI/bge-large-en-v1.5",
+                "sentence-transformers/all-MiniLM-L6-v2"
             ],
             command=lambda x: self.notify_change()
         )
@@ -806,7 +806,7 @@ class RagRuleCard(ctk.CTkFrame):
     
     def setup_change_tracking(self):
         """Set up change tracking for all input widgets"""
-        for widget in [self.name_entry, self.faiss_entry, self.source_entry, 
+        for widget in [self.name_entry, self.index_entry, self.source_entry, 
                        self.topk_entry, self.chunk_entry, self.filter_entry]:
             widget.bind('<KeyRelease>', lambda e: self.notify_change())
             widget.bind('<FocusOut>', lambda e: self.notify_change())
@@ -816,16 +816,16 @@ class RagRuleCard(ctk.CTkFrame):
         self.query_text.bind('<KeyRelease>', lambda e: self.notify_change())
         self.query_text.bind('<FocusOut>', lambda e: self.notify_change())
     
-    def browse_faiss_file(self):
-        """Browse for FAISS file"""
+    def browse_index_file(self):
+        """Browse for index file"""
         file_path = filedialog.asksaveasfilename(
-            title="Select or create FAISS file",
-            defaultextension=".faiss",
-            filetypes=[("FAISS files", "*.faiss"), ("All files", "*.*")]
+            title="Select or create vector index file",
+            defaultextension=".json",
+            filetypes=[("JSON index files", "*.json"), ("All files", "*.*")]
         )
         if file_path:
-            self.faiss_entry.delete(0, "end")
-            self.faiss_entry.insert(0, file_path)
+            self.index_entry.delete(0, "end")
+            self.index_entry.insert(0, file_path)
             self.notify_change()
     
     def browse_source_folder(self):
@@ -849,9 +849,9 @@ class RagRuleCard(ctk.CTkFrame):
         if not name:
             errors.append("Rule name is required")
         
-        faiss_file = self.faiss_entry.get().strip()
-        if not faiss_file:
-            errors.append("FAISS file is required")
+        index_file = self.index_entry.get().strip()
+        if not index_file:
+            errors.append("Index file is required")
         
         query = self.query_text.get("1.0", "end-1c").strip()
         if not query:
@@ -868,9 +868,9 @@ class RagRuleCard(ctk.CTkFrame):
         if preamble:
             rule_data['preamble'] = preamble
         
-        faiss_file = self.faiss_entry.get().strip()
-        if faiss_file:
-            rule_data['faiss_file'] = faiss_file
+        index_file = self.index_entry.get().strip()
+        if index_file:
+            rule_data['faiss_file'] = index_file  # Keep key for backward compatibility
         
         source_folder = self.source_entry.get().strip()
         if source_folder:
@@ -915,9 +915,9 @@ class RagRuleCard(ctk.CTkFrame):
         self.preamble_text.delete("1.0", "end")
         self.preamble_text.insert("1.0", preamble)
         
-        faiss_file = rule_data.get('faiss_file', '')
-        self.faiss_entry.delete(0, "end")
-        self.faiss_entry.insert(0, faiss_file)
+        index_file = rule_data.get('faiss_file', '')  # Keep key for backward compatibility
+        self.index_entry.delete(0, "end")
+        self.index_entry.insert(0, index_file)
         
         source_folder = rule_data.get('source_folder', '')
         self.source_entry.delete(0, "end")
@@ -932,7 +932,7 @@ class RagRuleCard(ctk.CTkFrame):
         self.force_override_var.set(force_override)
         
         # Embedding model
-        embedding_model = rule_data.get('embedding_model', 'all-MiniLM-L6-v2')
+        embedding_model = rule_data.get('embedding_model', 'BAAI/bge-small-en-v1.5')
         self.model_var.set(embedding_model)
         
         top_k = str(rule_data.get('top_k', 5))
