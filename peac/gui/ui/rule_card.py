@@ -1,5 +1,6 @@
 from __future__ import annotations
 import flet as ft
+import os
 from typing import Optional, List, Callable
 from peac.gui.models.rule import RuleData, RuleType
 from peac.gui.services.path_resolver_service import PathResolverService
@@ -251,50 +252,9 @@ class RuleCard(ft.Container):
             )
 
         elif self.rule_type == "rag":
-            # FAISS Index File
-            self.path_field = ft.TextField(
-                label="Path to FAISS file (.faiss)",
-                on_change=self._on_change,
-                expand=True,
-                border_color="#e5e7eb",
-                read_only=not self.editing_mode,
-            )
-            self.all_fields.append(self.path_field)
-
-            browse_faiss = ft.IconButton(
-                ft.icons.FOLDER_OPEN,
-                icon_color="#1877f2",
-                tooltip="Browse FAISS file",
-                on_click=lambda _: self.pick_file(),
-                icon_size=24,
-                disabled=not self.editing_mode,
-            )
-            self.browse_buttons.append(browse_faiss)
-            
-            # Source Folder (to embed if FAISS doesn't exist)
-            self.source_folder_field = ft.TextField(
-                label="Source folder to embed if FAISS doesn't exist",
-                on_change=self._on_change,
-                expand=True,
-                border_color="#e5e7eb",
-                hint_text="Leave empty if FAISS already exists",
-                read_only=not self.editing_mode,
-            )
-            self.all_fields.append(self.source_folder_field)
-            
-            browse_folder = ft.IconButton(
-                ft.icons.FOLDER,
-                icon_color="#1877f2",
-                tooltip="Browse source folder",
-                on_click=lambda _: self.pick_folder(),
-                icon_size=24,
-                disabled=not self.editing_mode,
-            )
-            self.browse_buttons.append(browse_folder)
-
-            # Search Query
+            # Search Query (first field)
             self.query_field = ft.TextField(
-                label="What to search for in the index",
+                label="Search query",
                 on_change=self._on_change,
                 border_color="#e5e7eb",
                 hint_text="e.g., 'Python best practices'",
@@ -302,17 +262,41 @@ class RuleCard(ft.Container):
             )
             self.all_fields.append(self.query_field)
             
-            # Embedding Model Dropdown
+            # Source Folder (index will be created here as folder_name.json)
+            self.source_folder_field = ft.TextField(
+                label="Documents folder (index will be created inside as folder_name.json)",
+                on_change=self._on_change,
+                expand=True,
+                border_color="#e5e7eb",
+                hint_text="Select folder with documents to embed",
+                read_only=not self.editing_mode,
+            )
+            self.all_fields.append(self.source_folder_field)
+            
+            browse_folder = ft.IconButton(
+                ft.icons.FOLDER,
+                icon_color="#1877f2",
+                tooltip="Browse documents folder",
+                on_click=lambda _: self.pick_folder(),
+                icon_size=24,
+                disabled=not self.editing_mode,
+            )
+            self.browse_buttons.append(browse_folder)
+
+            # Note: path_field is NOT used for RAG anymore (index path is auto-generated)
+            self.path_field = None
+            
+            # Embedding Model Dropdown (FastEmbed)
             self.model_dropdown = ft.Dropdown(
                 label="Embedding Model",
                 options=[
-                    ft.dropdown.Option("all-MiniLM-L6-v2"),
-                    ft.dropdown.Option("paraphrase-multilingual-MiniLM-L12-v2"),
-                    ft.dropdown.Option("all-mpnet-base-v2"),
-                    ft.dropdown.Option("multi-qa-MiniLM-L6-cos-v1"),
-                    ft.dropdown.Option("paraphrase-MiniLM-L6-v2"),
+                    ft.dropdown.Option("BAAI/bge-small-en-v1.5"),
+                    ft.dropdown.Option("BAAI/bge-small-zh-v1.5"),
+                    ft.dropdown.Option("BAAI/bge-base-en-v1.5"),
+                    ft.dropdown.Option("BAAI/bge-large-en-v1.5"),
+                    ft.dropdown.Option("sentence-transformers/all-MiniLM-L6-v2"),
                 ],
-                value="all-MiniLM-L6-v2",
+                value="BAAI/bge-small-en-v1.5",
                 on_change=self._on_change,
                 border_color="#e5e7eb",
                 disabled=not self.editing_mode,
@@ -320,7 +304,7 @@ class RuleCard(ft.Container):
             
             # Force Override Checkbox
             self.force_override_checkbox = ft.Checkbox(
-                label="Force Recreate FAISS Index",
+                label="Force Recreate Index",
                 value=False,
                 on_change=self._on_change,
                 disabled=not self.editing_mode,
@@ -365,21 +349,14 @@ class RuleCard(ft.Container):
             fields.extend(
                 [
                     ft.Column(
-                        [
-                            ft.Text("FAISS Index File:", weight=ft.FontWeight.BOLD, size=14, color="#1f2937"),
-                            ft.Row([self.path_field, browse_faiss], spacing=8),
-                        ],
+                        [ft.Text("Search Query:", weight=ft.FontWeight.BOLD, size=14, color="#1f2937"), self.query_field],
                         spacing=8,
                     ),
                     ft.Column(
                         [
-                            ft.Text("Source Folder (for embedding):", weight=ft.FontWeight.BOLD, size=14, color="#1f2937"),
+                            ft.Text("Source Folder (index created inside as folder_name.json):", weight=ft.FontWeight.BOLD, size=14, color="#1f2937"),
                             ft.Row([self.source_folder_field, browse_folder], spacing=8),
                         ],
-                        spacing=8,
-                    ),
-                    ft.Column(
-                        [ft.Text("Search Query:", weight=ft.FontWeight.BOLD, size=14, color="#1f2937"), self.query_field],
                         spacing=8,
                     ),
                     ft.Column(
@@ -508,7 +485,7 @@ class RuleCard(ft.Container):
         self.page.update()
 
         if self.rule_type == "rag":
-            fp.pick_files(dialog_title="Select FAISS index file", allowed_extensions=["faiss", "index"], allow_multiple=False)
+            fp.pick_files(dialog_title="Select vector index file", allowed_extensions=["json"], allow_multiple=False)
         elif self.rule_type == "local":
             # For local rules, allow picking both files and directories
             # Use wildcard to show all files on Windows
@@ -558,6 +535,8 @@ class RuleCard(ft.Container):
         self.page.overlay.append(fp)
         self.page.update()
         fp.get_directory_path(dialog_title="Select folder")
+    
+    def pick_folder(self):
         """Pick folder for RAG source directory"""
         def on_result(e: ft.FilePickerResultEvent):
             if e.path and self.source_folder_field:
@@ -597,10 +576,18 @@ class RuleCard(ft.Container):
             rd.xpath = (self.xpath_field.value or "") if self.xpath_field else None
 
         elif self.rule_type == "rag":
-            rd.faiss_file = (self.path_field.value or "") if self.path_field else None
-            rd.source_folder = (self.source_folder_field.value or "") if self.source_folder_field else None
+            # Auto-derive index path from source folder (create index inside folder)
+            source_folder = (self.source_folder_field.value or "") if self.source_folder_field else ""
+            if source_folder:
+                # Create index inside the folder with folder's name: /path/to/folder -> /path/to/folder/folder.json
+                folder_name = os.path.basename(source_folder.rstrip(os.sep))
+                rd.faiss_file = os.path.join(source_folder, f"{folder_name}.json")
+            else:
+                rd.faiss_file = None
+            
+            rd.source_folder = source_folder
             rd.query = (self.query_field.value or "") if self.query_field else None
-            rd.embedding_model = (self.model_dropdown.value or "all-MiniLM-L6-v2") if self.model_dropdown else "all-MiniLM-L6-v2"
+            rd.embedding_model = (self.model_dropdown.value or "BAAI/bge-small-en-v1.5") if self.model_dropdown else "BAAI/bge-small-en-v1.5"
             rd.force_override = self.force_override_checkbox.value if self.force_override_checkbox else False
             rd.top_k = _safe_int(self.topk_field.value if self.topk_field else None)
             rd.chunk_size = _safe_int(self.chunk_field.value if self.chunk_field else None)
@@ -632,14 +619,18 @@ class RuleCard(ft.Container):
                 self.xpath_field.value = rd.xpath or ""
 
         if self.rule_type == "rag":
-            if self.path_field:
-                self.path_field.value = rd.faiss_file or ""
+            # Don't show path_field anymore - it's auto-derived from source_folder
+            # But we can reverse-derive it when loading: remove .json suffix to get source_folder
             if self.source_folder_field:
-                self.source_folder_field.value = rd.source_folder or ""
+                # If faiss_file ends with .json, derive source_folder by removing .json
+                if rd.faiss_file and rd.faiss_file.endswith(".json"):
+                    self.source_folder_field.value = rd.faiss_file[:-5]  # Remove .json suffix
+                else:
+                    self.source_folder_field.value = rd.source_folder or ""
             if self.query_field:
                 self.query_field.value = rd.query or ""
             if self.model_dropdown:
-                self.model_dropdown.value = rd.embedding_model or "all-MiniLM-L6-v2"
+                self.model_dropdown.value = rd.embedding_model or "BAAI/bge-small-en-v1.5"
             if self.force_override_checkbox:
                 self.force_override_checkbox.value = rd.force_override or False
             if self.topk_field and rd.top_k is not None:

@@ -65,19 +65,24 @@ class RagProvider:
         
         if should_create_index:
             if not source_folder:
+                # Create default empty index if no source folder provided
                 if force_override:
-                    return f"Error: Force override enabled but no source folder provided to recreate index"
+                    print(f"Force override enabled. Creating empty index: {faiss_file}")
                 else:
-                    return f"Error: Index file '{faiss_file}' does not exist and no source folder provided"
-            
-            if force_override:
-                print(f"Force override enabled. Recreating index: {faiss_file}")
-            else:
-                print(f"Index file '{faiss_file}' not found. Creating from source: {source_folder}")
+                    print(f"Index file '{faiss_file}' not found. Creating empty default index...")
                 
-            success = self._create_index(faiss_file, source_folder, chunk_size, overlap, embedding_model)
-            if not success:
-                return f"Error: Failed to create index from {source_folder}"
+                success = self._create_default_index(faiss_file, embedding_model)
+                if not success:
+                    return f"Error: Failed to create default index at {faiss_file}"
+            else:
+                if force_override:
+                    print(f"Force override enabled. Recreating index: {faiss_file}")
+                else:
+                    print(f"Index file '{faiss_file}' not found. Creating from source: {source_folder}")
+                    
+                success = self._create_index(faiss_file, source_folder, chunk_size, overlap, embedding_model)
+                if not success:
+                    return f"Error: Failed to create index from {source_folder}"
         
         # Load index and perform search
         try:
@@ -86,7 +91,58 @@ class RagProvider:
         except Exception as e:
             return f"Error during RAG search: {str(e)}"
     
-    def _create_index(self, index_file: str, source_folder: str, chunk_size: int, overlap: int, embedding_model: str = 'BAAI/bge-small-en-v1.5') -> bool:
+    def _create_default_index(self, index_file: str, embedding_model: str = 'BAAI/bge-small-en-v1.5') -> bool:
+        """Create a default empty index with sample data"""
+        try:
+            model = self._initialize_model(embedding_model)
+            
+            # Create sample chunks with basic information
+            sample_chunks = [
+                "This is a default empty index. Add content by specifying a source folder or updating the index file directly.",
+                "FastEmbed provides lightweight, efficient text embeddings without requiring PyTorch or heavy GPU dependencies.",
+                "Vector search enables semantic similarity matching across documents and texts.",
+                "The RAG system can work with any text files, PDFs, DOCX documents, and more.",
+                "Customize the embedding model by selecting from available FastEmbed models.",
+            ]
+            
+            chunk_metadata = [
+                {'source': 'default', 'chunk_id': i, 'text': chunk}
+                for i, chunk in enumerate(sample_chunks)
+            ]
+            
+            print(f"Creating default index with {len(sample_chunks)} sample chunks...")
+            
+            # Generate embeddings for sample chunks
+            embeddings_list = list(model.embed(sample_chunks, batch_size=256))
+            
+            # Convert numpy arrays to lists for JSON serialization
+            embeddings_list = [emb.tolist() if hasattr(emb, 'tolist') else emb for emb in embeddings_list]
+            
+            # Create index structure
+            index_data = {
+                'embedding_model': embedding_model,
+                'chunks': chunk_metadata,
+                'embeddings': embeddings_list
+            }
+            
+            # Save index to file
+            index_dir = os.path.dirname(index_file)
+            if index_dir:
+                os.makedirs(index_dir, exist_ok=True)
+            
+            with open(index_file, 'w', encoding='utf-8') as f:
+                json.dump(index_data, f, ensure_ascii=False, indent=2)
+            
+            print(f"Default index created successfully: {index_file}")
+            print(f"Total sample chunks: {len(sample_chunks)}")
+            print(f"Used embedding model: {embedding_model}")
+            return True
+            
+        except Exception as e:
+            print(f"Error creating default index: {str(e)}")
+            return False
+    
+
         """Create vector index from source folder/file using FastEmbed"""
         try:
             model = self._initialize_model(embedding_model)
@@ -118,11 +174,14 @@ class RagProvider:
             # Generate embeddings using FastEmbed (very fast, no GPU needed)
             embeddings_list = list(model.embed(chunks, batch_size=256))
             
+            # Convert numpy arrays to lists for JSON serialization
+            embeddings_list = [emb.tolist() if hasattr(emb, 'tolist') else emb for emb in embeddings_list]
+            
             # Create index structure
             index_data = {
                 'embedding_model': embedding_model,
                 'chunks': chunk_metadata,
-                'embeddings': embeddings_list  # Store as lists (JSON serializable)
+                'embeddings': embeddings_list  # Now guaranteed to be JSON serializable
             }
             
             # Save index to file
@@ -296,9 +355,22 @@ class RagProvider:
         """Search index for relevant documents using FastEmbed"""
         model = self._initialize_model(embedding_model)
         
-        # Load index
-        with open(index_file, 'r', encoding='utf-8') as f:
-            index_data = json.load(f)
+        # Load index with better error handling
+        try:
+            with open(index_file, 'r', encoding='utf-8') as f:
+                index_data = json.load(f)
+        except json.JSONDecodeError as e:
+            print(f"Error: Invalid JSON in index file {index_file}: {str(e)}")
+            print("Recreating index...")
+            return []
+        except Exception as e:
+            print(f"Error loading index file {index_file}: {str(e)}")
+            return []
+        
+        # Validate index structure
+        if 'chunks' not in index_data or 'embeddings' not in index_data:
+            print("Error: Invalid index structure (missing 'chunks' or 'embeddings')")
+            return []
         
         # Check if index was created with same model
         saved_model = index_data.get('embedding_model', 'BAAI/bge-small-en-v1.5')
@@ -310,12 +382,14 @@ class RagProvider:
             print("Consider recreating the index with force_override for better results")
         
         # Generate query embedding
-        query_embedding = list(model.embed([query]))[0]
+        query_embedding_raw = list(model.embed([query]))[0]
+        # Convert to list if it's a numpy array
+        query_embedding = query_embedding_raw.tolist() if hasattr(query_embedding_raw, 'tolist') else query_embedding_raw
         
         # Compute cosine similarity scores
         scores_and_indices = []
         for idx, embedding in enumerate(embeddings):
-            # Cosine similarity
+            # Cosine similarity (embeddings are already lists from JSON)
             score = self._cosine_similarity(query_embedding, embedding)
             scores_and_indices.append((score, idx))
         
