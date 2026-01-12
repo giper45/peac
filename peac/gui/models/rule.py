@@ -59,7 +59,7 @@ class RuleData:
             if self.faiss_file:
                 out["faiss_file"] = self.faiss_file
             if self.source_folder:
-                out["source"] = self.source_folder
+                out["source_folder"] = self.source_folder
             if self.query:
                 out["query"] = self.query
             if self.embedding_model and self.embedding_model != "all-MiniLM-L6-v2":  # Only save if non-default

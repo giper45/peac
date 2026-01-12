@@ -69,7 +69,10 @@ class YamlService:
                         type="rag",
                         name=_name,
                         faiss_file=payload.get("faiss_file"),
+                        source_folder=payload.get("source_folder"),  # Read source_folder
                         query=payload.get("query"),
+                        embedding_model=payload.get("embedding_model"),  # Read embedding_model
+                        force_override=payload.get("force_override", False),  # Read force_override
                         top_k=_safe_int(payload.get("top_k")),
                         chunk_size=_safe_int(payload.get("chunk_size")),
                         overlap=_safe_int(payload.get("overlap")),

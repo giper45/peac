@@ -64,25 +64,22 @@ class RagProvider:
         should_create_index = force_override or not os.path.exists(faiss_file)
         
         if should_create_index:
-            if not source_folder:
-                # Create default empty index if no source folder provided
+            # If source_folder is provided, ALWAYS create index from source folder documents
+            if source_folder:
                 if force_override:
-                    print(f"Force override enabled. Creating empty index: {faiss_file}")
-                else:
-                    print(f"Index file '{faiss_file}' not found. Creating empty default index...")
-                
-                success = self._create_default_index(faiss_file, embedding_model)
-                if not success:
-                    return f"Error: Failed to create default index at {faiss_file}"
-            else:
-                if force_override:
-                    print(f"Force override enabled. Recreating index: {faiss_file}")
+                    print(f"Force override enabled. Recreating index from: {source_folder}")
                 else:
                     print(f"Index file '{faiss_file}' not found. Creating from source: {source_folder}")
                     
                 success = self._create_index(faiss_file, source_folder, chunk_size, overlap, embedding_model)
                 if not success:
                     return f"Error: Failed to create index from {source_folder}"
+            else:
+                # Only create default index if NO source folder is provided
+                print(f"Index file '{faiss_file}' not found and no source folder provided. Creating empty default index...")
+                success = self._create_default_index(faiss_file, embedding_model)
+                if not success:
+                    return f"Error: Failed to create default index at {faiss_file}"
         
         # Load index and perform search
         try:
