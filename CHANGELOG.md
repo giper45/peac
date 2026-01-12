@@ -18,20 +18,17 @@ straightforward as possible.
 ### Fixed
 - [Fixes here]
 
-## [0.2.3] - 2026-01-10
- 
+## [0.2.6] - 2026-01-12
+
 ### Added
-- Section header option for instruction blocks in GUI
-- Comprehensive example configurations and test files
-- Makefile for common development tasks
- 
+- [Next features here]
+
 ### Changed
-- Enhanced GUI main app with improved instruction section handling
-- Updated build scripts for Linux, macOS, and Windows with better error handling
-- Improved architecture diagrams (modules, integration, and use case sequences)
-- Updated copilot instructions for better development workflow
- 
+- [Changes here]
+
 ### Fixed
+- [Fixes here]
+
 - Instruction section now fully parsed and included in prompt output
 - GUI launcher initialization issues
 - Dependency management improvements in poetry.lock
