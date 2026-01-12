@@ -1,0 +1,5 @@
+prompt:
+  context:
+    base:
+      - "For IBS: limit common triggers (excess onion, garlic, certain sweeteners)."
+      - "Emphasize soluble fiber and gradual tolerance testing."

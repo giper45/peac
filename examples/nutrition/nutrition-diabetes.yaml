@@ -1,0 +1,23 @@
+prompt:
+  extends:
+    - nutrition-base.yaml
+  
+  context:
+    base:
+      - "Patient has diabetes mellitus - require glycemic control focus"
+      - "Prioritize low glycemic index foods"
+      - "Monitor carbohydrate distribution throughout the day"
+      - "Consider medication timing for meal planning"
+    
+    local:
+      diabetes-food-list:
+        preamble: "Diabetes-appropriate food selections"
+        source: medical/diabetes-approved-foods.xlsx
+        filter: "glycemic_index < 55"
+  
+  instruction:
+    base:
+      - "Limit simple carbohydrates and refined sugars"
+      - "Distribute carbohydrates evenly across meals"
+      - "Include high-fiber foods to slow glucose absorption"
+      - "Recommend 3 main meals and 2-3 small snacks"

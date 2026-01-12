@@ -1,0 +1,22 @@
+prompt:
+  extends:
+    - nutrition-base.yaml
+    - nutrition-women.yaml
+    - condition-diabetes.yaml
+  
+  context:
+    base:
+      - "Patient: 45-year-old woman, sedentary lifestyle"
+      - "Weight goal: lose 8kg over 4 months"
+      - "Allergies: shellfish, nuts"
+      - "Preferred foods: Mediterranean cuisine, fish, vegetables"
+      - "Dislikes: red meat, spicy foods"
+      - "Schedule: office worker, lunch break 12:30-13:30"
+  
+  query:
+    base:
+      - "Generate a 7-day Mediterranean-style diet plan"
+      - "Target: 1400 calories/day for gradual weight loss"
+      - "Exclude shellfish and nuts completely"
+      - "Include diabetes-friendly options with low glycemic impact"
+      - "Consider work schedule for meal timing"

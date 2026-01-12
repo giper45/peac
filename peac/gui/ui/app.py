@@ -334,7 +334,9 @@ class PeacFletApp:
         file_tab.query_input = ft.TextField(
             label="Query",
             hint_text="Enter your query here...",
-            multiline=False,
+            multiline=True,
+            min_lines=3,
+            max_lines=8,
             expand=True,
             on_change=lambda _: self.on_change(),
             border_color="#1877f2",

@@ -1,0 +1,6 @@
+extends:
+  - "packs/instruction.yaml"
+  - "packs/condition-IBS.yaml"
+  - "packs/paradigm-ketogenic.yaml"   # swapped
+  - "packs/output-style.yaml"
+  - "packs/pref-fish.yaml"

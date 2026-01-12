@@ -1,0 +1,16 @@
+extends:
+  - "packs/instruction.yaml"
+  - "packs/condition-IBS.yaml"
+  - "packs/paradigm-mediterranean.yaml"
+  - "packs/output-style.yaml"
+  - "packs/pref-fish.yaml"
+
+query: |
+  Patient: Female, 38 y, 165 cm, 78 kg (BMI ~28.7)
+  Activity: 3 sessions/week (HIIT + walking)
+  Goal: -0.5 kg/week gradual weight loss
+  Conditions: mild IBS, occasional reflux
+  Allergies: none
+  Preferences: fish, zucchini, Greek yogurt
+  Aversion: raw cauliflower, excess onion
+  Practical constraints: cooking less than or equal to 25 min on weekdays, packed lunches, flexible Saturday dinner

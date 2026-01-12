@@ -1,0 +1,7 @@
+prompt:
+  output:
+    base:
+      - Seven-day plan (Mon-Sun), with five meals per day.
+      - "Label meals with emoticons 
+      - "Annotate portion sizes in grams and specify cooking methods."
+      - "Provide a protein frequency table at the end."

@@ -1,0 +1,8 @@
+prompt:
+  context:
+    base:
+      - "Use Mediterranean diet templates and emphasize seasonal vegetables, olive oil, fish, and legumes."
+    local:
+      diet-templates:
+        preamble: "Template fragment:"
+        source: "data/templates/Mediterranean-diet.docx"

@@ -1,0 +1,5 @@
+prompt:
+  context:
+    base:
+      - "Prefer fish-based dishes (cod, branzino, salmon) at least three times per week."
+      - "Include light cooking methods (steam, oven, grill)."

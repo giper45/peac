@@ -40,8 +40,8 @@ jobs:
     
     - name: Build LITE executables
       run: |
-        poetry run pyinstaller --clean --onedir --windowed --name "PeacGUI_LITE_${{ github.ref_name }}" --add-data "peac/template.yaml;peac" --hidden-import=flet.core --hidden-import=flet.controls --hidden-import=flet.connection --collect-all=flet --hidden-import=yaml --hidden-import=bs4 --hidden-import=requests --hidden-import=pdfplumber --strip peac/main.py
-        poetry run pyinstaller --clean --onefile --console --name "PeacCLI_LITE_${{ github.ref_name }}" --add-data "peac/template.yaml;peac" --hidden-import=typer.testing --hidden-import=yaml --hidden-import=bs4 --hidden-import=requests --hidden-import=pdfplumber --upx-dir="C:\ProgramData\chocolatey\lib\upx\tools" --strip peac/main.py
+        poetry run pyinstaller --clean --onedir --windowed --name "PeacGUI_LITE_${{ github.ref_name }}" --add-data "peac/template.yaml;peac" --hidden-import=flet.core --hidden-import=flet.controls --hidden-import=flet.connection --collect-all=flet --hidden-import=yaml --hidden-import=bs4 --hidden-import=requests --hidden-import=pdfplumber --hidden-import=openpyxl --hidden-import=docx --hidden-import=markdown --strip --noupx --collect-all=win32ctypes --hidden-import=win32api --exclude-module=torch --exclude-module=sentence-transformers --exclude-module=faiss --exclude-module=numpy peac/main.py
+        poetry run pyinstaller --clean --onefile --console --name "PeacCLI_LITE_${{ github.ref_name }}" --add-data "peac/template.yaml;peac" --hidden-import=typer.testing --hidden-import=yaml --hidden-import=bs4 --hidden-import=requests --hidden-import=pdfplumber --hidden-import=openpyxl --hidden-import=docx --hidden-import=markdown --strip --noupx --collect-all=win32ctypes --hidden-import=win32api --exclude-module=torch --exclude-module=sentence-transformers --exclude-module=faiss --exclude-module=numpy peac/main.py
     
     - name: Create GUI portable ZIP
       run: |

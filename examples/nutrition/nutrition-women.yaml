@@ -1,0 +1,21 @@
+prompt:
+  extends:
+    - nutrition-base.yaml
+  
+  context:
+    base:
+      - "Consider female-specific nutritional needs"
+      - "Account for menstrual cycle impact on iron requirements"
+      - "Include calcium recommendations for bone health"
+      - "Consider hormonal fluctuations affecting metabolism"
+    
+    local:
+      women-nutrition-guidelines:
+        preamble: "Female-specific nutritional requirements"
+        source: guidelines/women-nutrition-standards.pdf
+  
+  instruction:
+    base:
+      - "Adjust caloric intake based on menstrual cycle phase if relevant"
+      - "Prioritize iron-rich foods and calcium sources"
+      - "Consider pregnancy or breastfeeding status if applicable"
