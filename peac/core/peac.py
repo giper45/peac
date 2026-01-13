@@ -330,11 +330,16 @@ class PromptYaml:
                     # Build options dictionary
                     rag_options = {
                         'query': query,
-                        'source_folder': source_folder,
                         'top_k': top_k,
                         'chunk_size': chunk_size,
                         'overlap': overlap
                     }
+                    
+                    # Resolve source_folder path if provided
+                    if source_folder:
+                        source_folder, _ = find_path(source_folder, self.parent_path)
+                        rag_options['source_folder'] = source_folder
+                    
                     if filter_regex:
                         rag_options['filter'] = filter_regex
                     

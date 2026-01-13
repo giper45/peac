@@ -66,6 +66,8 @@ class RagProvider:
         if should_create_index:
             # If source_folder is provided, ALWAYS create index from source folder documents
             if source_folder:
+                print(f"[RAG DEBUG] source_folder value: {source_folder}")
+                print(f"[RAG DEBUG] source_folder exists: {os.path.exists(source_folder)}")
                 if force_override:
                     print(f"Force override enabled. Recreating index from: {source_folder}")
                 else:
@@ -139,7 +141,7 @@ class RagProvider:
             print(f"Error creating default index: {str(e)}")
             return False
     
-
+    def _create_index(self, index_file: str, source_folder: str, chunk_size: int = 512, overlap: int = 50, embedding_model: str = 'BAAI/bge-small-en-v1.5') -> bool:
         """Create vector index from source folder/file using FastEmbed"""
         try:
             model = self._initialize_model(embedding_model)
