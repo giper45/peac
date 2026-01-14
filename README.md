@@ -19,24 +19,73 @@ Through PEaC you can write a yaml structure that contains information from the `
 
 
 ## Installation
-You need python 3.11 to run PEaC.
 
+PEaC offers different installation methods depending on your operating system.
 
-Clone the repository and run `pip(x) install .`. 
-Now you can use with `peac <ask|prompt>`. 
+### Windows
+Download the latest pre-compiled executable from the [Releases](https://github.com/giper45/peac/releases) page:
+- **peac-gui-lite** - Recommended for most users (GUI with fastembed RAG)
+- **peac-gui-full** - GUI with full FAISS support
+- **peac-cli-lite** - Command-line version (lite)
+- **peac-cli-full** - Command-line version (with FAISS)
 
-### Note for the GUI
-For macOS users, you need to install the following packages:
+Simply extract and run the `.exe` file - no Python installation required.
+
+### macOS / Linux
+
+#### Option 1: Poetry (Recommended)
+Install with Poetry for development and full control:
 
 ```bash
+git clone https://github.com/giper45/peac.git
+cd peac
+poetry install
+
+# Run GUI
+poetry run peac gui
+
+# Run CLI
+poetry run peac prompt examples/academic.yaml
 ```
 
-### Development mode
-To run in development mode: 
-- Fork and clone the repo
-- Run `poetry install` 
-- Use the cli through `poetry run peac`. 
-- Send me a pull request ;-)
+#### Option 2: pipx (Simple Installation)
+Install with pipx for an isolated environment (no repository cloning needed):
+
+```bash
+pipx install git+https://github.com/giper45/peac.git
+
+# Run GUI
+peac gui
+
+# Run CLI
+peac prompt examples/academic.yaml
+```
+
+#### Option 3: pip (Direct Installation)
+```bash
+pip install git+https://github.com/giper45/peac.git
+peac gui
+```
+
+**Optional: Add FAISS support for advanced RAG features**
+```bash
+# With Poetry
+poetry install -E faiss-cpu
+
+# With pipx (reinstall with extra)
+pipx uninstall peac
+pipx install git+https://github.com/giper45/peac.git[faiss-cpu]
+```
+
+### Development Mode
+To contribute or modify the code:
+
+```bash
+git clone https://github.com/giper45/peac.git
+cd peac
+poetry install --with dev
+poetry run peac gui  # Start developing!
+```
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 

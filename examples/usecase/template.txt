@@ -1,0 +1,15 @@
+Genera una dieta settimanale  in formato tabellare (Lunedì-Domenica).
+
+Colonne obbligatorie:
+1. Colazione: (es. Yogurt greco/latte + 40g muesli/biscotti).
+2. Spuntino: (es. Frutta/snack salato + 500ml acqua).
+3. Pranzo: Base fissa "2 bicchieri acqua pre-pasto" + "Panino integrale 70g" con proteina (es. 50g salmone/uova/tonno) + verdura + 1 cucchiaio olio EVO.
+4. Doppia Merenda: (es. Yogurt/frutta secca + 500ml acqua).
+5. Cena: Base fissa "2 bicchieri acqua pre-pasto" + 70g pane/pasta/riso + secondo (es. 250g pesce/pollo o 150g legumi) + verdure + 2 cucchiai olio EVO.
+6. Dopo cena: 1 frutto + caffè.
+
+Regole:
+- Sabato cena: Pizza o libera.
+- Domenica: Libera.
+- Inizia ogni giornata con "2 bicchieri acqua appena sveglio".
+- Usa grammature precise come indicato.

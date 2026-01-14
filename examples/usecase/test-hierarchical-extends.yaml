@@ -1,0 +1,14 @@
+prompt:
+  extends:
+    - nutrizione-pcos.yaml
+  
+  context:
+    base:
+      - "Test case: hierarchical extends verification"
+      - "Should inherit instructions from: nutrizione-base.yaml -> nutrizione-pcos.yaml -> test-hierarchical-extends.yaml"
+  
+  instruction:
+    base:
+      - "Test instruction from test-hierarchical-extends.yaml"
+  
+  query: "Verifica se le istruzioni da nutrizione-base.yaml appaiono nel prompt generato attraverso la gerarchia extends."

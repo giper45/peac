@@ -1,0 +1,9 @@
+prompt:
+  context:
+    base:
+      - "Dieta vegana: esclusione totale di prodotti di origine animale."
+      - "Focus su proteine vegetali complete (legumi + cereali), ferro non-eme, vitamina B12, calcio, zinco, omega-3 (alghe)."
+      - "Supplementazione B12 obbligatoria, monitorare ferro e vitamina D."
+    local:
+      vegan-recipes:
+        source: "ricette/vegana.txt"

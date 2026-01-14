@@ -32,6 +32,8 @@ straightforward as possible.
 - RAG_EXAMPLES.md: comprehensive guide with provider comparison table
 - RAG_PROVIDERS.md: technical architecture documentation
 - EBNF grammar file in docs/
+- Hierarchical extends regression tests and local-rules validation tests
+- Coverage tests for all `examples/usecase/nutrizione-*` YAML prompts
 
 ### Changed
 - Refactored RagProvider to modular provider architecture
@@ -44,6 +46,8 @@ straightforward as possible.
 - Module naming conflict (rag.py renamed to rag_legacy.py)
 - Import structure for RAG providers
 - Path resolution in YAML examples
+- Hierarchical extends merge now fully recursive (inherits grandparents)
+- Missing `source` in local rules now reported gracefully instead of KeyError
 
 ## [0.2.6] - 2026-01-12
 

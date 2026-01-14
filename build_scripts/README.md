@@ -1,53 +1,79 @@
-# PEaC Build Scripts
+# PEaC Build Scripts (Windows Only)
 
-Build PEaC executables for Windows, macOS, and Linux using PyInstaller.
+Build PEaC executables for Windows using PyInstaller. Pre-compiled binaries are recommended for end-users.
 
-## Updates (2025)
+## Build Variants
 
-- ✅ Migrated from CustomTkinter to **Flet** framework
-- ✅ Cross-platform GUI with Flutter support
-- ✅ Updated build scripts for all platforms
-- ✅ Simplified module structure (peac.gui instead of peac.gui_ctk)
+Two build variants are available:
+
+- **LITE**: Includes fastembed for RAG embeddings (no FAISS)
+  - Smaller executable, faster startup
+  - Recommended for most use cases
+  
+- **FULL**: Includes FAISS + fastembed for advanced RAG
+  - Complete vector database support
+  - Larger executable, more memory intensive
+
+Both variants support CLI and GUI builds.
 
 ## Requirements
 
-- Python 3.11+
+- Windows 10/11
+- Python 3.11+ (for building)
 - Poetry
-- PyInstaller (installed automatically with `poetry install --with dev`)
+- PyInstaller (installed automatically)
+- UPX (optional, for compression) - Install with: `choco install upx`
 
-## Quick Start
+## Building
 
-### Windows
+### Using Makefile (recommended)
+
 ```cmd
-build_scripts\build_windows.bat
+# Build GUI executables
+make build-gui-lite      # GUI lite version
+make build-gui-full      # GUI full version
+
+# Build CLI executables  
+make build-cli-lite      # CLI lite version
+make build-cli-full      # CLI full version
 ```
 
-### macOS
-```bash
-chmod +x build_scripts/build_macos.sh
-./build_scripts/build_macos.sh
+### Using build.bat directly
+
+```cmd
+cd build_scripts
+build.bat gui lite       # GUI lite
+build.bat gui full       # GUI full
+build.bat cli lite       # CLI lite
+build.bat cli full       # CLI full
 ```
 
-### Linux
-```bash
-chmod +x build_scripts/build_linux.sh
-./build_scripts/build_linux.sh
-```
+## Output
 
-### Universal (Auto-detect OS)
-```bash
-chmod +x build_scripts/build.sh
-./build_scripts/build.sh
-```
+All builds are placed in the `dist/` folder:
 
-## Build Scripts
+- **CLI**: Single executable file
+  - `dist/peac-cli-lite.exe`
+  - `dist/peac-cli-full.exe`
+  
+- **GUI**: Folder with executable and all dependencies
+  - `dist/peac-gui-lite/peac-gui-lite.exe`
+  - `dist/peac-gui-full/peac-gui-full.exe`
+  - Portable ZIP files are created automatically
 
-- `build_macos.sh` - Full macOS build with Poetry (recommended)
-- `build_macos_simple.sh` - Minimal macOS build using pip
-- `build_linux.sh` - Full Linux build with Poetry (recommended)
-- `build_linux_simple.sh` - Minimal Linux build using pip
-- `build_windows.bat` - Full Windows build with Poetry (recommended)
-- `build_auto.sh` - Auto-detect OS and run appropriate script
+## Build Specifications
+
+- `peac-cli-lite.spec` - CLI build without FAISS
+- `peac-cli-full.spec` - CLI build with FAISS
+- `peac-gui-lite.spec` - GUI build without FAISS
+- `peac-gui-full.spec` - GUI build with FAISS
+- `build.bat` - Unified Windows build script
+
+## Notes
+
+- macOS/Linux users: Use `poetry install` for development/usage instead of building executables
+- Executables are built with UPX compression for smaller size
+- Build time: 2-5 minutes depending on variant and system specifications
 
 ## Output
 

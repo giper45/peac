@@ -124,10 +124,10 @@ class PeacFletApp:
     # ---------- setup ----------
     def _setup_page(self):
         self.page.title = "PEaC - Prompt Engineering as Code"
-        self.page.window_width = 1600
-        self.page.window_height = 1000
-        self.page.window_min_width = 1200
-        self.page.window_min_height = 700
+        self.page.window_width = 1280
+        self.page.window_height = 720
+        self.page.window_min_width = 1024
+        self.page.window_min_height = 600
         self.page.theme_mode = ft.ThemeMode.LIGHT
         self.page.padding = 20
 
@@ -335,8 +335,8 @@ class PeacFletApp:
             label="Query",
             hint_text="Enter your query here...",
             multiline=True,
-            min_lines=3,
-            max_lines=8,
+            min_lines=2,
+            max_lines=2,
             expand=True,
             on_change=lambda _: self.on_change(),
             border_color="#1877f2",
@@ -411,14 +411,14 @@ class PeacFletApp:
         file_tab.instruction_base = ft.TextField(
             label="Base Instructions (one per line)",
             multiline=True,
-            min_lines=10,
+            min_lines=6,
             on_change=lambda _: self.on_change(),
             border_color="#e5e7eb",
         )
         file_tab.instruction_additional = ft.TextField(
             label="Additional Instructions (optional)",
             multiline=True,
-            min_lines=10,
+            min_lines=6,
             on_change=lambda _: self.on_change(),
             border_color="#e5e7eb",
         )
@@ -449,7 +449,7 @@ class PeacFletApp:
         file_tab.context_base = ft.TextField(
             label="Base Context (one per line)",
             multiline=True,
-            min_lines=6,
+            min_lines=4,
             on_change=lambda _: self.on_change(),
             border_color="#e5e7eb",
         )
@@ -489,7 +489,7 @@ class PeacFletApp:
         file_tab.output_base = ft.TextField(
             label="Base Output Rules (one per line)",
             multiline=True,
-            min_lines=6,
+            min_lines=4,
             on_change=lambda _: self.on_change(),
             border_color="#e5e7eb",
         )

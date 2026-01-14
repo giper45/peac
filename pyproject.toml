@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "peac"
-version = "0.2.6"
+version = "0.2.7"
 description = "Prompt Engineering as Code"
 authors = ["gx1 <18548727+giper45@users.noreply.github.com>"]
 license = "MIT"
@@ -21,12 +21,11 @@ markdown = "^3.5.0"
 # GUI dependencies
 flet = "^0.24.0"
 
-# Parsing dependencies - LITE version
+# Parsing dependencies
 beautifulsoup4 = "^4.13.5"
 python-docx = "^1.2.0"
 pdfplumber = "^0.11.7"
 openpyxl = "^3.1.0"
-fastembed = "^0.7.4"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.0"
@@ -45,26 +44,12 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.extras]
+# Optional RAG support with FAISS (for advanced use cases)
 faiss-cpu = ["faiss-cpu"]
 faiss-gpu = ["faiss-gpu"]
-rag = [
-    "fastembed",
-    "numpy"
-]
-jupyter = [
-    "notebook",
-    "ipykernel"
-]
-full = [
-    "fastembed",
-    "numpy",
-    "notebook", 
-    "ipykernel",
-    "faiss-cpu"
-]
 
 [tool.bumpversion]
-current_version = "0.2.2"
+current_version = "0.2.7"
 parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
 serialize = ["{major}.{minor}.{patch}"]
 search = "{current_version}"

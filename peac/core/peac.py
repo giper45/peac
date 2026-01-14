@@ -277,6 +277,29 @@ class PromptYaml:
             prompt_data = self.parsed_data['prompt'][prompt_element]
             rules = prompt_data.get('local', {})
             for name, rule in rules.items():
+                # Validate that rule has 'source' field
+                if not isinstance(rule, dict):
+                    error_msg = f"Error in '{prompt_element}.local.{name}': expected dict, got {type(rule).__name__}"
+                    print(f"[ERROR] {error_msg}")
+                    print(f"[ERROR] Rule content: {rule}")
+                    print(f"[ERROR] File: {self.parent_path}")
+                    prompt_sections.append({
+                        'preamble': None,
+                        'lines': [error_msg]
+                    })
+                    continue
+                    
+                if 'source' not in rule:
+                    error_msg = f"Error in '{prompt_element}.local.{name}': missing required 'source' field"
+                    print(f"[ERROR] {error_msg}")
+                    print(f"[ERROR] Rule keys: {list(rule.keys())}")
+                    print(f"[ERROR] File: {self.parent_path}")
+                    prompt_sections.append({
+                        'preamble': None,
+                        'lines': [error_msg]
+                    })
+                    continue
+                
                 lines = []
                 preamble = rule.get('preamble', None)
                 # Apply filters
@@ -553,6 +576,14 @@ class PromptYaml:
 
 
 
+    def _get_all_ancestors(self):
+        """Recursively collect all ancestors (parents, grandparents, etc.)"""
+        ancestors = []
+        for parent in self.parents:
+            ancestors.append(parent)
+            ancestors.extend(parent._get_all_ancestors())
+        return ancestors
+
     def get_prompt_sentence(self):
         # Get instruction rules
         base_instruction = self.get_instruction_base_rules()
@@ -583,8 +614,9 @@ class PromptYaml:
         
         query = self.get_query()
 
-        # Process parent dependencies
-        for p in self.parents:
+        # Process all ancestors recursively (including grandparents, great-grandparents, etc.)
+        all_ancestors = self._get_all_ancestors()
+        for p in all_ancestors:
             base_instruction += p.get_instruction_base_rules()
             local_instruction.add_sections(p.get_instruction_local_rules())
             web_instruction.add_sections(p.get_instruction_web_rules())

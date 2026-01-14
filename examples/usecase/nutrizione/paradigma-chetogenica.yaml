@@ -1,0 +1,5 @@
+prompt:
+  context:
+    base:
+      - "Chetogenico: grassi alti, carboidrati bassi (<50g/giorno)"
+      - "Grassi sani (avocado, olio, frutta secca), proteine moderate, verdure low-carb"

@@ -19,3 +19,7 @@ all the code must be written in English
 
 ## github information
 - commit messages are single lines, add in CHANGELOG each long information
+
+
+### Testing
+for verifying bugs add tests first.

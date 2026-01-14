@@ -1,0 +1,5 @@
+prompt:
+  context:
+    base:
+      - "Preferisci piatti a base di pesce (merluzzo, branzino, salmone) almeno tre volte a settimana."
+      - "Includi metodi di cottura leggeri (vapore, forno, griglia)."

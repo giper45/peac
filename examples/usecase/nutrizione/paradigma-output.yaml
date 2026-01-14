@@ -1,0 +1,7 @@
+prompt:
+  output:
+    base:
+      - "Piano di sette giorni (lun-dom) con cinque pasti al giorno."
+      - "Etichetta i pasti con emoticon di cibo."
+      - "Annota le porzioni in grammi e specifica i metodi di cottura."
+      - "Fornisci una tabella di frequenza delle proteine alla fine."

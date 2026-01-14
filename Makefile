@@ -1,4 +1,4 @@
-.PHONY: gui gui-debug cli help install faiss-cpu faiss-gpu faiss-install test test-rag test-all
+.PHONY: gui gui-debug cli help install test test-rag test-all build-cli-lite build-cli-full build-gui-lite build-gui-full
 
 # Default target
 help:
@@ -6,12 +6,24 @@ help:
 	@echo "========================"
 	@echo ""
 	@echo "Setup:"
-	@echo "  make install   - Install dependencies and optionally configure RAG (FAISS)"
+	@echo "  make install   - Install dependencies with Poetry"
 	@echo ""
 	@echo "Core Commands:"
 	@echo "  make gui        - Launch the GUI application"
 	@echo "  make gui-debug  - Launch the GUI with debug output"
 	@echo "  make cli        - Run the CLI prompt command (requires yaml file argument)"
+	@echo ""
+	@echo "Build Commands (Windows only):"
+	@echo "  make build-cli-lite      - Build CLI executable (lite: fastembed only)"
+	@echo "  make build-cli-full      - Build CLI executable (full: FAISS + fastembed)"
+	@echo "  make build-gui-lite      - Build GUI executable (lite: fastembed only)"
+	@echo "  make build-gui-full      - Build GUI executable (full: FAISS + fastembed)"
+	@echo ""
+	@echo "  FAST builds (skip compression, ~2-3x faster):"
+	@echo "  make build-cli-lite-fast - CLI lite (no UPX compression)"
+	@echo "  make build-cli-full-fast - CLI full (no UPX compression)"
+	@echo "  make build-gui-lite-fast - GUI lite (no UPX compression)"
+	@echo "  make build-gui-full-fast - GUI full (no UPX compression)"
 	@echo ""
 	@echo "Testing:"
 	@echo "  make test            - Run all tests"
@@ -25,30 +37,21 @@ help:
 	@echo "  make docker-build    - Build Docker container for reproducibility"
 	@echo "  make docker-test     - Run tests in Docker container"
 	@echo ""
-	@echo "RAG Dependencies:"
-	@echo "  make faiss-cpu  - Install FAISS with CPU support (macOS/Linux/Windows)"
-	@echo "  make faiss-gpu  - Install FAISS with CUDA GPU support (Linux only)"
-	@echo "  make faiss-install - Interactive FAISS installation (auto-detect OS/GPU)"
-	@echo ""
 	@echo "Examples:"
 	@echo "  make install"
 	@echo "  make gui"
-	@echo "  make gui-debug"
+	@echo "  make build-gui-lite"
 	@echo "  make cli YAML=examples/academic.yaml"
-	@echo "  make faiss-cpu"
 
-# Install all dependencies and optionally configure RAG
+# Install all dependencies with Poetry
 install:
-	@echo "PEaC Installation"
-	@echo "================="
-	@echo ""
-	@echo "Step 1/2: Installing base dependencies with Poetry..."
+	@echo "Installing PEaC with Poetry..."
 	poetry install
-	@echo "✓ Base dependencies installed"
+	@echo "✓ Installation complete"
 	@echo ""
-	@echo "Step 2/2: Configuring RAG provider (optional)..."
-	@echo ""
-	$(MAKE) faiss-install
+	@echo "Optional: Install FAISS support"
+	@echo "  poetry install -E faiss-cpu   (Windows/Mac/Linux)"
+	@echo "  poetry install -E faiss-gpu   (Linux with NVIDIA GPU)"
 
 # Launch GUI
 gui:
@@ -71,66 +74,6 @@ cli:
 	fi
 	@echo "Running PEaC CLI with $(YAML)..."
 	poetry run peac prompt $(YAML)
-
-# Alternative CLI target with section headers disabled
-cli-no-headers:
-	@if [ -z "$(YAML)" ]; then \
-		echo "Error: YAML parameter required"; \
-		echo "Usage: make cli-no-headers YAML=path/to/file.yaml"; \
-		exit 1; \
-	fi
-	@echo "Running PEaC CLI (no headers) with $(YAML)..."
-	poetry run peac prompt $(YAML) --no-section-headers
-
-# Install FAISS with CPU support (all platforms)
-faiss-cpu:
-	@echo "Installing FAISS with CPU support..."
-	poetry install -E faiss-cpu
-	@echo "✓ FAISS CPU installation complete"
-	@echo "  Usage: make cli YAML=examples/rag-faiss.yaml"
-
-# Install FAISS with GPU support (CUDA, Linux only)
-faiss-gpu:
-	@if [ "$$(uname)" != "Linux" ]; then \
-		echo "Error: FAISS GPU (CUDA) is only available on Linux"; \
-		echo "For macOS/Windows, use: make faiss-cpu"; \
-		exit 1; \
-	fi
-	@echo "Installing FAISS with CUDA GPU support..."
-	poetry install -E faiss-gpu
-	@echo "✓ FAISS GPU installation complete"
-	@echo "  Usage: make cli YAML=examples/rag-faiss.yaml"
-
-# Interactive FAISS installation (auto-detect OS/GPU)
-faiss-install:
-	@echo "PEaC FAISS Installation Helper"
-	@echo "==============================="
-	@echo ""
-	@uname_output=$$(uname); \
-	if [ "$$uname_output" = "Darwin" ]; then \
-		echo "macOS detected → Installing FAISS CPU support..."; \
-		poetry install -E faiss-cpu; \
-	elif [ "$$uname_output" = "Linux" ]; then \
-		echo "Linux detected"; \
-		if command -v nvidia-smi > /dev/null 2>&1; then \
-			echo "NVIDIA GPU detected → Install FAISS GPU (CUDA)? [y/n]"; \
-			read -r response; \
-			if [ "$$response" = "y" ] || [ "$$response" = "Y" ]; then \
-				poetry install -E faiss-gpu; \
-			else \
-				poetry install -E faiss-cpu; \
-			fi; \
-		else \
-			echo "No NVIDIA GPU detected → Installing FAISS CPU support..."; \
-			poetry install -E faiss-cpu; \
-		fi; \
-	else \
-		echo "Windows detected → Installing FAISS CPU support..."; \
-		poetry install -E faiss-cpu; \
-	fi
-	@echo ""
-	@echo "✓ FAISS installation complete"
-	@echo "  Test it: make cli YAML=examples/rag-faiss.yaml"
 
 # Run all tests
 test:
@@ -176,3 +119,43 @@ docker-test:
 docker-benchmark:
 	@echo "Running benchmarks in Docker container..."
 	docker-compose run peac-benchmarks
+
+# Build CLI executable - LITE version (fastembed only)
+build-cli-lite:
+	@echo "Building CLI LITE executable..."
+	@cmd.exe /c "cd build_scripts && build.bat cli lite"
+
+# Build CLI executable - LITE version FAST (no compression)
+build-cli-lite-fast:
+	@echo "Building CLI LITE executable (FAST mode - no compression)..."
+	@cmd.exe /c "cd build_scripts && build.bat cli lite fast"
+
+# Build CLI executable - FULL version (FAISS + fastembed)
+build-cli-full:
+	@echo "Building CLI FULL executable..."
+	@cmd.exe /c "cd build_scripts && build.bat cli full"
+
+# Build CLI executable - FULL version FAST (no compression)
+build-cli-full-fast:
+	@echo "Building CLI FULL executable (FAST mode - no compression)..."
+	@cmd.exe /c "cd build_scripts && build.bat cli full fast"
+
+# Build GUI executable - LITE version (fastembed only)
+build-gui-lite:
+	@echo "Building GUI LITE executable..."
+	@cmd.exe /c "cd build_scripts && build.bat gui lite"
+
+# Build GUI executable - LITE version FAST (no compression)
+build-gui-lite-fast:
+	@echo "Building GUI LITE executable (FAST mode - no compression)..."
+	@cmd.exe /c "cd build_scripts && build.bat gui lite fast"
+
+# Build GUI executable - FULL version (FAISS + fastembed)
+build-gui-full:
+	@echo "Building GUI FULL executable..."
+	@cmd.exe /c "cd build_scripts && build.bat gui full"
+
+# Build GUI executable - FULL version FAST (no compression)
+build-gui-full-fast:
+	@echo "Building GUI FULL executable (FAST mode - no compression)..."
+	@cmd.exe /c "cd build_scripts && build.bat gui full fast"
