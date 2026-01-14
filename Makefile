@@ -16,6 +16,7 @@ help:
 	@echo "Testing:"
 	@echo "  make test       - Run all tests"
 	@echo "  make test-rag   - Run RAG-specific tests"
+	@echo "  make test-core  - Run PEaC core module tests"
 	@echo "  make test-all   - Run all tests with verbose output"
 	@echo ""
 	@echo "RAG Dependencies:"
@@ -134,6 +135,11 @@ test:
 test-rag:
 	@echo "Running RAG tests..."
 	poetry run pytest tests/test_rag.py -v
+
+# Run core module tests
+test-core:
+	@echo "Running PEaC core module tests..."
+	poetry run pytest tests/test_peac_core.py -v
 
 # Run all tests with detailed output
 test-all:
