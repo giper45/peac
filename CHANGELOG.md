@@ -18,6 +18,33 @@ straightforward as possible.
 ### Fixed
 - [Fixes here]
 
+## [0.2.7] - 2026-01-14
+
+### Added
+- Dual RAG provider architecture with factory pattern (FastEmbed + FAISS)
+- FastembedProvider: default, lightweight, JSON-based indexes, no PyTorch dependency
+- FaissProvider: optional, scalable, binary indexes with multiple types (flat/ivf/hnsw)
+- Provider field in YAML grammar to support dynamic provider selection
+- Conditional FAISS installation via Makefile: `make install`, `make faiss-cpu`, `make faiss-gpu`
+- Comprehensive test suite for RAG providers (22 tests, all passing)
+- 4 example YAML files: rag-simple, rag-fastembed, rag-faiss, rag-sample-docs
+- Sample documentation folder (5 documents) for RAG testing
+- RAG_EXAMPLES.md: comprehensive guide with provider comparison table
+- RAG_PROVIDERS.md: technical architecture documentation
+- EBNF grammar file in docs/
+
+### Changed
+- Refactored RagProvider to modular provider architecture
+- Updated YAML parser to recognize `provider`, `index_path`, `provider_config` fields
+- Backward compatibility maintained with `faiss_file` field
+- GUI models updated to support new RAG fields
+- Makefile enhanced with test targets: `make test`, `make test-rag`, `make test-all`
+
+### Fixed
+- Module naming conflict (rag.py renamed to rag_legacy.py)
+- Import structure for RAG providers
+- Path resolution in YAML examples
+
 ## [0.2.6] - 2026-01-12
 
 ### Added
