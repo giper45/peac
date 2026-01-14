@@ -398,7 +398,7 @@ class TestPromptSections:
         pss.add_section(ps2)
         
         all_lines = pss.get_lines()
-        assert len(all_lines) == 2  # Two sections
+        assert len(all_lines) == 3  # Three lines total from two sections
 
 
 class TestEBNFCompliance:

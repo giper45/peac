@@ -14,6 +14,8 @@ no emoji in the code
 
 minimize the number of markdown documentation files generated , just use readme
 
+all the code must be written in English
+
 
 ## github information
 - commit messages are single lines, add in CHANGELOG each long information

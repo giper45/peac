@@ -2,7 +2,7 @@ prompt:
   extends:
     - nutrition-base.yaml
     - nutrition-women.yaml
-    - condition-diabetes.yaml
+    - nutrition-diabetes.yaml
   
   context:
     base:
