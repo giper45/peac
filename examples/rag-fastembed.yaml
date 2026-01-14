@@ -1,0 +1,54 @@
+prompt:
+  instruction:
+    base:
+      - "You are an expert Python developer"
+      - "Provide detailed technical answers with code examples"
+  
+  context:
+    base:
+      - "Use documentation to provide accurate information"
+      - "Reference specific sections when answering"
+    
+    # FastEmbed RAG - Lightweight, JSON-based storage
+    # Best for: Small to medium datasets, quick prototyping, portable indexes
+    rag:
+      technical_docs:
+        preamble: "Technical documentation context:"
+        provider: "fastembed"
+        index_path: "indexes/fastembed_docs.json"
+        source_folder: "sample-docs"
+        query: "Show me Python coding standards and best practices"
+        embedding_model: "BAAI/bge-small-en-v1.5"
+        top_k: 5
+        chunk_size: 512
+        overlap: 50
+        provider_config:
+          batch_size: 256
+          device: "cpu"
+  
+  output:
+    base:
+      - "Structure answer with clear sections"
+      - "Include code snippets with explanations"
+      - "Cite source documents"
+
+# FastEmbed Configuration Notes:
+# - provider: "fastembed" (default, can be omitted)
+# - index_path: JSON file for embeddings storage
+# - embedding_model: Model for generating embeddings
+# - provider_config:
+#   - batch_size: Embeddings generated per batch (default: 256)
+#   - device: "cpu" or "gpu" (default: "cpu")
+#
+# Advantages:
+# + Lightweight, no C++ compilation needed
+# + Portable JSON indexes
+# + Fast for small-medium datasets (<50k documents)
+# + Easy Windows support
+# + Simple setup
+#
+# Use when:
+# - Prototyping or development
+# - Small to medium projects
+# - Need portability across systems
+# - Windows GUI users

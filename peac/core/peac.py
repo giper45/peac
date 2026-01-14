@@ -314,16 +314,20 @@ class PromptYaml:
                 preamble = rule.get('preamble', None)
                 
                 # RAG specific options
-                faiss_file = rule.get('faiss_file', '')
+                # Support both old 'faiss_file' (backward compat) and new 'index_path'
+                index_path = rule.get('index_path', rule.get('faiss_file', ''))
                 query = rule.get('query', '')
                 source_folder = rule.get('source_folder', '')
                 top_k = rule.get('top_k', 5)
                 chunk_size = rule.get('chunk_size', 512)
                 overlap = rule.get('overlap', 50)
                 filter_regex = rule.get('filter', None)
+                embedding_model = rule.get('embedding_model', 'BAAI/bge-small-en-v1.5')
+                provider = rule.get('provider', 'fastembed')  # Default to fastembed
+                provider_config = rule.get('provider_config', {})
                 
-                if not faiss_file:
-                    lines.append(f"Error: No FAISS file specified for RAG rule '{name}'")
+                if not index_path:
+                    lines.append(f"Error: No index path specified for RAG rule '{name}'")
                 elif not query:
                     lines.append(f"Error: No query specified for RAG rule '{name}'")
                 else:
@@ -332,7 +336,10 @@ class PromptYaml:
                         'query': query,
                         'top_k': top_k,
                         'chunk_size': chunk_size,
-                        'overlap': overlap
+                        'overlap': overlap,
+                        'provider': provider,
+                        'embedding_model': embedding_model,
+                        'provider_config': provider_config
                     }
                     
                     # Resolve source_folder path if provided
@@ -343,11 +350,11 @@ class PromptYaml:
                     if filter_regex:
                         rag_options['filter'] = filter_regex
                     
-                    # Resolve faiss_file path relative to YAML file
-                    faiss_file, _ = find_path(faiss_file, self.parent_path)
+                    # Resolve index_path relative to YAML file
+                    index_path, _ = find_path(index_path, self.parent_path)
                     
                     # Process RAG request
-                    rag_content = local_parser.parse_rag(faiss_file, rag_options)
+                    rag_content = local_parser.parse_rag(index_path, rag_options)
                     lines.append(rag_content)
                 
                 prompt_sections.append({

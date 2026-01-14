@@ -1,0 +1,83 @@
+prompt:
+  instruction:
+    base:
+      - "You are a software architecture expert"
+      - "Provide comprehensive technical analysis"
+  
+  context:
+    base:
+      - "Use all available documentation for informed recommendations"
+    
+    # FAISS RAG - High-performance vector search
+    # Best for: Large datasets, production systems, advanced indexing needs
+    rag:
+      large_codebase:
+        preamble: "Architecture and design patterns:"
+        provider: "faiss"
+        index_path: "indexes/faiss_docs"
+        source_folder: "sample-docs"
+        query: "What are the recommended architecture patterns and design principles?"
+        embedding_model: "BAAI/bge-small-en-v1.5"
+        top_k: 10
+        chunk_size: 768
+        overlap: 100
+        provider_config:
+          index_type: "flat"
+          metric_type: "L2"
+  
+  output:
+    base:
+      - "Provide detailed architectural recommendations"
+      - "Compare different approaches"
+      - "Include trade-offs and considerations"
+
+# FAISS Configuration Notes:
+# - provider: "faiss" (required)
+# - index_path: Directory for FAISS binary index files
+# - provider_config:
+#   - index_type: "flat" | "ivf" | "hnsw"
+#     * flat: Exact search, slower but most accurate
+#     * ivf: Inverted file index, fast approximate search
+#     * hnsw: Hierarchical NSW, very fast approximate search
+#   - metric_type: "L2" (Euclidean) | "IP" (Inner Product/Cosine)
+#   - n_clusters: Number of clusters for IVF (default: 100)
+#
+# Index Types Comparison:
+# flat:  Exact search, O(n) time, best accuracy
+# ivf:   Fast search, O(log n) time, 90-99% accuracy, needs training
+# hnsw:  Very fast, O(log n) time, 95-99% accuracy, graph-based
+#
+# Advantages:
+# + Optimized for large scale (100k+ documents)
+# + Multiple index types for speed/accuracy trade-offs
+# + Production-grade performance
+# + Advanced clustering and quantization
+#
+# Requirements:
+# - Install: poetry add faiss-cpu (or faiss-gpu)
+# - C++ dependencies (may need compiler on some systems)
+#
+# Use when:
+# - Production deployments
+# - Large knowledge bases (>50k documents)
+# - Need advanced indexing strategies
+# - Performance is critical
+# - CLI power users
+
+# Example with different index types:
+# 
+# For exact search (highest accuracy):
+#   provider_config:
+#     index_type: "flat"
+#     metric_type: "L2"
+#
+# For fast approximate search (large datasets):
+#   provider_config:
+#     index_type: "ivf"
+#     metric_type: "L2"
+#     n_clusters: 100
+#
+# For very fast approximate search (huge datasets):
+#   provider_config:
+#     index_type: "hnsw"
+#     metric_type: "L2"

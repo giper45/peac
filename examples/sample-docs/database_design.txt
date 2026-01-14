@@ -1,0 +1,39 @@
+Database Design Guidelines
+
+1. Normalization
+   - First Normal Form (1NF): Atomic values, no repeating groups
+   - Second Normal Form (2NF): No partial dependencies
+   - Third Normal Form (3NF): No transitive dependencies
+   
+2. Indexing Strategy
+   - Index frequently queried columns
+   - Consider composite indexes for multi-column queries
+   - Avoid over-indexing (impacts write performance)
+   
+3. Primary Keys
+   - Use surrogate keys (auto-increment or UUID)
+   - Never use business data as primary keys
+   - Ensure keys are immutable
+   
+4. Foreign Keys
+   - Always define foreign key constraints
+   - Use ON DELETE and ON UPDATE clauses appropriately
+   - Consider soft deletes for audit trails
+   
+5. Data Types
+   - Choose appropriate data types for columns
+   - Use VARCHAR with appropriate lengths
+   - Use DECIMAL for monetary values
+   - Use DATE/TIMESTAMP for temporal data
+   
+6. Performance Considerations
+   - Denormalize only when necessary for performance
+   - Partition large tables
+   - Archive old data
+   - Regular maintenance (VACUUM, ANALYZE)
+   
+7. Security
+   - Never store passwords in plain text
+   - Use parameterized queries to prevent SQL injection
+   - Implement row-level security where needed
+   - Regular backups and disaster recovery plans

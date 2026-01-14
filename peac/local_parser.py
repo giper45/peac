@@ -48,36 +48,58 @@ def get_file_provider(file_path):
     return None
 
 
-def get_rag_provider():
-    """Get RAG provider instance"""
+def get_rag_provider(provider_name=None):
+    """Get RAG provider instance using factory pattern
+    
+    Args:
+        provider_name (str): Name of the provider ('fastembed', 'faiss', or None for default)
+    
+    Returns:
+        RAG provider instance or None if not available
+    """
     try:
-        from peac.providers.rag import RagProvider
-        return RagProvider()
-    except ImportError:
-        print("RAG provider import error - fastembed may not be installed")
+        from peac.providers.rag import get_rag_provider as factory_get_provider
+        return factory_get_provider(provider_name)
+    except ImportError as e:
+        print(f"RAG provider import error: {e}")
+        import traceback
+        traceback.print_exc()
         return None
 
 
-def parse_rag(faiss_file, options=None):
-    """Parse RAG request using FastEmbed vector search
+def parse_rag(index_path, options=None):
+    """Parse RAG request using configured vector search provider
     
     Args:
-        faiss_file (str): Path to vector index file (.json format)
-        options (dict): RAG options containing query, source_folder, etc.
+        index_path (str): Path to vector index (file/directory depending on provider)
+        options (dict): RAG options containing:
+            - query: Search query
+            - source_folder: Folder to embed if index doesn't exist
+            - provider: Provider name ('fastembed' or 'faiss', default: 'fastembed')
+            - provider_config: Provider-specific configuration
+            - top_k, chunk_size, overlap, embedding_model, filter, etc.
     """
-    provider = get_rag_provider()
+    if options is None:
+        options = {}
+    
+    # Get provider name from options or use default (fastembed)
+    provider_name = options.get('provider', None)
+    
+    provider = get_rag_provider(provider_name)
     if not provider:
-        return "Error: RAG provider not available. Install dependencies: pip install fastembed"
+        provider_display = f" ({provider_name})" if provider_name else ""
+        return f"Error: RAG provider{provider_display} not available. Install dependencies: pip install fastembed"
     
     try:
-        content = provider.parse(faiss_file, options)
+        content = provider.parse(index_path, options)
         
         # Apply filter if specified
         filter_regex = options.get('filter') if options else None
         if filter_regex:
             content = provider.apply_filter(content, filter_regex)
         
-        return f"[RAG: {faiss_file}]\n```\n{content}\n```"
+        provider_name = provider_name or 'fastembed'
+        return f"[RAG ({provider_name}): {index_path}]\n```\n{content}\n```"
     except Exception as e:
         return f"Error in RAG processing: {str(e)}"
 

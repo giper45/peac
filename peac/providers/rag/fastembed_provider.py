@@ -1,19 +1,26 @@
+"""FastEmbed RAG provider - lightweight embeddings without PyTorch"""
+
 import os
 import json
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 import re
 
+from .base import BaseRAGProvider
 
-class RagProvider:
-    """RAG (Retrieval-Augmented Generation) provider using FastEmbed for lightweight embeddings"""
+
+class FastembedProvider(BaseRAGProvider):
+    """RAG provider using FastEmbed for lightweight embeddings"""
+    
+    DEFAULT_MODEL = 'BAAI/bge-small-en-v1.5'
     
     def __init__(self):
+        super().__init__()
         self.model = None
         self.embeddings_cache = {}
         self._current_model_name = None
     
-    def _initialize_model(self, model_name: str = 'BAAI/bge-small-en-v1.5'):
+    def _initialize_model(self, model_name: str = DEFAULT_MODEL):
         """Initialize FastEmbed model (lightweight, no PyTorch dependency)"""
         try:
             from fastembed import TextEmbedding
@@ -28,12 +35,12 @@ class RagProvider:
         except ImportError:
             raise ImportError("fastembed library not installed. Install with: pip install fastembed")
     
-    def parse(self, faiss_file: str, options: Optional[Dict[str, Any]] = None) -> str:
+    def parse(self, index_path: str, options: Optional[Dict[str, Any]] = None) -> str:
         """
-        Parse RAG request and return relevant documents
+        Parse RAG request and return relevant documents using FastEmbed
         
         Args:
-            faiss_file: Path to the vector index file (JSON format)
+            index_path: Path to the vector index file (JSON format)
             options: Dictionary containing:
                 - query: Search query for RAG retrieval
                 - source_folder: Folder/file to embed if index file doesn't exist
@@ -41,7 +48,10 @@ class RagProvider:
                 - chunk_size: Size of text chunks for embedding (default: 512)
                 - overlap: Overlap between chunks (default: 50)
                 - force_override: Force recreation of index (default: False)
-                - embedding_model: Model name for embedding (default: 'BAAI/bge-small-en-v1.5')
+                - embedding_model: Model name for embedding (default: BAAI/bge-small-en-v1.5)
+                - provider_config: Provider-specific options:
+                    - batch_size: Batch size for embedding (default: 256)
+                    - device: 'cpu' or 'gpu' (default: 'cpu')
         
         Returns:
             Retrieved and ranked text content
@@ -58,10 +68,14 @@ class RagProvider:
         chunk_size = options.get('chunk_size', 512)
         overlap = options.get('overlap', 50)
         force_override = options.get('force_override', False)
-        embedding_model = options.get('embedding_model', 'BAAI/bge-small-en-v1.5')
+        embedding_model = options.get('embedding_model', self.DEFAULT_MODEL)
+        provider_config = options.get('provider_config', {})
+        
+        self.batch_size = provider_config.get('batch_size', 256)
+        self.device = provider_config.get('device', 'cpu')
         
         # Check if index file exists and if we should override it
-        should_create_index = force_override or not os.path.exists(faiss_file)
+        should_create_index = force_override or not os.path.exists(index_path)
         
         if should_create_index:
             # If source_folder is provided, ALWAYS create index from source folder documents
@@ -71,26 +85,26 @@ class RagProvider:
                 if force_override:
                     print(f"Force override enabled. Recreating index from: {source_folder}")
                 else:
-                    print(f"Index file '{faiss_file}' not found. Creating from source: {source_folder}")
+                    print(f"Index file '{index_path}' not found. Creating from source: {source_folder}")
                     
-                success = self._create_index(faiss_file, source_folder, chunk_size, overlap, embedding_model)
+                success = self._create_index(index_path, source_folder, chunk_size, overlap, embedding_model)
                 if not success:
                     return f"Error: Failed to create index from {source_folder}"
             else:
                 # Only create default index if NO source folder is provided
-                print(f"Index file '{faiss_file}' not found and no source folder provided. Creating empty default index...")
-                success = self._create_default_index(faiss_file, embedding_model)
+                print(f"Index file '{index_path}' not found and no source folder provided. Creating empty default index...")
+                success = self._create_default_index(index_path, embedding_model)
                 if not success:
-                    return f"Error: Failed to create default index at {faiss_file}"
+                    return f"Error: Failed to create default index at {index_path}"
         
         # Load index and perform search
         try:
-            results = self._search_index(faiss_file, query, top_k, embedding_model)
+            results = self._search_index(index_path, query, top_k, embedding_model)
             return self._format_results(results, query)
         except Exception as e:
             return f"Error during RAG search: {str(e)}"
     
-    def _create_default_index(self, index_file: str, embedding_model: str = 'BAAI/bge-small-en-v1.5') -> bool:
+    def _create_default_index(self, index_file: str, embedding_model: str = DEFAULT_MODEL) -> bool:
         """Create a default empty index with sample data"""
         try:
             model = self._initialize_model(embedding_model)
@@ -112,13 +126,14 @@ class RagProvider:
             print(f"Creating default index with {len(sample_chunks)} sample chunks...")
             
             # Generate embeddings for sample chunks
-            embeddings_list = list(model.embed(sample_chunks, batch_size=256))
+            embeddings_list = list(model.embed(sample_chunks, batch_size=self.batch_size))
             
             # Convert numpy arrays to lists for JSON serialization
             embeddings_list = [emb.tolist() if hasattr(emb, 'tolist') else emb for emb in embeddings_list]
             
             # Create index structure
             index_data = {
+                'provider': 'fastembed',
                 'embedding_model': embedding_model,
                 'chunks': chunk_metadata,
                 'embeddings': embeddings_list
@@ -141,7 +156,7 @@ class RagProvider:
             print(f"Error creating default index: {str(e)}")
             return False
     
-    def _create_index(self, index_file: str, source_folder: str, chunk_size: int = 512, overlap: int = 50, embedding_model: str = 'BAAI/bge-small-en-v1.5') -> bool:
+    def _create_index(self, index_file: str, source_folder: str, chunk_size: int = 512, overlap: int = 50, embedding_model: str = DEFAULT_MODEL) -> bool:
         """Create vector index from source folder/file using FastEmbed"""
         try:
             model = self._initialize_model(embedding_model)
@@ -171,16 +186,17 @@ class RagProvider:
             print(f"Created {len(chunks)} chunks. Generating embeddings with FastEmbed...")
             
             # Generate embeddings using FastEmbed (very fast, no GPU needed)
-            embeddings_list = list(model.embed(chunks, batch_size=256))
+            embeddings_list = list(model.embed(chunks, batch_size=self.batch_size))
             
             # Convert numpy arrays to lists for JSON serialization
             embeddings_list = [emb.tolist() if hasattr(emb, 'tolist') else emb for emb in embeddings_list]
             
             # Create index structure
             index_data = {
+                'provider': 'fastembed',
                 'embedding_model': embedding_model,
                 'chunks': chunk_metadata,
-                'embeddings': embeddings_list  # Now guaranteed to be JSON serializable
+                'embeddings': embeddings_list
             }
             
             # Save index to file
@@ -219,7 +235,8 @@ class RagProvider:
         
         return documents
     
-    def _is_text_file(self, file_path: Path) -> bool:
+    @staticmethod
+    def _is_text_file(file_path: Path) -> bool:
         """Check if file is a supported text file"""
         text_extensions = {'.txt', '.md', '.py', '.js', '.java', '.cpp', '.c', '.h', 
                           '.html', '.css', '.xml', '.json', '.yaml', '.yml', '.rst',
@@ -244,7 +261,8 @@ class RagProvider:
             print(f"Error reading {file_path}: {str(e)}")
             return ""
     
-    def _read_pdf(self, file_path: str) -> str:
+    @staticmethod
+    def _read_pdf(file_path: str) -> str:
         """Read PDF content using pdfplumber"""
         try:
             import pdfplumber
@@ -254,7 +272,7 @@ class RagProvider:
                     page_text = page.extract_text()
                     if page_text:
                         text += page_text + "\n"
-            return self._clean_text(text)
+            return FastembedProvider._clean_text(text)
         except ImportError:
             print("pdfplumber not available for PDF reading")
             return ""
@@ -262,7 +280,8 @@ class RagProvider:
             print(f"Error reading PDF {file_path}: {str(e)}")
             return ""
     
-    def _read_docx(self, file_path: str) -> str:
+    @staticmethod
+    def _read_docx(file_path: str) -> str:
         """Read DOCX content"""
         try:
             from docx import Document
@@ -270,7 +289,7 @@ class RagProvider:
             text = ""
             for paragraph in doc.paragraphs:
                 text += paragraph.text + "\n"
-            return self._clean_text(text)
+            return FastembedProvider._clean_text(text)
         except ImportError:
             print("python-docx not available for DOCX reading")
             return ""
@@ -278,33 +297,30 @@ class RagProvider:
             print(f"Error reading DOCX {file_path}: {str(e)}")
             return ""
     
-    def _clean_text(self, text: str) -> str:
+    @staticmethod
+    def _clean_text(text: str) -> str:
         """Clean and normalize extracted text"""
-        import re
-        
         # Remove excessive whitespace and normalize line breaks
-        text = re.sub(r'\s+', ' ', text)  # Replace multiple whitespace with single space
-        text = re.sub(r'\n\s*\n', '\n\n', text)  # Normalize paragraph breaks
+        text = re.sub(r'\s+', ' ', text)
+        text = re.sub(r'\n\s*\n', '\n\n', text)
         
         # Fix common PDF extraction issues
-        text = re.sub(r'([a-z])([A-Z])', r'\1 \2', text)  # Add space between camelCase
-        text = re.sub(r'([.!?])([A-Z])', r'\1 \2', text)  # Add space after sentence endings
-        text = re.sub(r'(\w)-\n(\w)', r'\1\2', text)  # Join hyphenated words split across lines
-        text = re.sub(r'(\w)\n(\w)', r'\1 \2', text)  # Join words split across lines
+        text = re.sub(r'([a-z])([A-Z])', r'\1 \2', text)
+        text = re.sub(r'([.!?])([A-Z])', r'\1 \2', text)
+        text = re.sub(r'(\w)-\n(\w)', r'\1\2', text)
+        text = re.sub(r'(\w)\n(\w)', r'\1 \2', text)
         
-        # Clean up specific patterns from your example
-        text = re.sub(r'([a-z])([A-Z][a-z])', r'\1 \2', text)  # Fix: "rityobjectives,asthereisno" -> "rity objectives, as there is no"
-        text = re.sub(r'(\w)([A-Z]+)(\w)', r'\1 \2 \3', text)  # Fix: "wordWORDword" -> "word WORD word"
+        text = re.sub(r'([a-z])([A-Z][a-z])', r'\1 \2', text)
+        text = re.sub(r'(\w)([A-Z]+)(\w)', r'\1 \2 \3', text)
         
-        # Remove extra spaces and normalize
         text = ' '.join(text.split())
         
         return text
     
-    def _create_chunks(self, text: str, chunk_size: int, overlap: int) -> List[str]:
+    @staticmethod
+    def _create_chunks(text: str, chunk_size: int, overlap: int) -> List[str]:
         """Create overlapping text chunks with improved sentence boundaries"""
-        # Clean the text first
-        text = self._clean_text(text)
+        text = FastembedProvider._clean_text(text)
         
         if len(text) <= chunk_size:
             return [text]
@@ -318,43 +334,36 @@ class RagProvider:
             
             # Try to break at sentence boundaries first
             if end < len(text):
-                # Look for sentence endings
                 sentence_end = max(
                     chunk.rfind('. '),
                     chunk.rfind('! '),
                     chunk.rfind('? ')
                 )
                 
-                # If no sentence boundary found, try paragraph break
                 if sentence_end < chunk_size * 0.6:
                     sentence_end = chunk.rfind('\n\n')
                 
-                # Fall back to word boundary
                 if sentence_end < chunk_size * 0.6:
                     sentence_end = chunk.rfind(' ')
                 
-                # Only break if we found a reasonable position
                 if sentence_end > chunk_size * 0.4:
                     chunk = chunk[:sentence_end + 1]
                     end = start + sentence_end + 1
             
-            # Clean and add the chunk
             chunk = chunk.strip()
-            if len(chunk) > 50:  # Only keep meaningful chunks
+            if len(chunk) > 50:
                 chunks.append(chunk)
             
-            # Move start position with overlap
             start = end - overlap
             if start >= len(text):
                 break
         
         return chunks
     
-    def _search_index(self, index_file: str, query: str, top_k: int, embedding_model: str = 'BAAI/bge-small-en-v1.5') -> List[Dict]:
+    def _search_index(self, index_file: str, query: str, top_k: int, embedding_model: str = DEFAULT_MODEL) -> List[Dict]:
         """Search index for relevant documents using FastEmbed"""
         model = self._initialize_model(embedding_model)
         
-        # Load index with better error handling
         try:
             with open(index_file, 'r', encoding='utf-8') as f:
                 index_data = json.load(f)
@@ -366,13 +375,11 @@ class RagProvider:
             print(f"Error loading index file {index_file}: {str(e)}")
             return []
         
-        # Validate index structure
         if 'chunks' not in index_data or 'embeddings' not in index_data:
             print("Error: Invalid index structure (missing 'chunks' or 'embeddings')")
             return []
         
-        # Check if index was created with same model
-        saved_model = index_data.get('embedding_model', 'BAAI/bge-small-en-v1.5')
+        saved_model = index_data.get('embedding_model', self.DEFAULT_MODEL)
         chunks_metadata = index_data['chunks']
         embeddings = index_data['embeddings']
         
@@ -382,21 +389,17 @@ class RagProvider:
         
         # Generate query embedding
         query_embedding_raw = list(model.embed([query]))[0]
-        # Convert to list if it's a numpy array
         query_embedding = query_embedding_raw.tolist() if hasattr(query_embedding_raw, 'tolist') else query_embedding_raw
         
         # Compute cosine similarity scores
         scores_and_indices = []
         for idx, embedding in enumerate(embeddings):
-            # Cosine similarity (embeddings are already lists from JSON)
             score = self._cosine_similarity(query_embedding, embedding)
             scores_and_indices.append((score, idx))
         
-        # Sort by score and get top_k
         scores_and_indices.sort(key=lambda x: x[0], reverse=True)
         top_results = scores_and_indices[:top_k]
         
-        # Prepare results
         results = []
         for rank, (score, idx) in enumerate(top_results, 1):
             result = chunks_metadata[idx].copy()
@@ -405,18 +408,6 @@ class RagProvider:
             results.append(result)
         
         return results
-    
-    @staticmethod
-    def _cosine_similarity(vec1: List[float], vec2: List[float]) -> float:
-        """Compute cosine similarity between two vectors"""
-        dot_product = sum(a * b for a, b in zip(vec1, vec2))
-        norm1 = sum(a ** 2 for a in vec1) ** 0.5
-        norm2 = sum(b ** 2 for b in vec2) ** 0.5
-        
-        if norm1 == 0 or norm2 == 0:
-            return 0.0
-        
-        return dot_product / (norm1 * norm2)
     
     def _format_results(self, results: List[Dict], query: str) -> str:
         """Format search results for output"""
@@ -432,13 +423,9 @@ class RagProvider:
             output += f"Chunk ID: {result['chunk_id']}\n"
             output += "-" * 30 + "\n"
             
-            # Clean and format the text content
             text = result['text']
-            
-            # Apply additional cleaning for display
             text = self._clean_display_text(text)
             
-            # Limit text length but try to break at sentence boundaries
             if len(text) > 500:
                 truncated = text[:500]
                 last_sentence = max(
@@ -446,7 +433,7 @@ class RagProvider:
                     truncated.rfind('! '),
                     truncated.rfind('? ')
                 )
-                if last_sentence > 300:  # If we found a reasonable sentence break
+                if last_sentence > 300:
                     text = truncated[:last_sentence + 1]
                 else:
                     text = truncated + "..."
@@ -456,35 +443,20 @@ class RagProvider:
         
         return output
     
-    def _clean_display_text(self, text: str) -> str:
+    @staticmethod
+    def _clean_display_text(text: str) -> str:
         """Additional cleaning for display purposes"""
-        import re
-        
-        # Fix common display issues
-        text = re.sub(r'([a-z])([A-Z])', r'\1 \2', text)  # camelCase spacing
-        text = re.sub(r'(\w)([.!?])([A-Z])', r'\1\2 \3', text)  # Sentence spacing
-        text = re.sub(r'([a-z])([A-Z][a-z]+)', r'\1 \2', text)  # Word boundaries
-        
-        # Fix the specific patterns from your example
+        text = re.sub(r'([a-z])([A-Z])', r'\1 \2', text)
+        text = re.sub(r'(\w)([.!?])([A-Z])', r'\1\2 \3', text)
+        text = re.sub(r'([a-z])([A-Z][a-z]+)', r'\1 \2', text)
         text = re.sub(r'([a-z])([A-Z][a-z]+)([a-z])([A-Z])', r'\1 \2 \3 \4', text)
-        
-        # Ensure proper paragraph formatting
-        text = re.sub(r'\s+', ' ', text)  # Normalize spaces
+        text = re.sub(r'\s+', ' ', text)
         text = text.strip()
         
         return text
     
     def apply_filter(self, text: str, filter_regex: str) -> str:
-        """
-        Apply regex filter to retrieved text
-        
-        Args:
-            text: Retrieved text content
-            filter_regex: Regex pattern to match lines
-            
-        Returns:
-            Filtered text content
-        """
+        """Apply regex filter to retrieved text"""
         if not filter_regex:
             return text
             
@@ -494,5 +466,4 @@ class RagProvider:
             filtered_lines = [line for line in lines if pattern.search(line)]
             return '\n'.join(filtered_lines)
         except re.error:
-            # If regex is invalid, return original text
             return text

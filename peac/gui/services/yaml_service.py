@@ -64,15 +64,20 @@ class YamlService:
                 out.append(RuleData(type="web", name=_name, url=payload.get("source"), xpath=payload.get("xpath")))
 
             elif rule_type == "rag":
+                # Support both new index_path and legacy faiss_file
+                index_path = payload.get("index_path") or payload.get("faiss_file")
                 out.append(
                     RuleData(
                         type="rag",
                         name=_name,
-                        faiss_file=payload.get("faiss_file"),
-                        source_folder=payload.get("source_folder"),  # Read source_folder
+                        index_path=index_path,
+                        faiss_file=payload.get("faiss_file"),  # Keep for backward compat
+                        source_folder=payload.get("source_folder"),
                         query=payload.get("query"),
-                        embedding_model=payload.get("embedding_model"),  # Read embedding_model
-                        force_override=payload.get("force_override", False),  # Read force_override
+                        embedding_model=payload.get("embedding_model", "BAAI/bge-small-en-v1.5"),
+                        provider=payload.get("provider", "fastembed"),  # New field
+                        provider_config=payload.get("provider_config", {}),  # New field
+                        force_override=payload.get("force_override", False),
                         top_k=_safe_int(payload.get("top_k")),
                         chunk_size=_safe_int(payload.get("chunk_size")),
                         overlap=_safe_int(payload.get("overlap")),

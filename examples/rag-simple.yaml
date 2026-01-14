@@ -1,0 +1,19 @@
+prompt:
+  instruction:
+    base:
+      - "You are a helpful software development assistant"
+  
+  context:
+    # Simple RAG example using FastEmbed (default, lightweight)
+    # Creates index automatically from source_folder if it doesn't exist
+    rag:
+      docs_search:
+        index_path: "indexes/simple.json"
+        source_folder: "sample-docs"
+        query: "What are the best practices mentioned in the documentation?"
+        top_k: 3
+  
+  output:
+    base:
+      - "Provide clear, actionable answers"
+      - "Include relevant examples from the documentation"
