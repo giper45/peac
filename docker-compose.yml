@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  peac-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: peac-reproducibility:latest
+    container_name: peac-tests
+    volumes:
+      - ./benchmark_results:/peac/benchmark_results
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: ["poetry", "run", "pytest", "tests/", "-v", "--tb=short", "-m", "not slow"]
+  
+  peac-benchmarks:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: peac-reproducibility:latest
+    container_name: peac-benchmarks
+    volumes:
+      - ./benchmark_results:/peac/benchmark_results
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: ["poetry", "run", "python", "scripts/run_benchmarks.py"]
+
+networks:
+  default:
+    name: peac-network

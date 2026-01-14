@@ -14,10 +14,16 @@ help:
 	@echo "  make cli        - Run the CLI prompt command (requires yaml file argument)"
 	@echo ""
 	@echo "Testing:"
-	@echo "  make test       - Run all tests"
-	@echo "  make test-rag   - Run RAG-specific tests"
-	@echo "  make test-core  - Run PEaC core module tests"
-	@echo "  make test-all   - Run all tests with verbose output"
+	@echo "  make test            - Run all tests"
+	@echo "  make test-rag        - Run RAG-specific tests"
+	@echo "  make test-core       - Run PEaC core module tests"
+	@echo "  make test-performance - Run performance benchmarks (50 runs, ~10 min)"
+	@echo "  make test-all        - Run all tests with verbose output"
+	@echo ""
+	@echo "Benchmarking:"
+	@echo "  make benchmark       - Generate corpus and run full performance benchmarks"
+	@echo "  make docker-build    - Build Docker container for reproducibility"
+	@echo "  make docker-test     - Run tests in Docker container"
 	@echo ""
 	@echo "RAG Dependencies:"
 	@echo "  make faiss-cpu  - Install FAISS with CPU support (macOS/Linux/Windows)"
@@ -145,3 +151,28 @@ test-core:
 test-all:
 	@echo "Running full test suite with detailed output..."
 	poetry run pytest tests/ -vv -s
+
+# Run performance benchmarks
+test-performance:
+	@echo "Running performance benchmarks (50 runs, ~10 minutes)..."
+	poetry run pytest tests/test_performance.py -v -s
+
+# Generate corpus and run benchmarks
+benchmark:
+	@echo "Running full benchmark suite with corpus generation..."
+	poetry run python scripts/run_benchmarks.py
+
+# Build Docker container
+docker-build:
+	@echo "Building PEaC reproducibility container..."
+	docker-compose build
+
+# Run tests in Docker
+docker-test:
+	@echo "Running tests in Docker container..."
+	docker-compose run peac-tests
+
+# Run benchmarks in Docker
+docker-benchmark:
+	@echo "Running benchmarks in Docker container..."
+	docker-compose run peac-benchmarks

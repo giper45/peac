@@ -1,0 +1,1553 @@
+%% 
+%% Copyright 2019-2020 Elsevier Ltd
+%% 
+%% This file is part of the 'CAS Bundle'.
+%% --------------------------------------
+%% 
+%% It may be distributed under the conditions of the LaTeX Project Public
+%% License, either version 1.2 of this license or (at your option) any
+%% later version.  The latest version of this license is in
+%%    http://www.latex-project.org/lppl.txt
+%% and version 1.2 or later is part of all distributions of LaTeX
+%% version 1999/12/01 or later.
+%% 
+%% The list of all files belonging to the 'CAS Bundle' is
+%% given in the file `manifest.txt'.
+%% 
+%% Template article for cas-sc documentclass for 
+%% double column output.
+
+%\documentclass[a4paper,fleqn,longmktitle]{cas-sc}
+\documentclass[a4paper,fleqn]{cas-sc}
+
+% \usepackage[numbers]{natbib}
+%\usepackage[authoryear]{natbib}
+%\setcitestyle{maxnames=2,mincitenames=2}
+\usepackage{todonotes}
+\usepackage{placeins} 
+\usepackage{float}
+\usepackage{pifont} % For checkmark and X symbols
+\usepackage{amssymb} % For additional symbols
+
+\usepackage[utf8x]{inputenc}
+\usepackage{apacite}
+\usepackage{array}
+ \usepackage{natbib} 
+%\usepackage[authoryear]{natbib}
+\usepackage{tabularray}
+\UseTblrLibrary{booktabs}
+\usepackage{pifont}
+\usepackage{tabularx}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{amssymb}
+
+\newcolumntype{Y}{>{\centering\arraybackslash}X}
+\newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{M}[1]{>{\centering\arraybackslash}m{#1}}
+
+% Define custom colors
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+% Define YAML language for listings
+\lstdefinelanguage{yaml}{
+  keywords={true,false,null,y,n},
+  keywordstyle=\color{magenta},
+  basicstyle=\ttfamily\footnotesize,
+  sensitive=false,
+  comment=[l]{\#},
+  morestring=[b]",
+  morestring=[b]',
+  stringstyle=\color{codepurple},
+  showstringspaces=false,
+  columns=fullflexible,
+}
+
+% Define YAML style for listings
+\lstdefinestyle{yamlstyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    language=yaml,
+    morekeywords={prompt, extends, instruction, context, output, query, base, local, web, rag, preamble, filter, source, xpath, faiss_file, source_folder, top_k}
+}
+
+\lstdefinelanguage{EBNF}{
+    % Keywords for EBNF grammar rules and PEaC-specific terms
+    morekeywords=[1]{PeacModule,PromptBody,ExtendsList,SimpleExtendsList,YamlSequence,InstructionSection,ContextSection,OutputSection,BaseRules,LocalRules,WebRules,RagRules},
+    morekeywords=[2]{prompt,extends,instruction,context,output,query,base,local,web,rag,source,preamble,recursive,extension,filter,options,xpath,faiss_file,source_folder,top_k,chunk_size,overlap,pages,sheets},
+    morekeywords=[3]{String,Boolean,Integer,PositiveInteger,NonNegativeInteger,Identifier,Character,Letter,Digit},
+    % String delimiters
+    morestring=[b]",
+    morestring=[b]',
+    % Comments
+    morecomment=[l]{(*},
+    morecomment=[s]{(*}{*)},
+    % Special characters and operators
+    literate=
+        *{=}{{{\color{red}\bfseries=}}}1
+         {;}{{{\color{red}\bfseries;}}}1
+         {,}{{{\color{black!60},}}}1
+         {|}{{{\color{blue!80}\textbar}}}1
+         {-}{{{\color{purple!70}-}}}1
+         {:}{{{\color{orange!80}:}}}1
+         {"}{{{\color{green!70}\textquotedbl}}}1
+         {'}{{{\color{green!70}\textquotesingle}}}1
+         {[}{{{\color{purple!80}[}}}1
+         {]}{{{\color{purple!80}]}}}1
+         {\{}{{{\color{blue!80}\{}}}1
+         {\}}{{{\color{blue!80}\}}}}1
+         {(}{{{\color{gray!70}(}}}1
+         {)}{{{\color{gray!70})}}}1
+         {...}{{{\color{red!60}...}}}3,
+    sensitive=true,
+    % Additional delimiters for better syntax highlighting
+    moredelim=[s][\color{red!70}\bfseries]{=}{;},
+    moredelim=[s][\color{blue!70}]{\{}{\}},
+    moredelim=[s][\color{purple!70}]{[}{]},
+    moredelim=[s][\color{gray!60}]{(}{)},
+}
+
+\lstdefinestyle{ebnfstyle}{
+    language=EBNF,
+    backgroundcolor=\color{backcolour},
+    basicstyle=\ttfamily\footnotesize,
+    % Different colors for different keyword groups
+    keywordstyle=[1]\color{blue!80}\bfseries,        % Grammar rule names
+    keywordstyle=[2]\color{magenta!80}\bfseries,     % PEaC keywords
+    keywordstyle=[3]\color{teal!70}\bfseries,        % Data types
+    commentstyle=\color{green!60}\itshape,           % Comments
+    stringstyle=\color{red!70},                      % Strings
+    numberstyle=\tiny\color{codegray},
+    breaklines=true,
+    breakatwhitespace=false,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2,
+    frame=single,
+    frameround=tttt,
+    framesep=5pt,
+    xleftmargin=10pt,
+    xrightmargin=10pt,
+    columns=fullflexible
+}
+
+% Define style for generated prompt output
+\lstdefinestyle{promptoutput}{
+    backgroundcolor=\color{backcolour},
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    breakatwhitespace=false,
+    captionpos=b,
+    keepspaces=true,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2,
+    frame=single,
+    frameround=tttt,
+    framesep=5pt,
+    xleftmargin=10pt,
+    xrightmargin=10pt,
+    columns=fullflexible,
+    commentstyle=\color{codegreen}\itshape,
+    stringstyle=\color{codepurple},
+    keywordstyle=\color{blue}\bfseries
+}
+
+% Define style for shell commands
+\lstdefinestyle{shellstyle}{
+    backgroundcolor=\color{backcolour},
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    breakatwhitespace=false,
+    captionpos=b,
+    keepspaces=true,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2,
+    frame=single,
+    frameround=tttt,
+    framesep=5pt,
+    xleftmargin=10pt,
+    xrightmargin=10pt,
+    columns=fullflexible,
+    language=bash
+}
+
+% Uncomment and use as if needed
+%\newtheorem{theorem}{Theorem}
+%\newtheorem{lemma}[theorem]{Lemma}
+%\newdefinition{rmk}{Remark}
+%\newproof{pf}{Proof}
+%\newproof{pot}{Proof of Theorem \ref{thm}}
+
+
+
+
+\begin{document}
+\let\WriteBookmarks\relax
+\def\floatpagepagefraction{1}
+\def\textpagefraction{.001}
+
+% Short title
+\shorttitle{Advancing PEaC: Formal Specification, Modularity, and Usability}
+
+% Short author
+%\shortauthors{Perrone and Romano}
+
+% Main title of the paper
+\title [mode = title]{Advancing Prompt Engineering as Code: Formal Specification, Modularity, and Usability}                      
+% Title footnote mark
+
+
+
+% First author
+%
+% Options: Use if required
+% eg: \author[1,3]{Author Name}[type=editor,
+%       style=chinese,
+%       auid=000,
+%       bioid=1,
+%       prefix=Sir,
+%       orcid=0000-0000-0000-0000,
+%       facebook=<facebook id>,
+%       twitter=<twitter id>,
+%       linkedin=<linkedin id>,
+%       gplus=<gplus id>]
+%\author[inst1]{Gaetano Perrone}
+%\author[inst1]{Simon Pietro Romano}
+\begin{comment}
+\affiliation[inst1]{organization={University of Naples Federico II, Department of Electrical Engineering and Information Technology},
+            addressline={Via Claudio 21}, 
+            city={Naples},
+            postcode={80125}, 
+            state={Naples},
+            country={Italy}} 
+    
+\end{comment}
+
+% Here goes the 
+\begin{abstract}
+Prompt engineering is crucial for optimizing the performance of large language models (LLMs), yet current practices often lack standardization and reusability. This paper presents Prompt Engineering as Code (PEaC), a methodology that applies Infrastructure as Code principles to prompt design. We formally specify the PEaC YAML configuration language using EBNF grammar, and provide a software implementation featuring a user-friendly GUI and integration with external data sources, including Retrieval-Augmented Generation (RAG) workflows. To validate PEaC, we implemented twelve prompt engineering strategies and conducted a real-world case study with a nutritionist. In a quantitative experiment, we generated 210 PEaC modules from the ``Awesome ChatGPT Prompts'' dataset, producing 210 modular PEaC files. This process reduced over 15,000 redundant tokens (24.07\% of the total) and achieved a reuse efficiency of 51.25\%. Our results demonstrate that PEaC can substantially improve prompt maintainability and efficiency, providing a foundation for standardized, reusable, and scalable prompt engineering, with significant implications for both research and practical LLM deployment.
+\end{abstract}
+
+% Use if graphical  is present
+% \begin{graphical}
+% \includegraphics{figs/grabs.pdf}
+% \end{graphical}
+
+
+
+% Keywords
+% Each keyword is seperated by \sep
+\begin{keywords}
+Prompt engineering \sep Large language models \sep Modular specification \sep YAML configuration \sep Infrastructure as Code \sep Retrieval-Augmented Generation \sep Human–AI interaction \sep Reusability \sep Token efficiency
+\end{keywords}
+
+
+\maketitle
+
+\section{Introduction}
+
+Prompt engineering is an emerging field focused on designing effective prompts to improve the performance of large language models (LLMs) in various NLP tasks~\citep{10.1145/3560815}. Although several techniques have been proposed to optimize prompts~\citep{10.1145/3639631.3639663}, these approaches often require significant expertise and effort to create high-quality prompts that can be reused across different tasks and domains. Users typically create prompts manually and in an ad hoc manner, which can lead to inconsistencies and suboptimal performance. This approach is fragile, as even slight changes to the prompt can result in substantial variations in the model's output.
+This is especially critical in research contexts, where reproducibility and standardization are essential. In software engineering, the Infrastructure as Code (IaC) paradigm has been widely adopted to standardize and automate the deployment and management of software systems~\citep{RAHMAN201965}. IaC enables developers to define infrastructure configurations in a declarative manner, supporting versioning, collaboration, and portability across environments. Similarly, prompt engineering requires standardized and reusable prompt configurations that can be easily shared and adapted for different tasks and domains.
+
+To address these challenges, the Prompt Engineering as Code (PEaC)~\citep{10852434} methodology was developed to apply Infrastructure-as-Code (IaC) principles, enabling the standardization and automation of the prompt engineering process. PEaC allows users to define prompts using declarative configuration files, which can be easily shared, versioned, and reused across various tasks and domains. To illustrate this approach, we developed a YAML specification language and a Python module that parses PEaC files and generates prompts. 
+
+This paper extends PEaC by addressing key structural and methodological limitations and introducing new features to enhance usability and effectiveness.
+
+The earlier version did not provide a comprehensive description of the PEaC specification language or its supporting software architecture, leaving important aspects of the approach unexplored. These limitations can be categorized into four main areas. First, the YAML format used for prompt definition lacked formal validation, which could lead to errors and inconsistencies in prompt generation. Second, the PEaC framework did not offer a user-friendly interface for creating and managing YAML configuration files, limiting its accessibility for users without programming experience. Third, integration of external data sources into generated prompts was not supported, restricting applicability in practical scenarios. Finally, the original PEaC framework did not include advanced techniques such as Retrieval-Augmented Generation (RAG)~\citep{GUO2024104580}, which can significantly improve the quality and relevance of generated prompts.
+
+
+
+Our main contributions can be summarized as follows:
+\begin{itemize}
+    \item We provide a comprehensive description of the PEaC specification language and its supporting software architecture, including technical details for usage, replication, and adaptation to specific needs.
+    \item We incorporate lexical analysis and define a Backus-Naur Form (BNF) grammar to formally validate the YAML structure, ensuring completeness and the presence of all required fields.
+    \item We develop a user-friendly interactive GUI that enables users to easily create and manage YAML configuration files, integrate external data sources, and generate prompts without programming skills.
+    \item We introduce providers that allow the integration of external data sources into generated prompts. Users can incorporate various sources, such as PDF files, Word documents, and Excel spreadsheets, and filter them based on specific criteria.
+    \item We extend the PEaC framework with a RAG provider, enabling integration of Retrieval-Augmented Generation (RAG) systems into the prompt generation process.
+\end{itemize}
+    
+The work is further validated by three relevant activities:
+\begin{itemize}
+    \item We implement twelve prompt engineering strategies using the PEaC approach, thus showing the flexibility of the specification language. 
+    \item We present a use-case involving a nutritionist with no experience in large language models to demonstrate the practical application of PEaC in optimizing the task of generating diets according to a nutritionist's preferences.
+    \item We illustrate an experiment that compares several prompts with the related converted modular PEaC version, and analyzes the benefits of using PEaC in terms of prompt reusability and modularity. 
+
+\end{itemize}
+
+
+ 
+Table~\ref{tab:preliminary-works} summarizes the limitations of the PEaC work and describes how they are addressed in this paper.
+
+\begin{table}[ht]
+\centering
+\renewcommand{\arraystretch}{1.5} % aumenta altezza delle righe
+\begin{tabular}{M{0.3\textwidth} M{0.3\textwidth} M{0.3\textwidth}}
+\toprule
+\textbf{\cite{10852434}} & \textbf{Issue Description} & \textbf{This work} \\
+\midrule
+Lack of formal validation & The PEaC format was not formally validated, which could lead to errors and inconsistencies & Incorporation of lexical analysis and BNF grammar definition to validate PEaC configuration files \\
+No user-friendly interface & Adoption was limited among non-expert users due to the absence of a GUI for creating and managing PEaC files & Development of an interactive GUI for easy creation and management of PEaC configuration files \\
+No external data integration & The framework did not support integration of external data sources into generated prompts & Introduction of a provider system supporting PDF, Word, Excel, and web content integration \\
+No advanced retrieval techniques & No support for Retrieval-Augmented Generation (RAG) techniques & Extension with a RAG provider for semantic search and knowledge base integration \\
+Limited practical validation & Insufficient real-world testing and user evaluation & Validation through the implementation of twelve prompt engineering strategies, a nutritionist use case, and an experiment illustrating token reduction using PEaC \\
+\bottomrule
+\end{tabular}
+\caption{Limitations of PEaC work addressed in this paper}
+\label{tab:preliminary-works}
+\end{table}
+
+Our work aims to extend the PEaC framework with the aforementioned features. In the following sections, any reference to ``PEaC'' pertains to our extended version.
+
+\subsection{Paper Organization}
+
+The remainder of this paper is organized as follows. Section~\ref{sec:motivation} presents the motivation behind the development of the PEaC approach, while Section~\ref{sec:related} reviews related work. Section~\ref{sec:architecture} provides a comprehensive description of the PEaC system, including its architectural design, specification language, core components, provider system, user interfaces, and implementation details. Sections~\ref{sec:pe-strategies},~\ref{sec:use-case}, and~\ref{sec:experiment} present, respectively, the implementation of prompt engineering strategies using PEaC, a real-world application involving a nutritionist, and an experiment demonstrating the benefits of the proposed approach in terms of token reduction. Section~\ref{sec:discussion} discusses related considerations and comparisons with other works. Finally, Section~\ref{sec:conclusions} summarizes the key findings and outlines future research directions.
+
+\section{Motivation}
+\label{sec:motivation}
+Several studies have explored the importance of crafting effective prompts to elicit better responses from LLMs~\citep{10.5555/3600270.3602070,NEURIPS2020_1457c0d6,10.1145/3560815}. Users typically write prompts in natural language and may follow guidelines provided by AI engineers~\citep{website-whitepaper-prompt-engineering}. However, there is no standardized, machine-readable specification that enforces how prompts should be structured, validated, and reused across different contexts. A notable contribution in this direction is provided by \cite{Giray2023}, which demonstrates that each prompt consists of four specific components:
+\begin{itemize}
+    \item \emph{Instruction}: a directive or task that guides the model's behavior and steers it toward producing the intended result;
+    \item \emph{Context}: supplementary information or background knowledge that helps the model generate more precise and relevant answers;
+    \item \emph{Output}: specifies the expected form or style of the response, indicating whether it should be a brief reply, a detailed paragraph, or another specified format;
+    \item \emph{Input}: the question or data provided to the model for processing. This represents the central element of the prompt and frames the model's interpretation of the task.
+\end{itemize}
+
+Although~\cite{Giray2023} identifies the key components of a prompt, their work serves primarily as a guideline for users during prompt writing. Prompts are not required to be structured according to this framework, and there is no methodology that enforces or validates the presence of these elements. This lack of formalization leads to several limitations: (i) prompts cannot be automatically validated for completeness; (ii) common patterns cannot be systematically extracted and reused; and (iii) version control and collaboration on prompts remain ad hoc practices.
+
+Beyond structural standardization, another critical challenge is prompt reusability and modularity. For example, consider an employee who creates a prompt to summarize meeting notes. The prompt may include personal preferences (e.g., ``be concise, clear, avoid informal comments'') as well as company-specific requirements, such as a particular output format for summaries. If the employee changes jobs or wants to share the prompt with others, some parts of the prompt will be reusable, while others will not. Depending on how the prompt is structured, extracting reusable components for new contexts can be difficult. Prompt Engineering as Code (PEaC) addresses these challenges by introducing a formal specification language that encourages users to clearly separate different parts of a prompt. The \texttt{extends} section in PEaC enables modular prompt design, making it easy to modify specific sections without affecting the rest of the prompt.
+
+ \subsection{Research Objectives}
+
+In this work, we address the lack of standardization in the construction of modular and reusable prompts for prompt engineering. Our research objectives are as follows:
+
+\begin{enumerate}
+\item define a formal specification language that enables the creation of modular and reusable prompts (see Section~\ref{sec:specification});
+\item design and implement a framework offering multiple user and system interfaces, as well as integration with external data sources (Section~\ref{sec:architecture});
+\item evaluate the effectiveness of PEaC in reducing prompt redundancy through real-world use cases (Sections~\ref{sec:pe-strategies} and~\ref{sec:use-case}) and a quantitative experiment (Section~\ref{sec:experiment}).
+\end{enumerate}
+
+These objectives aim to tackle a significant research challenge: standardizing the development of efficient, modular, and reusable prompts.
+
+\subsection{Research Contributions}
+
+To address the research objectives outlined above, this work makes the following contributions to the field of prompt engineering:
+
+\paragraph{Contribution 1: Formal Specification Language with EBNF Grammar.} We introduce the first formal grammar specification for prompt engineering using Extended Backus-Naur Form (EBNF). Unlike informal guidelines or ad hoc templating approaches, our specification enables machine-readable validation, automated tooling (syntax highlighters, linters), and unambiguous interpretation of prompt structures. This formalization bridges the gap between natural language prompt writing and software engineering practices, enabling prompt-as-code methodologies.
+
+\paragraph{Contribution 2: Modular Reuse Mechanism via Inheritance.} We design and formalize the \texttt{extends} keyword mechanism, which implements inheritance-based composition in prompt engineering. This contribution enables: (i) separation of reusable components from context-specific elements; (ii) hierarchical prompt organization with multiple inheritance support; and (iii) systematic refactoring of prompts to eliminate redundancy. This addresses a fundamental research challenge: how to decompose and reassemble prompts while preserving semantic integrity.
+
+\paragraph{Contribution 3: Extensible Provider Architecture for External Data Integration.} We propose a novel architectural pattern for integrating heterogeneous data sources into prompts through a unified provider interface. This contribution advances beyond existing approaches (e.g., ChatGPT's file upload, LlamaIndex's cloud-based retrieval) by: (i) enabling declarative specification of external data sources within version-controlled YAML files; (ii) supporting diverse provider types (local files, web content, office documents, RAG-based semantic search); and (iii) preserving data sovereignty through local-first architecture. The provider abstraction represents a research contribution in designing extensible, composable systems for knowledge-augmented prompt generation.
+
+\paragraph{Contribution 4: Evaluation Metrics and Empirical Validation.} We introduce three novel metrics (Token Reduction Ratio, Reuse Efficiency, Modularity Index) specifically designed for assessing prompt modularization effectiveness. These metrics, combined with semantic similarity analysis, provide empirical evidence that modularization preserves semantic content while reducing redundancy. Section~\ref{sec:experiment} validates these contributions through quantitative experiments on 210 real-world prompts.
+
+
+
+
+\section{Related works}
+\label{sec:related}
+There is now broad consensus that the quality of text generated by LLMs depends heavily on the structure of input prompts~\citep{zhao2025surveylargelanguagemodels,ye2023comprehensivecapabilityanalysisgpt3,10.1145/3411763.3451760}. This realization has given rise to distinct research directions within prompt engineering. In this section, we provide an overview of these works. Comprehensive reviews exploring the prompt engineering domain in detail are provided by~\cite{Syahputri2025, zhao2025surveylargelanguagemodels}.
+
+\subsection{Prompt strategies and guidelines}
+
+Several works provide strategies and guidelines for designing effective prompts. Table~\ref{tab:prompt-techniques} summarizes some of the most relevant approaches, and a comprehensive survey on these techniques is provided by~\cite{10.1007/978-981-99-7962-2_30}. Some authors propose a ``zero-shot'' strategy~\citep{10.5555/3600270.3601883}, demonstrating that careful prompt manipulation using techniques such as decomposition~\citep{khot2023decomposedpromptingmodularapproach}, knowledge leveraging~\citep{10.1109/TKDE.2024.3376453, LIU202523}, and self-generated or task-oriented prompts~\citep{10.1145/3411763.3451760, 10.1007/978-981-99-8070-3_35} can improve the quality of generated text. Other techniques involve providing examples to guide the model~\citep{NEURIPS2020_1457c0d6} or decomposing complex tasks into simpler sub-tasks~\citep{10.5555/3600270.3602070}. \cite{10.1145/3560815} emphasize the crucial role of context in improving text quality, while~\cite{yang2023dynamicpromptingunifiedframework} propose dynamic prompting that adapts based on the model's previous outputs.
+
+Additional strategies following a ``divide and conquer'' principle include chaining~\citep{10.5555/3600270.3602070, 10.1145/3491101.3519729, github-langchain} and reasoning-acting prompting~\citep{yao2023reactsynergizingreasoningacting}. Another useful approach is batching~\citep{cheng-etal-2023-batch}, which groups similar prompts to reduce computational costs.
+
+Although these works provide solid theoretical foundations, applying them often requires expertise. To address this challenge, several AI companies have developed practical guidelines and examples to simplify prompt engineering, helping users apply these strategies more effectively~\citep{website-www.promptingguide.ai,website-6654000-best-practices-for-prompt-engineering-with-the-openai-api, website-what-is-prompt-engineering, website-ibm-prompt-engineering, website-prompt-engineering-guidelines.html,website-whitepaper-prompt-engineering}. As illustrated in Section~\ref{sec:pe-strategies}, PEaC provides a formal specification language that can be used to implement these strategies in a modular and reusable manner.
+
+\subsection{Integration of external data sources}
+
+An interesting research area investigates how integrating external data sources can improve prompt generation. \cite{liu-etal-2022-generated} propose a method that uses two LLMs: one to generate relevant knowledge and another to produce the final text. This approach has been shown to enhance the quality of generated text by supplying more relevant information to the model.
+
+To provide a personalized experience, services like ChatGPT allow users to upload files that serve as context for generation. These files are parsed as text and used to guide the model. Another notable service is LlamaIndex~\citep{website-www.llamaindex.ai}, which enables the creation of ``knowledge assistants'' by processing and structuring external business data in a centralized cloud-based system. While production-ready and feature-rich, these solutions are proprietary and difficult to adapt to specific needs. Moreover, privacy concerns are significant, as data must be uploaded to third-party servers, making it essential to carefully evaluate privacy policies, especially when handling sensitive or confidential information.
+
+A widely used technique for building a knowledge base of external documents is Retrieval-Augmented Generation (RAG)~\citep{10.1145/3649506}. RAG combines a retriever, which searches the corpus for the most relevant documents, with a generator, which uses the retrieved documents to produce responses. However, with very large corpora, the volume of retrieved content can degrade output quality. To mitigate this, \cite{10.1007/978-3-031-73503-5_17} propose methods to refine retrieved content before including it in the prompt.
+
+PEaC distinguishes itself from existing approaches by integrating external data sources directly into the \emph{prompt specification} rather than embedding them within orchestration pipelines or proprietary cloud platforms. Whereas ChatGPT requires uploading files to third-party servers, and LlamaIndex centralizes data management in cloud systems, PEaC enables users to declaratively specify local files, web resources, and RAG-indexed knowledge bases within YAML configuration files. This design preserves data sovereignty and enables version-controlled, reproducible prompt specifications that can be shared without exposing sensitive information. Furthermore, unlike proprietary solutions, PEaC's provider architecture (detailed in Section~\ref{sec:architecture}) supports extensible integration with diverse data sources through a unified interface, allowing researchers to customize data retrieval strategies while maintaining the declarative simplicity of the YAML specification.
+
+\subsection{Prompt collections}
+
+Several works provide collections of prompts organized into taxonomies. \cite{Oppenlaender17112024} presents a taxonomy of prompt modifiers specifically for text-to-image generation, offering guidance for structuring prompts in a more systematic way. A notable contribution is provided by~\cite{10.5555/3721041.3721046}, which introduces a comprehensive catalog of prompt engineering techniques that can serve as reusable patterns to enhance LLM performance across various tasks. Systematic surveys by~\cite{schulhoff2025promptreportsystematicsurvey} and~\cite{sahoo2025systematicsurveypromptengineering} further categorize numerous prompting techniques, while also providing best practices and guidelines for effective prompt engineering.
+
+Although these works are not directly comparable with PEaC, they offer valuable insights that can be implemented using our formal specification language. The examples presented in Section~\ref{sec:pe-strategies} could be extended to incorporate additional strategies described in these studies, demonstrating the flexibility and extensibility of the PEaC framework.
+
+\subsection{Prompt optimization and evaluation}
+
+Other works focus on prompt optimization and evaluation. PromptAid~\cite{10855599} is a visual analytics system designed to interactively create, refine, and test prompts through exploration, perturbation, testing, and iteration. Unfortunately, at the time of writing, the tool was not publicly accessible. Some commercial services~\citep{PromptPerfect2024,Promptist2024} optimize user prompts using proprietary algorithms.
+
+While these optimization techniques can improve prompt performance, they are not always suitable when reproducibility is required. Another line of research focuses on evaluating prompts and their variations. For instance, ChainForge~\citep{arawjo2024chainforge} provides a data-flow prompt engineering environment that enables systematic analysis and evaluation of LLM responses.
+
+
+\subsection{Prompt builders}
+
+These works align with our research direction in attempting to develop frameworks and tools that facilitate the prompt engineering process. They can be categorized into three main streams.
+
+The first research direction focuses on \textit{domain-specific languages (DSLs)} for LLM control, proposing programming abstractions to structure the generation process. LMQL~\citep{beurer-kellner2022lmql} enforces constrained encoding through logical predicates, while \cite{outlines2023} introduces Outlines, which ensures syntactically valid structured outputs. A declarative framework for optimizing prompts and retrieval pipelines is proposed by~\cite{khattab2023dspy}, and Microsoft introduces Guidance~\cite{guidance2023}, a prompt engine that combines natural language with control flow to create structured prompts. \cite{impromptu} presents Impromptu, a DSL designed for structured and compositional prompt programming with explicit control flow constructs. A key aspect of these works is that they provide mechanisms to enforce the format of prompt outputs. For instance, a Guidance module requiring JSON output queries the LLM until the correct format is produced. While these features fall outside the core scope of PEaC, they could be integrated into our framework to enhance its capabilities. Despite their effectiveness, most of these approaches lack a formal verification grammar, external data integration, and a syntax for modular reuse across different prompts.
+
+The second research direction addresses \textit{prompt management and sharing}. \cite{bach2022promptsource} introduces PromptSource, an IDE and repository (P3) for collaboratively creating and reusing prompt templates. Industrial platforms~\citep{promptlayer2023, humanloop2023} focus on versioning, evaluation, and lifecycle management of prompts, while \cite{langchainhub2023} supports public repositories and workflow composition. PEaC provides textual files for prompt sharing and collection, addressing these challenges through external services, cloud providers, or traditional version control systems such as GitHub. Our aim was to define a formal language for reusing and sharing prompts, with a textual format suitable for common sharing platforms. Users can create a \texttt{peac} folder in their repository and leverage the PEaC specification alongside tools like Copilot, using semantic versioning (minor, major, patch).
+
+The third stream focuses on pipeline frameworks that adopt declarative specifications inspired by \textit{Infrastructure as Code (IaC)}. \cite{haystack2020} presents Haystack, enabling the definition of Retrieval-Augmented Generation (RAG) workflows via YAML configuration files, while~\cite{azure2024promptflow} introduces Azure AI Studio and Prompt Flow with \texttt{prompty}, a YAML-based front matter for prompt specification, together with GUI-based workflow orchestration.
+
+In comparison, PEaC focuses specifically on the \emph{prompt specification level} rather than orchestration pipelines. Its primary contributions are the adoption of a unified YAML schema with an ad hoc \texttt{extends} keyword for modularity, a formal EBNF grammar for validation, and the integration of heterogeneous providers (local files, web content, office documents, and RAG) within a single declarative specification. This design complements existing DSLs and prompt management platforms by emphasizing \emph{standardization, reusability, and validation} of prompts as code artifacts.
+
+Table~\ref{tab:peac-comparison} presents a qualitative comparison of PEaC with existing approaches across key functional dimensions. We note that the table provides a qualitative analysis that does not fully capture subtle differences. Some related works share similar PEaC design principles but pursue different goals and offer features that could extend or enhance our work. We discuss these aspects further in Section~\ref{sec:further-considerations}.
+
+\begin{table}[h]
+\centering
+\small % Font piccolo per far stare tutto comodamente
+\caption{Feature comparison between PEaC and related systems.}
+\label{tbl:peac-comparison}
+
+% STRUTTURA:
+% p{4cm} -> Prima colonna fissa larga 4cm (allineata a sinistra)
+% Y      -> Le altre 7 colonne si dividono lo spazio rimanente e sono centrate
+\begin{tabularx}{\linewidth}{ p{4cm} Y Y Y Y Y Y Y }
+\toprule
+\textbf{System} & 
+\textbf{Declarative \newline Spec.} & 
+\textbf{Modular \newline Reuse} & 
+\textbf{Validation \newline Grammar} & 
+\textbf{External \newline Data} & 
+\textbf{RAG} & 
+\textbf{GUI} & 
+\textbf{IaC} \\
+\midrule
+LMQL \cite{beurer-kellner2022lmql}        & \checkmark & \ding{55} & \ding{55} & \ding{55} & \ding{55} & \ding{55} & \ding{55} \\
+DSPy \cite{khattab2023dspy}               & \checkmark & \ding{55} & \ding{55} & \checkmark & \checkmark & \ding{55} & \ding{55} \\
+Guidance \cite{guidance2023}              & \checkmark & \ding{55} & \ding{55} & \ding{55} & \ding{55} & \ding{55} & \ding{55} \\
+Impromptu \cite{impromptu}                & \checkmark & \checkmark & \ding{55} & \ding{55} & \ding{55} & \checkmark & \ding{55} \\
+Outlines \cite{outlines2023}              & \checkmark & \ding{55} & \checkmark & \ding{55} & \ding{55} & \ding{55} & \ding{55} \\
+PromptSource \cite{bach2022promptsource}  & \ding{55} & \checkmark & \ding{55} & \ding{55} & \ding{55} & \checkmark & \ding{55} \\
+PromptLayer \cite{promptlayer2023}        & \ding{55} & \ding{55} & \ding{55} & \ding{55} & \ding{55} & \checkmark & \ding{55} \\
+Humanloop \cite{humanloop2023}            & \ding{55} & \ding{55} & \ding{55} & \ding{55} & \ding{55} & \checkmark & \ding{55} \\
+LangChain Hub \cite{langchainhub2023}     & \ding{55} & \checkmark & \ding{55} & \ding{55} & \ding{55} & \checkmark & \ding{55} \\
+Haystack \cite{haystack2020}              & \checkmark & \ding{55} & \ding{55} & \checkmark & \checkmark & \ding{55} & \checkmark \\
+Azure Prompt Flow \cite{azure2024promptflow} & \checkmark & \ding{55} & \ding{55} & \checkmark & \checkmark & \checkmark & \checkmark \\
+\textbf{PEaC (this work)}                 & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+
+
+\section{PEaC System: Architecture and Specification}
+\label{sec:architecture}
+
+This section presents the architectural design and formal specification that realize the research contributions outlined in Section~\ref{sec:motivation}. We begin with a high-level architectural overview establishing the separation of concerns that enables modularity and extensibility. We then present the formal EBNF specification language, demonstrating how grammatical formalization enables tool support and validation. Next, we describe the provider architecture pattern, showing how interface abstraction enables heterogeneous data source integration. Finally, we provide implementation details demonstrating the feasibility and practical applicability of our approach.
+
+\subsection{Architectural Overview}
+
+%Figure~\ref{fig:peac-architecture} provides a high-level overview of the PEaC architecture. 
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=0.8\linewidth]{figs/peac-architecture.png}
+    \caption{Overview of the PEaC architecture. The system consists of three main components: the core engine, the provider module, and the user interfaces.}
+    \label{fig:peac-architecture}
+\end{figure}
+
+The PEaC architecture (Figure~\ref{fig:peac-architecture}) is composed of the following modules:
+
+\begin{itemize}
+    \item \textit{User Interface}: provides graphical, command-line, and library-based interfaces for interacting with users and external applications;
+    \item \textit{Core Engine}: the PEaC core module, which parses and validates PEaC configuration files and generates prompts;
+    \item \textit{Providers}: enables interaction with external data sources, such as web services and local files.
+\end{itemize}
+
+The architecture follows the principle of separation of concerns~\citep{DagadeCesareLycett}, offering a layered and modular design that facilitates prompt generation and processing. The user interface module exposes interfaces to users and external systems, utilizing the PEaC core component to process PEaC configuration files written in YAML format and generate output prompts. The PEaC core engine parses YAML configuration files and generates prompts. Some files may require interaction with external data sources, which is handled by providers. Providers support the core engine in processing external sources and offer advanced capabilities, such as Retrieval-Augmented Generation (RAG), described in Section~\ref{sec:rag}.
+
+\subsection{Design Principles and Specification Language}
+\label{sec:specification}
+
+Having introduced the overall architecture, we now describe the PEaC specification language and its underlying design principles. PEaC follows the ``Infrastructure as Code'' paradigm, which is a methodology for defining complex infrastructures using simple text files in a standard format~\citep{Sinha2000}. We apply the same principle to modular prompt design in PEaC. Specifically, the \texttt{extends} section enables the creation of complex prompts, where a \texttt{leaf} node inherits from one or more \texttt{parent} nodes to construct the final prompt. The YAML markup language~\citep{website-2001-12-10.html} is one of the most widely used formats for implementing the ``IaC'' paradigm. We leverage its syntax to define prompts in a structured and standardized manner. Each YAML file serves as a specific prompt configuration for a particular purpose, which can be integrated into other prompts and parsed to generate the final prompt.
+
+Another key design principle concerns the structure of a PEaC YAML module. We follow the guidelines proposed by~\cite{Giray2023} (see Section~\ref{sec:motivation}) to ensure all relevant elements of a prompt are included. The main components of a PEaC YAML configuration file are:
+
+\begin{itemize}
+    \item \texttt{extends}: this section allows users to inherit configurations from other YAML files, promoting reusability and modularity.
+    \item \texttt{instruction}: this section contains the main task or instruction that guides the model's behavior. It defines the objective or specific task to be accomplished.
+    \item \texttt{context}: this section provides additional context or information to help the model better understand the task. It can include various types of data sources, such as local files, web content, and RAG-based knowledge bases.
+    \item \texttt{output}: this section specifies the desired format or structure of the model's output. It can include predefined templates or formats that the model should follow when generating responses.
+    \item \texttt{query}: this section contains the specific question or prompt that the user wants to ask the model. It is the main input that drives the model's response generation.
+\end{itemize}
+
+For each section, users can define multiple providers that specify the source of information to be included in the final prompt. The supported provider types are:
+
+\begin{itemize}
+    \item \texttt{base}: allows users to include predefined text snippets. Each line is a paragraph that is directly inserted into the final prompt.
+    \item \texttt{local}: enables inclusion of content from local files or directories. Users can specify: (i) \texttt{source}, the file or directory path; (ii) \texttt{preamble}, descriptive text prepended to the content; (iii) \texttt{filter}, a regex pattern to extract specific content; (iv) \texttt{recursive}, whether to scan subdirectories; and (v) \texttt{extension}, to filter files by type (e.g., \texttt{py}, \texttt{md}).
+    \item \texttt{web}: allows inclusion of content from web pages. Users can specify the URL (\texttt{source}), a \texttt{preamble} template, and an \texttt{xpath} expression to extract specific elements from the HTML document.
+    \item \texttt{rag}: integrates Retrieval-Augmented Generation (RAG) into the prompt generation process. Unlike the \texttt{local} provider, which retrieves files by path, the \texttt{rag} provider performs semantic search over a pre-indexed document collection. Users specify: (i) \texttt{faiss\_file}, the vector database index; (ii) \texttt{source\_folder}, the documents to index; (iii) \texttt{query}, the natural language search query; (iv) \texttt{top\_k}, the number of similar chunks to retrieve; and optionally (v) \texttt{chunk\_size}, \texttt{overlap}, and \texttt{filter} to control retrieval granularity. Section~\ref{sec:rag} provides a detailed description of the RAG provider workflow and configuration parameters.
+\end{itemize}
+
+Listing~\ref{lst:yaml-example} provides an example YAML configuration, illustrating the main components and provider types supported by PEaC. A PEaC parser can combine different files to generate a single, unified prompt. For example, Appendix~\ref{sec:example} shows the prompt produced by parsing the PEaC module presented in Listing~\ref{lst:yaml-example}.
+
+\lstinputlisting[style=yamlstyle, caption=Example PEaC YAML configuration file showcasing the main components and provider types, captionpos=b, label=lst:yaml-example]{listings/peac-yaml-example.yaml}
+
+\subsection{EBNF Formal Specification Grammar}
+
+Establishing prompt engineering as a rigorous, machine-readable specification rather than an informal practice represents a key contribution of this work. Extended Backus-Naur Form (EBNF)~\citep{iso14977} is an extension of the standard BNF formal notation~\citep{backus1960algol} used to express ``context-free grammars''~\citep{1056813}. This notation includes terminal symbols and non-terminal rules that define how symbols can be combined to form valid sequences. A formal specification grammar enhances clarity and reduces ambiguity in texts that must follow precise specifications. Additionally, it simplifies the development of parsers and usability tools, such as syntax highlighters, and ensures consistency by specifying exact data formats and interfaces, thereby facilitating integration with external systems. Whereas existing approaches rely on unstructured guidelines or ad hoc templating, our grammar enables unambiguous interpretation of prompt structures, automated validation preventing malformed configurations, and formal reasoning about prompt composition properties. This formalization parallels the role of formal grammars in programming language design.
+
+Listing~\ref{lst:ebnf-grammar} shows the EBNF formal grammar for PEaC.
+
+\lstinputlisting[style=ebnfstyle, caption={PEaC YAML Grammar - EBNF}, label=lst:ebnf-grammar]
+{listings/peac-ebnf-grammar.ebnf}
+
+The specification begins with the top-level prompt section (\texttt{PeacModule}), which contains the body (\texttt{PromptBody}) of the prompt configuration file. The body consists of an optional \texttt{extends} section (\texttt{ExtendsList}) and four main sections: \texttt{instruction}, \texttt{context}, \texttt{output}, and \texttt{query}. Each section can include multiple providers, defined by specific rules. The \texttt{base} provider (\texttt{BaseRules}) allows the inclusion of predefined text snippets, while the \texttt{local} provider (\texttt{LocalRules}) enables the inclusion of content from local files. The \texttt{web} provider (\texttt{WebRules}) allows the inclusion of content from web pages, and the \texttt{rag} provider (\texttt{RagRules}) integrates a Retrieval-Augmented Generation (RAG) system into the prompt generation process. Depending on the file type, different \texttt{ProviderOptions} can be specified to customize content extraction and filtering. Pages and sheets can be specified in various ways, as shown in the grammar (see rules \texttt{PageRangeSpec} and \texttt{SheetRangeSpec}).
+
+The grammar provides several benefits, as described earlier. A practical example is given in Section~\ref{sec:experiment}, where we use it in a prompt for ChatGPT-5 to obtain valid PEaC YAML files.
+
+\subsection{Core Engine Implementation}
+
+The PEaC core consists of three fundamental processing components that work together to transform YAML configurations into executable prompts:
+
+\begin{itemize}
+    \item \textbf{YAML Parser}: processes PEaC configuration files according to the related EBNF grammar specification;
+    \item \textbf{Lexical Analyzer}: performs syntax validation and semantic analysis of YAML structures;
+    \item \textbf{Prompt Generator}: aggregates content and produces final prompts through template application.
+\end{itemize}
+
+The YAML parser module supports configuration inheritance via the \texttt{extends} mechanism, enabling modular and reusable prompt design. Content from multiple sources is aggregated by combining sections from different files, resulting in a unified output prompt.
+
+\subsection{Provider System Architecture}
+
+The provider module implements an extensible architecture that supports multiple content sources through a unified interface. This architectural pattern addresses a fundamental challenge in prompt engineering: how to enable prompts to reference external knowledge (documents, web content, databases, vector stores) without coupling the prompt specification to specific retrieval implementations. The key design principle is \emph{abstraction through a unified interface} that decouples prompt logic from data retrieval mechanisms, enabling extensibility without sacrificing reproducibility or version control.
+
+This design enables seamless integration of new content types into the system by extending a Python class that implements a standard interface with two core methods:
+\begin{itemize}
+    \item \texttt{parse()}: extracts content from the source and converts it to text format.
+    \item \texttt{apply\_filter()}: applies user-defined filtering criteria to the extracted content.
+\end{itemize}
+
+Figure~\ref{fig:providers} provides a visual overview of the provider architecture and its integration within the PEaC system. 
+The main providers are \emph{base}, \emph{local}, \emph{web}, and \emph{rag}. The base provider simply includes a set of lines as plain text. Local and web providers handle documents stored either on the local filesystem or remotely. Files can be parsed with specific providers, which convert their content into text format. For example, a PDF is handled by the local provider and converted into text format by the \texttt{PDF Provider}. 
+Table~\ref{tab:provider-capabilities} summarizes the key features of each provider.
+
+\begin{table}[ht!]
+\centering
+\begin{tabular}{M{0.2\textwidth} M{0.2\textwidth} M{0.4\textwidth}}
+\toprule
+\textbf{Provider} & \textbf{Content Type} & \textbf{Key Features} \\
+\midrule
+Local & Files/Directories & Recursive scanning, regex filtering, extension-based selection \\
+PDF & PDF Documents & Page range selection, text extraction, content filtering \\
+DOCX & Word Documents & Paragraph filtering, structure preservation, content extraction \\
+XLSX & Excel Spreadsheets & Sheet selection, data processing, range-based extraction \\
+Web & HTML Content & URL fetching, XPath-based content selection, text cleaning \\
+RAG & Vector Search & Semantic retrieval, embedding generation, similarity search \\
+\bottomrule
+\end{tabular}
+\caption{Provider System Capabilities}
+\label{tab:provider-capabilities}
+\end{table}
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=0.8\linewidth]{figs/peac-providers.png}
+    \caption{PEaC provider architecture overview. The architecture consists of three main components: providers, the RAG module, and the interactive GUI. Providers are modules that allow the integration of external data sources into the generated final prompt.}
+    \label{fig:providers}
+\end{figure}
+
+\subsubsection{The RAG Provider}
+\label{sec:rag}
+
+The RAG provider demonstrates how complex semantic search workflows---typically requiring procedural orchestration in frameworks like LangChain or Haystack---can be expressed declaratively through parameter configuration. This design principle enables users to specify \emph{what} knowledge to retrieve (query, top\_k, filters) rather than \emph{how} to retrieve it (indexing algorithms, embedding model initialization, similarity computation), ensuring reproducibility: the same YAML specification produces consistent results across environments.
+
+The RAG provider integrates Retrieval-Augmented Generation (RAG) techniques into the prompt generation process, leveraging embedding models and vector databases to enrich prompts with relevant knowledge from document collections. The provider consists of two main components:
+
+\begin{itemize}
+    \item \textbf{Embedding Engine}: converts textual content into high-dimensional vector representations that capture semantic meaning. PEaC supports multiple embedding models, including:
+    \begin{itemize}
+        \item OpenAI text-embedding models (ada-002, text-embedding-3-small, text-embedding-3-large);
+        \item HuggingFace transformer models (BERT, RoBERTa, sentence-transformers);
+        \item Custom embedding models via the HuggingFace interface.
+    \end{itemize}
+    \item \textbf{Vector Database}: stores embeddings and enables efficient similarity search operations. PEaC integrates with FAISS (Facebook AI Similarity Search), an open-source library optimized for dense vector operations and clustering.
+\end{itemize}
+
+The RAG workflow operates in two distinct phases:
+
+\paragraph{Indexing Phase (Pre-processing).} Before runtime, documents in the \texttt{source\_folder} are processed to create a searchable knowledge base:
+\begin{enumerate}
+    \item \textbf{Document Loading}: the system scans the specified folder and reads all supported document types (.md, .py, .txt, etc.);
+    \item \textbf{Text Chunking}: documents are segmented into chunks of configurable size with optional overlap to preserve context across boundaries;
+    \item \textbf{Embedding Generation}: each chunk is converted into a dense vector representation (typically 384 dimensions) using transformer models;
+    \item \textbf{Index Creation}: embeddings are stored in a FAISS index file along with metadata linking vectors to their source documents.
+\end{enumerate}
+
+\paragraph{Retrieval Phase (Runtime).} During prompt generation, the RAG provider performs semantic search:
+\begin{enumerate}
+    \item \textbf{Query Embedding}: the user-specified \texttt{query} string is converted into a vector using the same embedding model;
+    \item \textbf{Similarity Search}: FAISS computes L2 (Euclidean) distances to find the \texttt{top\_k} most similar chunks;
+    \item \textbf{Content Reconstruction}: matched chunks are retrieved from the source documents using stored metadata;
+    \item \textbf{Optional Filtering}: if a \texttt{filter} regex is specified, only chunks matching the pattern are retained;
+    \item \textbf{Prompt Integration}: retrieved content is formatted with the \texttt{preamble} and inserted into the final prompt.
+\end{enumerate}
+
+\paragraph{RAG Configuration Parameters.} Table~\ref{tab:rag-parameters} describes the configuration parameters available for RAG providers. These parameters differ from those used by the \texttt{local} provider: while \texttt{local} uses \texttt{source} to specify file paths and \texttt{extension} to filter by file type, the RAG provider uses \texttt{source\_folder} for indexing and \texttt{query} for semantic search. The \texttt{filter} parameter serves different purposes in each provider: in \texttt{local}, it filters file content using regex; in \texttt{rag}, it filters the retrieved chunks after similarity search.
+
+\begin{table}[ht!]
+\centering
+\begin{tabular}{M{0.18\textwidth} M{0.12\textwidth} M{0.52\textwidth}}
+\toprule
+\textbf{Parameter} & \textbf{Required} & \textbf{Description} \\
+\midrule
+\texttt{preamble} & Yes & Descriptive text prepended to retrieved content in the final prompt \\
+\texttt{faiss\_file} & Yes & Path to the FAISS index file; if not found, automatically created from \texttt{source\_folder} \\
+\texttt{source\_folder} & Yes & Directory containing documents to index (used during index creation) \\
+\texttt{query} & Yes & Natural language search query used to find semantically similar content \\
+\texttt{top\_k} & No & Number of most relevant chunks to retrieve (default: 5, typical range: 3--10) \\
+\texttt{chunk\_size} & No & Size of text chunks in characters (default: 512; smaller values yield precise facts, larger values provide broader context) \\
+\texttt{overlap} & No & Character overlap between consecutive chunks to prevent context loss at boundaries (recommended: 10--20\% of \texttt{chunk\_size}) \\
+\texttt{filter} & No & Regex pattern to filter retrieved chunks; only chunks matching the pattern are included \\
+\bottomrule
+\end{tabular}
+\caption{RAG Provider Configuration Parameters}
+\label{tab:rag-parameters}
+\end{table}
+
+\paragraph{Example Configuration and Output.} Listing~\ref{lst:yaml-example} (lines 88--102) demonstrates a RAG configuration that searches a technical knowledge base. The configuration specifies a query \texttt{"software architecture patterns microservices"} with \texttt{top\_k: 5} to retrieve the five most semantically similar chunks. When executed, the system automatically creates the FAISS index if it does not exist, embeds the query, performs similarity search, and includes the retrieved content in the prompt prefixed by the preamble text.
+
+\subsection{User Interfaces}
+\label{sec:interface}
+
+The system provides multiple interaction modes to accommodate different user preferences and integration scenarios:
+
+\begin{itemize}
+    \item \textbf{Graphical User Interface (GUI)}: an intuitive interface for prompt design and configuration management;
+    \item \textbf{Command-Line Interface (CLI)}: a scriptable interface for automation and integration workflows;
+    \item \textbf{Python Library}: a programmatic API for embedding PEaC functionality in applications.
+\end{itemize}
+
+The PEaC system offers a comprehensive graphical interface that simplifies the creation and management of YAML configuration files. Users can write PEaC configuration files, preview them, and copy the generated prompts to the clipboard for use in external applications.
+
+The graphical interface provides three main categories of functionality: configuration management, content integration, and prompt generation. For configuration management, the system includes a visual editor that displays the PEaC sections, allowing users to add text and generate valid PEaC YAML configuration files. For content integration, the interface enables users to select local resources through a file browser with preview capabilities, input and validate external URLs, and configure retrieval-augmented generation (RAG) with options to choose among different embedding models. Prompt generation is supported through real-time preview features, including visualization of aggregated content and copy-to-clipboard functions for direct use in external LLMs.
+
+Figure~\ref{fig:peac-gui} shows the main GUI interface in action. The figure illustrates a typical usage scenario where the user has opened the context section to configure data sources and has successfully generated a prompt. The interface displays the four main PEaC sections (instruction, context, output, and query) on the left side, while the right side shows the generated prompt preview. Users can immediately copy the generated prompt to the clipboard and paste it into their preferred LLM system, facilitating a seamless workflow from prompt configuration to execution.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\linewidth]{figs/peac-gui.png}
+    \caption{PEaC main GUI interface during prompt generation. The interface shows the context section expanded, where users can configure various data providers (base, local, web, and RAG). The left panel displays the four PEaC sections (instruction, context, output, query) with their respective configuration options, while the right panel shows the generated prompt preview. The interface allows users to integrate external data sources, configure RAG parameters, and copy the final prompt to the clipboard for use in external LLM systems.}
+    \label{fig:peac-gui}
+\end{figure}
+
+Overall, the interface lowers the entry barrier for non-expert users, allowing them to benefit from PEaC without needing detailed knowledge of YAML syntax or advanced prompt engineering techniques, while still providing expert users with fine-grained control over the configuration process. The GUI can also be used by expert users who want to create PEaC configuration files and then integrate them into external systems using the command-line interface or the Python library module.
+
+\subsection{Usage Patterns and Integration with External Systems}
+
+This section provides a dynamic overview of the PEaC system, describing typical usage patterns and integration with external components.
+
+Appendix~\ref{sec:peac-integration} presents a sequence diagram~\citep{10.5555/861282} illustrating how users create prompts using PEaC. Users can launch the PEaC GUI and create a new configuration file through the interface. Using the modules described in Section~\ref{sec:interface}, they can configure the instruction, context, output, and input components, and combine prompts using the \texttt{extends} functionality.
+
+After configuring the prompt, users can preview the final output. The PEaC Core assembles the prompt from all relevant sections, and the result is displayed. Users can then copy the generated prompt and paste it into an external LLM system. If the response is unsatisfactory, users can refine the PEaC configuration and generate updated prompts. This process can be repeated until the desired result is achieved. Once satisfied, users can version and share their PEaC configuration files with others via GitHub or other platforms.
+
+Another common scenario involves integration with external systems such as \texttt{LangChain}, as shown in Appendix~\ref{sec:peac-integration}. Developers can incorporate the PEaC system into LLM pipelines using three approaches: (i) via the Python library module, (ii) through the CLI interface, and (iii) by implementing a PEaC wrapper for the selected LLM pipeline (e.g., LangChain). When the module is integrated into the LLM pipeline, users can send prompts that are enriched by the PEaC module before being forwarded to external LLM services.
+
+\subsection{Implementation Details}
+
+The PEaC system is developed in Python 3.11, using \texttt{poetry} as the package manager. \texttt{poetry} provides declarative dependency management via the \texttt{pyproject.toml} file, supports isolated virtual environments, and simplifies installation and execution through the \texttt{pipx} tool.
+
+The command-line interface (CLI) is implemented with the \texttt{Typer} library, while the cross-platform graphical user interface (GUI) is built using \texttt{CustomTkinter}. \texttt{Typer} enables the rapid development of CLI applications by converting Python scripts into modular command-line tools. \texttt{CustomTkinter} extends the standard Python \texttt{Tkinter} module, offering a modern look and improved user experience across macOS and Windows.
+
+The RAG provider uses the \texttt{faiss} library from Facebook to create and search vector indexes for document retrieval. PEaC also relies on the \texttt{torch} library to support LLM embedding models, with GPU (or MPS) acceleration when available.
+
+The system is publicly available and released under the MIT license \footnote{Released after paper review}.
+
+\paragraph{Section Summary: From Research Contributions to Implementation.} This section has presented the architectural design and formal specification realizing Contributions 1--3. The EBNF grammar (Section~\ref{sec:specification}) provides formal validation and tool support, demonstrating that prompt engineering can achieve software engineering rigor. The \texttt{extends} mechanism embedded in the specification (Section~\ref{sec:specification}) enables systematic modular composition through inheritance, validated by our implementation of configuration merging and resolution. The provider architecture (Sections~4.5--4.6) demonstrates extensible data integration through interface abstraction, with the RAG provider exemplifying how complex semantic search can be expressed declaratively. These implementations validate the feasibility of our design principles and establish PEaC as a research contribution rather than merely a tool. The following sections evaluate these contributions through real-world applications and quantitative experiments.
+
+%\footnote{\url{https://github.com/giper45/peac}} 
+\section{Prompt Engineering Techniques using PEaC}
+\label{sec:pe-strategies}
+
+To validate that PEaC's formal specification can express established prompt engineering strategies, we systematically implement diverse techniques from the literature~\citep{10.1007/978-981-99-7962-2_30,website-whitepaper-prompt-engineering}. This demonstration establishes construct validity: successful encoding of known patterns confirms that the \texttt{extends} mechanism and YAML schema provide sufficient expressiveness to address real needs in the prompt engineering domain.
+
+Table~\ref{tab:prompt-techniques} summarizes the implemented techniques. For each technique, we have released publicly available PEaC templates\footnote{Released after paper review} demonstrating modular composition, reuse patterns, and inheritance hierarchies.
+
+
+\FloatBarrier
+\begin{table}[hp!]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{l p{7cm} l}
+\toprule
+\textbf{Technique} & \textbf{Description} & \textbf{Reference} \\
+\midrule
+Chain-of-Thought Prompting & Guides the model to reason step by step before answering. & \cite{10.5555/3600270.3602070} \\
+Contextual Prompting & Provides additional context to improve response relevance. & \cite{10.1145/3560815} \\
+Dynamic Prompting & Adapts prompts dynamically based on input or context. & \cite{yang2023dynamicpromptingunifiedframework} \\
+Few-Shot Prompting & Provides a few examples to guide the model's behavior. & \cite{NEURIPS2020_1457c0d6} \\
+Google Ask-for-Info & Designs prompts to elicit more information from the user. & \cite{website-whitepaper-prompt-engineering} \\
+Google Delimiters & Uses delimiters to structure and clarify prompt sections. & \cite{website-whitepaper-prompt-engineering} \\
+Google Persona Assignment & Assigns a specific persona or role to the model. & \cite{website-whitepaper-prompt-engineering} \\
+Google Prompt Chaining & Chains multiple prompts to build complex workflows. & \cite{website-whitepaper-prompt-engineering} \\
+Google Task Decomposition & Breaks down complex tasks into simpler subtasks. & \cite{website-whitepaper-prompt-engineering} \\
+Multi-Strategy Combination & Combines multiple prompting strategies for improved results. & \cite{10.1145/3560815} \\
+Reasoning-Acting Prompting & Alternates between reasoning and action steps. & \cite{yao2023reactsynergizingreasoningacting} \\
+Zero-Shot Prompting & Directly asks the model to perform a task without examples. & \cite{10.5555/3600270.3601883} \\
+\bottomrule
+\end{tabular}
+\caption{Prompt engineering techniques provided as PEaC configuration modules}
+\label{tab:prompt-techniques}
+\end{table}
+
+\lstinputlisting[style=yamlstyle, caption={Few-shot prompt engineering strategy using the PEaC language}, label=lst:peac-strategy-details]{listings/peac-few-shot-example.yaml}
+
+
+As an example, Listing~\ref{lst:peac-strategy-details} shows the PEaC configuration for integrating a few-shot learning strategy into prompts.
+
+
+\lstinputlisting[style=yamlstyle, caption=PEaC template for few-shot learning strategy, captionpos=b, label=lst:yaml-few-shot, float=H]{listings/peac-few-shot-example.yaml}
+
+\section{Real-World Case Study: Clinical Nutrition Practice}
+\label{sec:use-case}
+
+This section demonstrates the practical applicability of PEaC through a real-world professional use case in clinical nutrition. The objective is to validate whether the \texttt{extends} mechanism reduces redundancy in domain-specific prompting, whether providers enable integration of existing professional assets (Word documents, PDFs) without disrupting workflows, and whether modular design supports personalization while maintaining reusable components. We show how PEaC's formal specification enables systematic decomposition of professional knowledge into reusable ``packs'', with patient-specific ``leaf nodes'' inheriting from shared components, thereby demonstrating ecological validity beyond toy examples.
+
+The study followed three phases:
+\begin{enumerate}
+\item \textbf{Participatory design:} We analyzed the workflow of a professional dietitian through interviews, focusing on templates, guidelines, and operational procedures used in clinical practice.
+\item \textbf{Comparative experiment:} The dietitian created nutritional plans for three patient cases using two approaches: (i) traditional direct interaction with ChatGPT, and (ii) PEaC modular templates. We collected quantitative metrics including time spent, number of iterations, and satisfaction ratings (1--5 scale).
+\item \textbf{Technology acceptance evaluation:} We administered a Technology Acceptance Model (TAM) questionnaire to assess perceived ease of use, quality of results, reusability, and overall acceptance of the PEaC approach.
+\end{enumerate}
+
+\subsection{Phase 1: Participatory Design}
+
+The first phase focused on understanding the professional workflow and translating domain expertise into modular PEaC components. Through structured interviews and observation, we identified key operational resources, analyzed the prescription process, and designed reusable template structures that reflect both medical requirements and practical constraints. This approach follows established participatory design methodologies~\citep{Clemensen2016Participatory,Merkel2019Participatory,Cumbo2021Using}, which emphasize collaboration between researchers and domain experts to ensure practical relevance.
+
+\subsubsection{Domain knowledge and professional assets}
+
+The participatory design phase involved analyzing the practice of a professional dietitian through structured interviews. We collected the operational resources she routinely employs when preparing personalized diet plans. These resources include: (i) a set of Microsoft Word (\emph{.docx}) templates, each corresponding to a specific clinical condition or dietary pattern (e.g., \texttt{anti-swelling.docx}, \texttt{overweight-woman-IBS.docx}, \texttt{Mediterranean-diet.docx}); (ii) guidelines that reflect both general nutritional best practices and condition-specific recommendations; and (iii) a library of recipes used to align medical advice with patient preferences. In addition, the dietitian consistently applies implicit ``counseling rules'', such as using food emoticons, annotating portions in grams, offering flexible Saturday dinners, and providing hydration reminders.
+
+The diet prescription process begins with structured patient intake, during which relevant data are collected, including medical conditions, lifestyle habits, laboratory results, allergies, and food preferences (see Appendix~\ref{sec:medical-form}). The dietitian then interprets this information, identifies applicable templates and guidelines, and constructs a plan tailored to the patient. In practice, this requires combining general nutritional knowledge with case-specific adjustments using a common diet template for each patient.
+
+\subsubsection{Modularization using PEaC ``packs''}
+
+Large language models can accelerate the process described above, but their effectiveness depends on precise, context-rich prompting. PEaC enables the creation of reusable \emph{packs}, which are shared PEaC configuration files written in the specification language described in Section~\ref{sec:specification}. These files organize prompt instructions according to specific purposes and can be reused for different patients. We identify five main families of packs:
+
+\begin{itemize}
+    \item \textbf{Instruction packs}, which define the professional role and scope of practice;
+    \item \textbf{Condition packs}, which address clinical conditions such as IBS (Irritable Bowel Syndrome) or reflux;
+    \item \textbf{Paradigm packs}, which specify dietary styles such as Mediterranean or ketogenic;
+    \item \textbf{Output packs}, which define the structural and stylistic rules of the diet plan;
+    \item \textbf{Preference packs}, which introduce optional likes, dislikes, or cultural food constraints.
+\end{itemize}
+
+Each patient-specific prompt is created by extending the relevant packs, allowing conditions, paradigms, and preferences to be combined without the need to rewrite entire prompts. Representative pack modules for instructions, conditions (IBS), dietary paradigms (Mediterranean), output formatting, and preferences (fish-rich diet) are provided in Appendix~\ref{sec:nutrition-packs}.
+
+\subsubsection{Patient-specific leaf nodes}
+
+Once the modular packs are established, patient-specific ``leaf'' files can be created by extending the relevant components. The PEaC specification language enables this composition through the \texttt{extends} section, allowing PEaC configuration files to include other modules.
+
+A complete example of a patient-specific leaf configuration for a 38-year-old overweight female patient with mild IBS who prefers fish and is prescribed a Mediterranean-style diet is provided in Appendix~\ref{sec:nutrition-packs} (Listing~\ref{lst:nutri-leaf}).
+
+By altering the \texttt{extends} section, it is possible to rapidly adapt dietary paradigms and preferences. For example, to prescribe a transitional ketogenic diet for the same patient, the only required change is to replace the Mediterranean paradigm module with a ketogenic one (Appendix~\ref{sec:nutrition-packs}, Listing~\ref{lst:paradigm-swap}).
+
+Similarly, preference packs can be added or removed to exclude animal products (e.g., \texttt{packs/pref-vegetarian.yaml}) or to enforce specific aversions (e.g., \texttt{packs/pref-no-onion.yaml}). This compositional design highlights the main advantage of PEaC: patient-specific adaptations are achieved by importing, swapping, or removing modular packs, rather than rewriting entire prompts.
+
+This example can be further extended to support real clinical workflows by defining consolidated modules that ensure safety and provide tailored medical plans for individual needs.
+
+\subsection{Phase 2: Comparative Experiment}
+
+The second phase evaluated PEaC effectiveness through controlled comparison with traditional AI interaction methods. We designed three clinical scenarios with increasing complexity and measured both objective performance metrics and subjective practitioner satisfaction.
+
+\subsubsection{Patient cases}
+We provided three different case studies for the dietitian, representing varying levels of complexity and clinical requirements:
+
+\paragraph{Case 1: Base scenario (weight management)}
+\textbf{Patient profile.} Maria R., a 32-year-old female office worker with a sedentary lifestyle, seeks to lose 5 kg over 3 months. Her height is 165 cm, current weight 70 kg (BMI: 25.7), with no medical conditions except mild lactose intolerance. She prefers Mediterranean cuisine, particularly vegetables and fish, while avoiding fresh dairy products and red meat. Her meal schedule follows a standard work pattern: breakfast at 7:30, lunch at 13:00, and dinner at 20:00.
+
+\textbf{Nutritional request.} A weekly meal plan of 1500 kcal/day, structured as five daily meals, following Mediterranean dietary principles without fresh dairy products.
+
+\paragraph{Case 2: Complex scenario (type 2 diabetes)}
+\textbf{Patient profile.} Giuseppe M., a 58-year-old male, aims to achieve glycemic control and lose 10 kg over 6 months. He maintains moderate physical activity, walking 30 minutes daily. His height is 175 cm, current weight 92 kg (BMI: 30.0). He has been diagnosed with type 2 diabetes (HbA1c: 7.2\%) and mild controlled hypertension, taking Metformin 1000mg twice daily (at lunch and dinner). He has no food allergies but prefers traditional Italian cuisine, especially pasta and legumes, while avoiding sweets and sugary beverages. His meal schedule includes five daily eating occasions: breakfast at 7:00, mid-morning snack at 10:30, lunch at 13:00, afternoon snack at 16:30, and dinner at 19:30.
+
+\textbf{Nutritional request.} A weekly meal plan of 1800 kcal/day with low glycemic index foods, controlled carbohydrate distribution coordinated with medication timing.
+
+\paragraph{Case 3: Multi-condition scenario, polycystic ovary syndrome (PCOS) with intolerances}
+\textbf{Patient profile.} Laura T., a 28-year-old female, seeks to regulate her menstrual cycle and lose 6 kg. She exercises regularly, attending gym sessions three times weekly (cardio and weight training). Her height is 162 cm, current weight 68 kg (BMI: 25.9). She has been diagnosed with polycystic ovary syndrome (PCOS), insulin resistance, and mild hyperandrogenism. Additionally, she has confirmed celiac disease and dietary nickel allergy (DAP). She follows a vegan/vegetarian diet, occasionally consuming fish but avoiding all meat. Due to her intolerances, she must exclude all gluten-containing grains and high-nickel foods such as tomatoes, spinach, and cocoa. Her meal schedule accommodates her training routine: breakfast at 8:00, pre-workout snack at 11:00, lunch at 14:00, afternoon snack at 17:00, and dinner at 20:30.
+
+\textbf{Nutritional request.} A weekly meal plan of 1600 kcal/day, gluten-free, low-nickel, with anti-inflammatory properties suitable for PCOS management and supporting physical activity.
+
+\subsubsection{Experimental procedure}
+
+To evaluate the practical benefits of PEaC in a real-world clinical setting, we conducted a within-subject comparative experiment. The professional dietitian created nutritional plans for the three patient cases using two approaches in counterbalanced order to control for learning effects:
+
+\paragraph{Approach A: Traditional direct prompting}
+The dietitian interacted directly with ChatGPT using natural language, formulating requests based on patient profiles as she would in routine practice. No predefined templates or structured formats were provided. The dietitian was free to organize information, request clarifications, and refine outputs through iterative dialogue.
+
+\paragraph{Approach B: PEaC modular templates}
+The dietitian used PEaC configuration files, selecting and combining relevant packs (instruction, condition, paradigm, output, preference) through the \texttt{extends} mechanism. Patient-specific parameters were defined in leaf nodes, leveraging the modular architecture established during the participatory design phase. To ensure proper system usage, we provided comprehensive instructional materials including: (i) a guide describing the modular pack system and decision rules for selecting appropriate modules based on patient characteristics (e.g., condition, dietary restrictions, goals); (ii) step-by-step procedures for using the PEaC GUI to compose and customize templates; and (iii) examples demonstrating how to modify the context, instruction, and output sections for patient-specific requirements. These materials were designed to minimize technical barriers, allowing the dietitian to focus on clinical decisions rather than system mechanics.
+
+For each approach and case, we recorded three quantitative metrics: (i) time required (minutes), measured from initial prompt formulation to final acceptable output; (ii) number of iterations, counting refinements, clarifications, or regeneration requests; and (iii) satisfaction rating on a 5-point Likert scale~\citep{Ferrando2025Likert}, assessed immediately after plan completion. To ensure measurement accuracy and minimize cognitive load on the dietitian, a researcher observed each session and recorded timing and iteration data using a structured form (Appendix~\ref{sec:data-collection-form}). This observer-based approach is standard practice in usability studies, as it allows the participant to focus entirely on the task without the distraction of self-monitoring, and avoids biases inherent in self-reported time estimates~\citep{Brocas2018SelfAwareness}. The experimental sequence alternated approaches across days (Day 1: A-B, Day 2: B-A, Day 3: A-B) to mitigate carry-over effects~\citep{Ho2025Causal,Lim2021Considerations,Barlow1979Alternating}.
+
+\subsection{Phase 3: Technology Acceptance Evaluation}
+
+The third phase assessed practitioner acceptance and perceived value through a structured questionnaire. Following the comparative experiment, we administered a Technology Acceptance Model (TAM) questionnaire adapted to the prompt engineering domain. TAM is a widely validated framework for assessing user acceptance of information systems~\cite{Davis1989}, measuring perceived usefulness and ease of use as predictors of technology adoption.
+
+The questionnaire comprised 27 items organized across seven dimensions:
+
+\begin{enumerate}
+\item \textbf{Ease of use} (5 items): organizing patient information, clarity of instructions, comprehension confidence, time efficiency, and iteration reduction.
+\item \textbf{Quality of results} (5 items): adherence to nutritional guidelines, personalization, completeness, required manual adjustments, and consistency across similar patients.
+\item \textbf{Reusability and management} (5 items): adaptation to similar patients, selective modification without full rewriting, template organization, knowledge sharing potential, and long-term maintainability.
+\item \textbf{Control and trust} (4 items): control over AI requests, confidence in delegation, verification of complete information, and enforcement of professional best practices.
+\item \textbf{Overall evaluation} (2 items): overall preference and recommendation likelihood.
+\item \textbf{Open-ended questions} (4 items): main advantages, main limitations, tasks complicated by PEaC, and one-sentence summary.
+\item \textbf{Background information} (2 items): prior AI usage duration and frequency in professional practice.
+\end{enumerate}
+
+Items 1--21 used 5-point Likert scales~\citep{Ferrando2025Likert} (1 = strongly disagree, 5 = strongly agree). Open-ended responses were collected for qualitative analysis of perceived benefits and barriers. Background questions used categorical response options to characterize the participant's prior experience with AI-assisted workflows. The complete questionnaire is provided in Appendix~\ref{sec:tam-questionnaire}.
+
+\subsection{Case Study Results}
+
+This section presents the results from the three-phase case study with the professional dietitian.
+
+\subsubsection{Comparative experiment results}
+
+\todo[inline]{ADD EXPERIMENTAL RESULTS HERE - After completing the experiment, provide:
+1. Raw data from all 6 sessions (3 cases × 2 approaches)
+2. Statistical analysis requirements (paired tests, effect sizes)
+3. Qualitative observations from the data collection forms
+4. Any patterns or notable differences across complexity levels}
+
+Table~\ref{tab:experiment-results} presents the quantitative results from the comparative experiment comparing traditional direct prompting (Approach A) with PEaC modular templates (Approach B) across three patient cases.
+
+\begin{table}[ht!]
+\centering
+\small
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{lcccccc}
+\toprule
+& \multicolumn{3}{c}{\textbf{Approach A}} & \multicolumn{3}{c}{\textbf{Approach B (PEaC)}} \\
+\cmidrule(lr){2-4} \cmidrule(lr){5-7}
+\textbf{Patient} & \textbf{T} & \textbf{It} & \textbf{S} & \textbf{T} & \textbf{It} & \textbf{S} \\
+\midrule
+Maria & XX & XX & XX & XX & XX & XX \\
+Giuseppe & XX & XX & XX & XX & XX & XX \\
+Laura & XX & XX & XX & XX & XX & XX \\
+\midrule
+Mean & XX & XX & XX & XX & XX & XX \\
+SD & XX & XX & XX & XX & XX & XX \\
+\bottomrule
+\end{tabular}
+\caption{Comparative experiment results. T = time (min), It = iterations, S = satisfaction (1--5). Approach A: traditional direct ChatGPT prompting. Approach B: PEaC modular templates.}
+\label{tab:experiment-results}
+\end{table}
+
+\todo[inline]{FILL DATA: Replace all XX values with actual experimental data}
+
+\todo[inline]{ADD STATISTICAL ANALYSIS: 
+- Paired t-test or Wilcoxon signed-rank test results for each metric (time, iterations, satisfaction)
+- Effect sizes (Cohen's d) to quantify practical significance
+- P-values and significance levels (* p < 0.05, ** p < 0.01, *** p < 0.001)
+- Brief interpretation: Was PEaC significantly faster/more efficient/more satisfying?}
+
+\todo[inline]{ADD NARRATIVE ANALYSIS:
+- Overall performance comparison: Which approach performed better and by how much?
+- Complexity effects: Did the advantage of PEaC increase with case complexity (base → complex → multi-condition)?
+- Qualitative observations from observer notes: What specific difficulties were noted? Were there learning effects?
+- Connection to design: How do these results validate the modular pack architecture described in Phase 1?}
+
+\subsubsection{Technology acceptance results}
+
+\todo[inline]{ADD TAM QUESTIONNAIRE RESULTS - After completing TAM questionnaire, provide:
+1. Quantitative scores for each of the 7 dimensions (Items 1-21)
+2. Summary statistics: mean scores per dimension
+3. Responses to open-ended questions (Items 22-25)
+4. Background information (Items 26-27)
+5. Overall interpretation: Was PEaC well-accepted? What were main perceived benefits/barriers?}
+
+\section{Experiment}
+\label{sec:experiment}
+
+This section validates Contribution 4 (evaluation metrics) and provides empirical evidence for Contributions 1--2 (specification and modularity). The core research question is: \emph{Does PEaC's modular approach reduce redundancy and improve maintainability in real-world prompt collections?} We address this through a controlled experiment comparing non-modular prompts (baseline) against refactored modular PEaC configurations. We introduce three novel metrics---Token Reduction Ratio (TRR), Reuse Efficiency (RE), and Modularity Index (MI)---specifically designed to quantify modularization effectiveness. Additionally, we employ semantic similarity analysis to validate that refactoring preserves prompt semantics. This experimental design establishes construct validity (metrics measure intended properties), internal validity (controlled comparison), and external validity (real-world prompt dataset from ``Awesome ChatGPT Prompts'').
+
+The study quantifies the benefits of the PEaC modular prompting approach in terms of token savings and structural maintainability. To this end, we compared two sets of PEaC configuration files: one comprising non-modular, self-contained configurations, and another consisting of refactored, modular PEaC prompts. The complete process, from the ``Awesome ChatGPT Prompts'' dataset to the generation of the final PEaC modules, is illustrated in Figure~\\ref{fig:process-dataset}.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{figs/peac-dataset-process-construction.drawio.png}
+    \caption{Process followed to construct the dataset used in the experiment}
+    \label{fig:process-dataset}
+\end{figure}
+
+\subsection{Dataset}
+As no suitable dataset was available, we constructed a synthetic one using prompts from the publicly available ``Awesome ChatGPT Prompts'' repository\footnote{https://github.com/f/awesome-chatgpt-prompts}. This section describes the process used to generate the synthetic dataset for this experiment.
+
+\subsubsection{The ``Awesome ChatGPT Prompt'' dataset}
+The ``Awesome ChatGPT Prompt'' dataset was developed as an open-source collection of diverse prompts for use with LLM models. The project also provides a web interface\footnote{\url{https://prompts.chat/}, accessed on 29/09/2025} that allows users to view, edit, and copy prompts for their preferred LLM service. All prompts are compiled into a \texttt{csv} file with three columns:
+\begin{itemize}
+    \item \texttt{act}: a short, descriptive role that the AI is expected to adopt, which defines the context for the interaction.
+    \item \texttt{prompt}: the detailed instructions and task for the AI to follow, acting in the role defined in the \texttt{act} column. 
+    \item \texttt{for\_devs}: a boolean value indicating whether the prompt's content is technical or development-related. 
+\end{itemize}
+Anyone can contribute new prompts to the collection, but all submissions are subject to review by maintainers via the GitHub ``Pull Request'' feature prior to acceptance. The dataset comprises 215 prompts spanning 10 domains (see Table~\ref{tab:prompts-per-domain}), including entertainment, education, technology, health, and business. The collection was downloaded in September 2025 under the repository's open license.
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.2} % aumenta l'altezza delle righe
+\begin{tabularx}{\textwidth}{X >{\centering\arraybackslash}p{2cm}}
+\toprule
+\textbf{Domain} & \textbf{\#prompts} \\
+\midrule
+Entertainment Games & 18 \\
+Education Training & 30 \\
+Technology Development & 59 \\
+Creative Arts & 25 \\
+Health Wellness & 17 \\
+Business Finance & 21 \\
+Utilities Tools & 13 \\
+Specialized Roles & 12 \\
+Personal Lifestyle & 19 \\
+Talk & 1 \\
+\midrule
+\textbf{Total} & \textbf{215} \\
+\bottomrule
+\end{tabularx}
+\caption{Number of prompts per domain}
+\label{tab:prompts-per-domain}
+\end{table}
+\lstinputlisting[style=shellstyle, caption=A single dataset entry in the Awesome ChatGPT prompt dataset, captionpos=b, label=lst:awesome-prompt-example]{listings/dataset/entry.txt}
+
+
+\subsubsection{Enriching the ``Awesome ChatGPT Prompt'' Dataset}
+The dataset comprises a variety of well-crafted prompts spanning multiple domains, primarily focused on providing specific instructions. 
+Listing~\ref{lst:awesome-prompt-example} presents an example of a single entry from the dataset.
+
+All prompts in the dataset adhere to this structure. 
+Consequently, the dataset does not facilitate a comprehensive analysis of the distinct sections that constitute a complex prompt.
+
+A key limitation is the absence of existing datasets containing well-structured prompt components, such as context, instruction, output, and other relevant sections. 
+Therefore, we needed to create a synthetic dataset that included these sections. 
+
+
+
+To better capture the complexity of prompt engineering (such as diverse instruction rules, output formats, and contextual information), we enriched these prompts by leveraging ChatGPT-5. Specifically, we provided the LLM with requirements and requested enhanced versions of the original prompts, adding more context, output specifications, and relevant details. 
+
+As an example, Listing~\ref{lst:awesome-enriched-prompt} shows the enriched version of the prompt shown in Listing~\ref{lst:awesome-prompt-example}.
+
+Appendix~\ref{sec:experiment-one} shows the prompt used to generate the enriched version.
+\lstinputlisting[style=shellstyle, caption=An enriched version of the prompt shown in Listing~\ref{lst:awesome-prompt-example}, captionpos=b, label=lst:awesome-enriched-prompt]{listings/dataset/enriched.txt}
+
+Once the enriched prompts were obtained, we converted them into two types of PEaC modules:
+
+\begin{enumerate}
+\item non-modular, self-contained PEaC files, which are direct translations of each enriched prompt into the PEaC specification language;
+\item modular PEaC files, which are refactored modules sharing common sections, such as output formats or context information.
+\end{enumerate}
+These pairs constituted the final dataset used in the experiment to compute the metrics defined in Section~\ref{sec:metrics}.
+
+Listing~\ref{lst:non-modular} and \ref{lst:modular} show an example of the two types of PEaC modules used to compute metrics described in Section~\ref{sec:metrics}.
+
+
+\lstinputlisting[style=yamlstyle, caption={Non-modular PEaC file for the enriched prompt shown in Listing~\ref{lst:awesome-enriched-prompt}}, label=lst:non-modular]
+{listings/dataset/non-modular-clean.yaml}
+
+\lstinputlisting[style=yamlstyle, caption={Modular PEaC file for the enriched prompt shown in Listing~\ref{lst:awesome-enriched-prompt}}, label=lst:modular]
+{listings/dataset/modular-clean.yaml}
+
+
+
+\subsubsection{The PEaC dataset generation process}
+To generate these two versions of PEaC modules, we continued to use ChatGPT-5. 
+Using a second prompt, we produced a PEaC specification file for each enriched prompt.
+We employed a few-shot learning strategy—providing the complete YAML example described in Section~\ref{sec:specification} along with the EBNF specification grammar shown in Listing~\ref{lst:ebnf-grammar}, to enable GPT-5 to generate valid PEaC modules (see Appendix~\ref{sec:experiment-two}). The LLM generated a bundled zip file containing \textit{210 non-modular YAML files}. GPT-5 did not convert five prompts, as these contained prohibited content, such as attempts to jailbreak the LLM, flirtation, or gaslighting.
+
+After reviewing the YAML files using the PEaC CLI, we refactored them to create modular PEaC files.
+
+To identify reusable components and extract base modules, we employed multiple complementary refactoring strategies (illustrated in Figure~\ref{fig:process-dataset}). First, we parsed the non-modular PEaC modules and extracted individual sentences. We then applied two main strategies: (i) \textit{semantic similarity clustering}, where sentences were embedded using the efficient \texttt{all-MiniLM-L6-v2} model and grouped based on cosine similarity; and (ii) \textit{keyword-based grouping}, where we performed lexical searches to identify sentences with similar meanings or recurring patterns. For each cluster of recurring sentences, we extracted a dedicated base PEaC module, which was subsequently imported by other modules as needed. Once these base modules were created, we refactored the non-modular PEaC files by replacing redundant sentences with references to shared modules via the \texttt{extends} section.
+
+In summary, this process resulted in two sets of files: non-modular, self-contained YAML files with redundant content, and modular PEaC configuration files that extend shared base modules.
+
+
+\begin{comment}
+The LLM produced refactored prompts by organizing shared modules into one context grounding prompt, nine domain-related contexts, and five output ``packs'', each corresponding to different types of guidelines (formatting, tone, safety, examples, and next-steps information).
+
+Each output was carefully reviewed and required several iterations to achieve satisfactory results. Generated modules were validated using the EBNF specification grammar and by running the PEaC CLI. 
+
+\end{comment}
+
+
+\subsubsection{Consideration about the limitations of the generated dataset}
+We emphasize that our goal was not to obtain a perfect dataset, but rather to create a preliminary one to illustrate the intuitive benefits of using a modular approach. Specifically, we aimed to compare the number of tokens in the unique PEaC modules generated from enriched prompts with those in the refactored PEaC modules. Further studies are needed to establish a `gold standard' dataset and to validate this preliminary experiment.
+
+
+%Figure~\ref{} illustrates 
+
+\subsection{Analyzed metrics}
+\label{sec:metrics}
+
+As described in the previous sections, to evaluate the benefits of PEaC modularization, we compare two representations of the same corpus of 210 enriched prompt.
+
+\begin{enumerate}
+    \item \emph{non-modular PEaC files}: each prompt is stored as a fully self-contained YAML file, with common elements (e.g., recurring context or stylistic guidelines) duplicated across files;
+    \item \emph{refactored PEaC files}: recurring elements are extracted into separate base modules, and leaf tasks import them via the \texttt{extends} keyword. In this representation, each base module is counted once, along with all leaf files (without expanding the \texttt{extends} section).
+\end{enumerate}
+
+This comparison allows us to quantify both the reduction in token usage and the structural properties of the modular corpus. 
+
+To evaluate these aspects, we introduce three novel metrics specifically designed for assessing prompt modularization:
+\begin{itemize}
+        \item \textbf{Token Reduction Ratio (TRR)};
+        \item \textbf{Reuse Efficiency (RE)};
+        \item \textbf{Modularity Index (MI)}.
+\end{itemize}
+
+These metrics are newly introduced in this work to quantify the benefits of modular prompt engineering. The TRR measures the overall reduction in token usage when moving from the flat to the modular representation. Let $\Sigma T_{orig}$ be the total token count across all self-contained prompts, and let $\Sigma T_{peac}$ be the total token count of the refactored PEaC corpus (with base modules counted once, plus all leaf modules). We define:
+\[
+TRR = \frac{\Sigma T_{orig} - \Sigma T_{peac}}{\Sigma T_{orig}} \times 100 \, .
+\]
+A higher TRR indicates that redundancies have been effectively removed through modularization.
+
+While TRR captures the global reduction, it does not measure the intensity of reuse. For this, we define Reuse Efficiency as:
+\[
+RE = \frac{\sum_{m \in M} \big( T(m) \times reuse(m) \big)}{\Sigma T_{orig}} \times 100 \, ,
+\]
+where $M$ is the set of base modules, $T(m)$ is the token count of module $m$, and $reuse(m)$ is the number of leaf prompts that import $m$. This metric reflects how many tokens are \emph{saved in practice} because a base module is reused rather than duplicated. Note that $RE$ may exceed $100\%$, since a single base can be leveraged across many leaves.
+
+Finally, we introduce the Modularity Index to capture structural richness.  
+Let $|M|$ be the number of unique base modules, $|L|$ the number of leaf prompts, and $d_{avg}$ the average number of base modules extended by each leaf.  
+We define:
+\[
+MI = \frac{|M|}{|L|} \times d_{avg} \, .
+\]
+This metric increases as the corpus employs more distinct modules and as leaves compose them with greater inheritance depth, reflecting the granularity and compositional strength of modularization.
+
+
+\subsection{Results}
+
+Following the methodology described above, we compared the self-contained corpus with the refactored PEaC corpus, in which repeated elements were extracted into base modules and leaf modules imported them via the \texttt{extends} mechanism. In the refactored representation, each base module was counted only once, along with all leaf modules.
+
+The results are summarized in Table~\ref{tab:metrics}. The self-contained PEaC modules contained a total of 65,145 tokens. After modular refactoring, the unique token count decreased to 49,465, yielding a Token Reduction Ratio of 24.07\%. This indicates that roughly one-quarter of redundant tokens were eliminated through reuse. The Reuse Efficiency of 51.25\% demonstrates that the extracted modules were valid and moderately leveraged across the 210 leaf modules. Finally, the Modularity Index of 2.707 reflects a substantial compositional structure, with an average inheritance depth of 3.29 modules per task, highlighting the effective modularization achieved through the creation of 173 base modules.
+
+\begin{table}[h]
+\centering
+\caption{Quantitative evaluation of modular prompting with PEaC. 
+$\Sigma T_{orig}$: total tokens in original self-contained modules; 
+$\Sigma T_{peac}$: total tokens after PEaC modularization; 
+$|M|$: number of reusable base modules created; 
+$|L|$: number of leaf prompt modules; 
+$d_{avg}$: average inheritance depth per leaf; 
+$TRR$: token reduction ratio (\%); 
+$RE$: reuse efficiency (\%); 
+$MI$: modularity index measuring compositional complexity.}
+\label{tab:metrics}
+\begin{tabular}{@{} M{0.45\textwidth} M{0.35\textwidth} @{}}
+\toprule
+\textbf{Metric} & \textbf{Value} \\
+\midrule
+$\Sigma T_{orig}$ & 65,145 \\
+$\Sigma T_{peac}$ & 49,465 \\
+$|M|$ & 173 \\
+$|L|$ & 210 \\
+$d_{avg}$ & 3.29 \\
+$TRR$ & 24.07\,\% \\
+$RE$ & 51.25\,\% \\
+$MI$ & 2.707 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Figure~\ref{fig:tokenreduction} compares token counts before and after modularization. The two-bar chart highlights both the absolute reduction of over 15,000 tokens and the relative efficiency gain, with the reduction bar annotated to indicate a 24.07\% saving, clearly demonstrating the practical benefits of adopting PEaC.
+
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.9\linewidth]{figs/peac_token_reduction_diagram.pdf}
+\caption{Token counts before and after PEaC modularization. The reduction represents a savings of 51.99\% in redundant tokens.}
+\label{fig:tokenreduction}
+\end{figure}
+
+Taken together, these findings demonstrate that PEaC’s modular design enables a substantial reduction in redundancy. Beyond statistical savings, the ability to centralize recurring elements in base modules offers significant maintainability advantages: modifications to a single base definition are consistently propagated to all dependent tasks. This combination of efficiency and maintainability suggests that modular prompting is not merely an optimization, but a methodological necessity for managing large-scale prompt collections.
+
+\subsection{Semantic Similarity Analysis}
+\label{sec:semantic-similarity}
+
+A natural concern is whether modular prompts maintain semantic equivalence to their self-contained counterparts. To address this question, we conducted a semantic similarity analysis comparing the 210 self-contained prompt modules with their modularized equivalents after PEaC refactoring.
+
+We compare four natural language processing metrics for the final prompt text generated by self-contained modules with those for the prompt text generated by modularized PEaC files:
+\begin{itemize}
+    \item \textbf{Cosine Similarity (TF-IDF)}: measures semantic similarity through term frequency-inverse document frequency vector representations;
+    \item \textbf{BLEU Score}~\citep{papineni-etal-2002-bleu}: evaluates lexical overlap using modified n-gram precision;
+    \item \textbf{BERTScore}~\citep{zhang2020bertscoreevaluatingtextgeneration}: leverages transformer-based contextual embeddings to assess semantic similarity at the token level;
+    \item \textbf{ROUGE}~\citep{lin-2004-rouge}: measures n-gram overlap and longest common subsequence matching.
+\end{itemize}
+
+Table~\ref{tab:semantic-metrics} presents the semantic similarity scores across all 210 prompt pairs. The consistently high scores across all metrics provide strong evidence of semantic preservation.
+
+\begin{table}[h!]
+\centering
+\caption{Semantic similarity between self-contained and modularized prompts across 210 pairs. Values represent mean ± standard deviation.}
+\label{tab:semantic-metrics}
+\begin{tabular}{@{} M{0.40\textwidth} M{0.30\textwidth} @{}}
+\toprule
+\textbf{Metric} & \textbf{Score (mean ± std)} \\
+\midrule
+Cosine Similarity (TF-IDF) & 0.944 ± 0.039 \\
+BLEU Score & 0.701 ± 0.192 \\
+BERTScore F1 & 0.930 ± 0.028 \\
+BERTScore Precision & 0.928 ± 0.036 \\
+BERTScore Recall & 0.932 ± 0.021 \\
+ROUGE-1 F1 & 0.838 ± 0.109 \\
+ROUGE-2 F1 & 0.794 ± 0.121 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The cosine similarity of 0.944 and BERT Score F1 of 0.930 indicate that modularized prompts preserve semantic content with over 93\% fidelity. Since large language models respond primarily to semantic content rather than syntactic structure, these high similarity scores suggest that modularized prompts should elicit equivalent responses from LLMs. Convergent evidence across four independent metrics indicates that PEaC modularization preserves semantic equivalence.
+
+However, we emphasize that \textbf{semantic equivalence analysis was not the primary objective of this work}. Our contribution is to present a framework for modular prompt engineering and to demonstrate its feasibility using token-reduction metrics. The semantic similarity analysis provides supplementary evidence that modularization does not compromise the prompt content. Comprehensive task-specific performance evaluation studies remain a focus of future research.
+
+\section{Discussion}
+\label{sec:discussion}
+
+This section discusses the theoretical and practical implications of PEaC.
+
+\subsection{Theoretical considerations}
+
+In this work, we have emphasized the importance of modularity and reusability in prompt engineering. While these may appear as trivial aspects, they actually encompass a set of fundamental principles rooted in software engineering, where they have driven significant developments over the years~\citep{strachey1960s,10.1145/365230.365257,10.5555/1243380,10.1145/361598.361623,6312940,10.1145/800233.807045,brooks1975mythical}. We believe that prompt engineering will follow a similar trajectory.
+
+The concept of modularity is also central in many other disciplines. In biology, organisms are organized into modules~\citep{LORENZ2011129}; in mechanical engineering, complex systems are designed as interchangeable subsystems~\citep{202401979,650323}; in mathematics, developments in algebra, particularly in category theory, aim to systematize and render algebraic structures ``modular''~\citep{Muger2003}.
+
+In the context of prompt engineering, the organization of prompts will become increasingly important, necessitating a systematic and structured approach. Through the concept of ``extends'' in software inheritance, modularity can be applied to prompts, enabling their reuse across different tasks.
+
+Another crucial aspect is the definition of a well-structured format for prompts. \cite{Giray2023} provides an insightful analysis of prompt structure, which we leveraged in developing the PEaC specification.
+
+As shown in the examples presented in previous sections, nearly every prompt can be divided into fundamental sections. This structure is simple yet effective, as it improves prompt quality by constraining composition to specific, meaningful elements.
+
+We argue that enforcing a formal specification during prompt creation encourages users to carefully consider all structural aspects of a prompt, ultimately enhancing the performance of generative tasks.
+
+\subsection{Practical implications}
+
+In previous sections, we have shown that it is possible to design modular prompts for specific use cases and to refactor existing prompts to enhance modularity.
+
+The use case clearly illustrates the relevance of modular prompts when interacting with generative models. For example, a nutritionist's output style can remain consistent across different diets while still addressing each patient’s specific dietary requirements.
+
+This principle applies across various domains. Professionals often follow general guidelines while tailoring actions to specific cases. A lawyer may adhere to standard defensive strategies while making case-specific requests. Similarly, a security expert may define best practices for system design while providing context-specific guidance for particular projects. Broad concepts can be captured in base PEaC modules, while domain- or case-specific aspects can be implemented in modules that extend these base modules.
+
+Even in education, instructors can create PEaC modules containing exercises that extend base prompts with relevant concepts and domain-specific information. Students can then use these generated prompts for practice, facilitating structured and modular learning.
+
+Researchers also require reproducible methodologies~\citep{Bouthillier2019}, and the PEaC specification provides a straightforward way to formalize which prompts were used in experiments. The metrics defined in Section~\ref{sec:experiment} can offer an interesting evaluation of the quality of prompts employed in research.
+
+Another relevant practice, commonly adopted in software engineering, is version control~\citep{ZOLKIFLI2018408}. PEaC modules can be managed using version control systems like GitHub, applying standard software development practices such as semantic versioning~\citep{semver2}. The recent systematic review by \cite{Syahputri2025} provides a clear example of integrating version control into PEaC workflows.
+
+\subsection{Limitations and Future Directions}
+\label{sec:further-considerations}
+
+While PEaC advances research in modular prompt engineering, several limitations should be acknowledged, alongside directions for future work.
+
+\paragraph{Limited Support for Dynamic Variables.} One of PEaC's core design principles is simplicity in writing modules. Consequently, advanced features such as variables or string manipulation functions are not natively included in the specification. These features could be valuable in certain scenarios. For example, one prompt might instruct, ``Summarize the text in 100 words'', whereas another specifies, ``Summarize the text in 50 words''. Without external integrations, PEaC would require two separate modules for these prompts, which is inefficient.
+
+This limitation can be addressed using approaches similar to~\cite{impromptu}. A single module could be defined with a sentence following the Jinja templating syntax, such as: ``Summarize the text in {num} words''. External tools can then replace the \texttt{num} variable as needed. Optionally, the PEaC specification could be extended to support variables directly, as illustrated in Listing~\ref{lst:variables}.
+
+\lstinputlisting[style=yamlstyle, caption={Example of extending the PEaC specification to include dynamic prompts.}, label=lst:variables]
+{listings/dataset/example-variables.yaml}
+
+We intentionally kept such advanced features outside the core PEaC specification to maintain alignment with the prompt structure described by~\cite{Giray2023}. External tools can implement this functionality after generating prompts using PEaC.
+
+\paragraph{Challenges with Adversative Conjunctions.} Another consideration concerns prompts containing adversative conjunctions (e.g., ``but'', ``however''), which present structural challenges for modularization. For instance, consider the prompt:
+
+``Invent fictional details for storytelling, hypothetical examples, or creative brainstorming, but never present fabricated facts as real, verified information''.
+
+This prompt contains contrasting instructions that cannot be easily separated into different modules and must therefore remain in a single module, reducing PEaC's modularity. Further research is needed to address this limitation. However, prompts requiring adversative conjunctions are likely less common, as they may confuse the LLM. PEaC handles additive conjunctions (e.g., ``and'', ``also'') effectively, which represent the majority of compositional prompt structures.
+
+\paragraph{Absence of Optimization Features.} Related works such as DSPy~\citep{khattab2023dspy} explore advanced features, including teleprompters that refine prompts using training sets, metrics, or hyperparameters defined in the template. By contrast, PEaC deliberately excludes optimization strategies unrelated to prompt content. Our goal was to maintain simplicity and focus on structural composition, as we believe these features fall outside PEaC's primary scope. Additionally, PEaC modules are designed to be easily shared and reproduced, whereas optimization strategies could complicate reproducibility, which is a core pillar of research.
+
+Future work could investigate hybrid approaches that combine PEaC's modular architecture with optimization frameworks. For example, a PEaC module could serve as input to an optimization pipeline that adjusts component weights or selection strategies based on task-specific metrics, while preserving the underlying modular structure for reproducibility.
+
+\paragraph{Need for Empirical Performance Validation.} As discussed in Section~\ref{sec:scope-performance}, the current work focuses on establishing the methodological foundation for modular prompt engineering. While semantic similarity analysis (Section~\ref{sec:semantic-similarity}) provides preliminary evidence that modularization preserves prompt semantics, comprehensive task-specific performance evaluation remains future work. Future research should develop standardized benchmarks for comparing modular and non-modular prompts across diverse downstream tasks, investigate whether certain modularization strategies preserve performance better than others, and examine edge cases where refactoring might inadvertently alter prompt effectiveness.
+
+\paragraph{Expanding the Provider Ecosystem.} The current provider architecture supports local files, web content, and RAG-based retrieval. Future extensions could include: (i) integration with structured databases (SQL, NoSQL) for dynamic data injection; (ii) support for API-based content sources (e.g., real-time news feeds, weather data); (iii) collaborative filtering mechanisms that recommend relevant modules based on usage patterns; and (iv) version control integration to track module evolution and facilitate collaborative prompt engineering workflows.
+
+\paragraph{Community-Driven Module Libraries.} Similar to the efforts of the PromptSource community~\citep{bach2022promptsource}, which has developed approximately 2,000 prompts for various datasets, we envision a community-driven repository of PEaC modules. Such a repository could enable more comprehensive experiments (as outlined in Section~\ref{sec:experiment}) and yield more interesting insights into reusability patterns, domain-specific module design, and cross-domain prompt adaptation. Establishing governance mechanisms, quality assurance processes, and standardized metadata for module discovery would be essential components of this initiative.
+
+
+\subsection{Scope and Performance Considerations}
+\label{sec:scope-performance}
+
+This work presents PEaC as a \textit{framework for modular prompt engineering}, not as a task-specific performance optimization study. Our primary contributions are: (i) a formal specification language with EBNF grammar; (ii) an extensible architecture supporting multiple content providers; (iii) demonstration of token reduction through modularity; and (iv) real-world applicability through the nutritionist use case.
+
+Regarding the relationship between modularity and LLM performance, we note that:
+
+\paragraph{Current Evidence.} The semantic similarity analysis presented in Section~\ref{sec:semantic-similarity} demonstrates that modularized prompts preserve semantic content with >94\% fidelity across multiple metrics. This provides preliminary evidence that modularization does not degrade prompt quality. Since LLMs respond primarily to semantic content, high semantic similarity suggests comparable performance.
+
+\paragraph{Limitations of Current Analysis.} Our semantic similarity evaluation compares \textit{prompt text} rather than \textit{LLM outputs}. A comprehensive performance study would require: (i) selecting representative downstream tasks; (ii) executing both modular and non-modular prompts on these tasks; (iii) evaluating outputs using task-specific metrics; and (iv) conducting statistical significance testing. Such an undertaking falls outside the scope of this methodological contribution and would be better addressed through dedicated empirical studies comparing different modularization approaches.
+
+\paragraph{Limited Scope of User Perception Study.} The real-world case study presented in Section~\ref{sec:use-case} prioritizes framework demonstration over comprehensive user perception evaluation. To fully assess user experience with the PEaC framework and GUI, additional perception studies are necessary to analyze user preferences, interaction patterns, and perceived effectiveness regarding context-instruction-output-extends structures and GUI usability. To mitigate this validity threat, we involved domain experts and employed participatory design methods to develop both the modular pack system and the system prompts guiding the AI interactions, thereby grounding the design in authentic clinical requirements.
+
+\paragraph{Theoretical Expectations.} From a theoretical perspective, if two prompts are semantically equivalent (as evidenced by >0.9 similarity scores), we expect them to produce functionally equivalent LLM behavior. The modularization process in PEaC is designed to be \textit{lossless}: the final assembled prompt after resolving \texttt{extends} references should contain the same semantic content as the original, merely reorganized for maintainability and reuse.
+
+\paragraph{Future Research Directions.} Empirical validation of performance preservation across diverse tasks remains an important research direction. Future work should: (i) develop standardized benchmarks for evaluating modular vs. non-modular prompts; (ii) investigate whether certain modularization strategies preserve performance better than others; (iii) examine edge cases where refactoring might inadvertently alter prompt semantics; and (iv) explore the interaction between modularity and specific LLM architectures or fine-tuning approaches.
+
+We acknowledge that demonstrating performance equivalence through direct A/B testing would strengthen our claims. However, the current work establishes the foundational infrastructure and methodology for modular prompt engineering, upon which such empirical studies can be built. The semantic similarity analysis provides preliminary evidence supporting our approach, while recognizing that comprehensive task-specific validation remains future work.
+\section{Conclusions}
+\label{sec:conclusions}
+
+This work addresses a fundamental research challenge in prompt engineering: the lack of standardization, modularity, and formal validation in prompt construction. We have introduced a formal EBNF grammar specification that enables machine-readable validation, automated tooling, and unambiguous interpretation of prompt structures, elevating prompt engineering from informal practice to rigorous specification methodology. The \texttt{extends} keyword mechanism implements inheritance-based composition, enabling systematic decomposition of prompts into reusable components. Our experiments demonstrate 24.07\% token reduction through modularization, with reuse efficiency of 0.64 and modularity index of 0.57, validating that this mechanism addresses redundancy in real-world prompt collections. We have also proposed an extensible provider architecture for integrating heterogeneous data sources through a unified interface, preserving data sovereignty and enabling version-controlled, reproducible prompt specifications. Finally, we introduced three novel metrics (Token Reduction Ratio, Reuse Efficiency, Modularity Index) complemented by semantic similarity analysis demonstrating >94\% fidelity preservation, providing a methodological foundation for empirical evaluation.
+
+These contributions have been validated through implementation of twelve established prompt engineering techniques (Section~\ref{sec:pe-strategies}), a real-world clinical nutrition use case (Section~\ref{sec:use-case}), and quantitative experiments on 210 prompts (Section~\ref{sec:experiment}). We have released PEaC under the MIT license\footnote{Released after paper review}, including the formal grammar, reference implementation, and experimental datasets to facilitate reproducibility and community adoption.
+
+This work establishes foundational infrastructure for modular prompt engineering, analogous to formal grammars and modular design patterns in software engineering. Our primary contribution is \emph{methodological}---establishing formal specifications, architectural patterns, and evaluation metrics---upon which future empirical studies can build. The semantic similarity analysis (Section~\ref{sec:semantic-similarity}) provides preliminary evidence that modularization preserves content, while comprehensive performance benchmarking across diverse tasks remains important future work.
+
+Future research directions include comprehensive task-specific performance evaluation comparing modularization strategies, automated refactoring tools leveraging the EBNF grammar, and community-driven repositories of validated PEaC modules. Creating gold standard datasets of refactored prompts would enable comparative benchmarking. User studies comparing manual prompt writing with PEaC-guided composition could validate whether structured decomposition improves prompt quality. Domain-specific applications beyond clinical nutrition---such as education, legal document analysis, and scientific literature review---could establish generalizability. Integration with widely adopted LLM frameworks (Ollama~\cite{website-ollama}, LangChain~\cite{website-langchain}) would broaden adoption. Extension to multimodal prompting and soft prompt tuning~\cite{li2021prefixtuningoptimizingcontinuousprompts} represents technically challenging directions requiring careful investigation due to model-specific dependencies.
+
+Prompt engineering is an emerging field that will continue to evolve. We hope this work advances standardization, reproducibility, and collaborative development of prompts by providing formal foundations and practical methodologies.
+
+
+\appendix
+%\section{Example of PEAC YAML configuration file}
+
+\section{Nutritionist Use Case: PEaC Pack Examples}
+\label{sec:nutrition-packs}
+
+This appendix provides the complete YAML configuration files for the nutritionist use case described in Section~\ref{sec:use-case}. The listings demonstrate the modular pack system, including instruction, condition, paradigm, output, and preference packs, as well as patient-specific leaf configurations.
+
+\subsection{Modular Packs}
+
+\lstinputlisting[style=yamlstyle,caption={Instruction pack: professional role and guardrails.},label=lst:instr]
+{listings/nutrition/instruction-pack.yaml}
+
+\lstinputlisting[style=yamlstyle,caption={Condition pack for IBS patients.},label=lst:cond-ibs]
+{listings/nutrition/condition-pack.yaml}
+
+\lstinputlisting[style=yamlstyle,caption={Paradigm pack for Mediterranean diet.},label=lst:paradigm-med]
+{listings/nutrition/paradigm-pack.yaml}
+
+\lstinputlisting[style=yamlstyle,caption={Output pack: structure and stylistic conventions.},label=lst:output-style]
+{listings/nutrition/output-pack.yaml}
+
+\lstinputlisting[style=yamlstyle,caption={Preference pack for fish-rich diet.},label=lst:pref-fish]
+{listings/nutrition/preference-pack.yaml}
+
+\subsection{Patient-Specific Leaf Configurations}
+
+\lstinputlisting[style=yamlstyle,caption={Leaf PEaC for a patient with IBS and weight-loss goal (Mediterranean).},label=lst:nutri-leaf]
+{listings/nutrition/leaf-1.yaml}
+
+\lstinputlisting[style=yamlstyle,caption={Paradigm swap to ketogenic diet.},label=lst:paradigm-swap]
+{listings/nutrition/leaf-swap.yaml}
+
+\newpage
+\section{Example of Generated Prompt}
+\label{sec:example}
+\lstinputlisting[style=promptoutput, caption={Example of Generated Prompt Output from PEaC YAML Configuration}, label=lst:generated-prompt]{listings/example-output.txt}
+
+
+%\section{EBNF formal grammar of the PEaC specification language}
+
+\newpage
+\section{PEaC Use Case Activity Diagram}
+\label{sec:peac-integration}
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.7\linewidth]{figs/PEaC_UseCase_Sequence.png}
+    \caption{PEaC Use Case Activity Diagram. This diagram illustrates the complete workflow from YAML configuration creation through content processing to final prompt generation, showing the decision points and parallel processes involved in the PEaC system.}
+    \label{fig:peac-usecase}
+\end{figure}
+
+\newpage 
+\section{PEaC Integration Activity Diagram}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.9\linewidth]{figs/PEaC_Integration_Sequence.png}
+    \caption{PEaC Integration Activity Diagram. This diagram demonstrates the various integration pathways available in PEaC, including CLI usage, Python library integration, and GUI-based workflows, along with the interaction patterns with external LLM services.}
+    \label{fig:peac-integration}
+\end{figure}
+
+\section{Medical and Dietary History Form}
+\label{sec:medical-form}
+
+\subsection*{Personal Data}
+\begin{tabular}{@{}ll}
+Patient: & \dotfill \\
+Age: & \dotfill \\
+Date of birth: & \dotfill \\
+Reason for visit: & \dotfill \\
+Mobile phone: & \dotfill \\
+Physical activity: & Sedentary \quad Active \quad Athletic \\
+\end{tabular}
+
+\vspace{0.5cm}
+
+\subsection*{Clinical History}
+\begin{tabular}{@{}ll}
+Previous diets: & Yes \quad No \quad Self-managed \quad With professional \\
+Maximum weight: & \dotfill \\
+Minimum weight: & \dotfill \\
+Blood tests: & \dotfill \\
+Family history of diabetes: & \dotfill \\
+Current pathologies: & \dotfill \\
+Medication use: & No \quad Yes, which? \dotfill \\
+Food allergies/intolerances: & \dotfill \\
+Bowel regularity: & \dotfill \\
+Menstrual cycle: & \dotfill \\
+\end{tabular}
+
+\vspace{0.5cm}
+
+\subsection*{Dietary History}
+\begin{tabular}{@{}ll}
+Breakfast: & \dotfill \\
+Morning snack: & \dotfill \\
+Lunch: & \dotfill \\
+Afternoon snack: & \dotfill \\
+Dinner: & \dotfill \\
+After dinner: & \dotfill \\
+\end{tabular}
+
+\vspace{0.5cm}
+
+\noindent
+\textbf{Daily consumption:}
+\begin{tabular}{@{}ll}
+Water (liters/day): & \dotfill \\
+Carbonated/alcoholic beverages: & \dotfill \\
+Coffee: & \dotfill \\
+Smoking: & \dotfill \\
+\end{tabular}
+
+\vspace{0.5cm}
+
+\noindent
+\textbf{Main food groups:}
+\begin{itemize}
+    \item \textbf{Meat:} chicken, turkey, rabbit, veal, beef
+    \item \textbf{Cured meats:} raw ham, cooked ham, bresaola, turkey, chicken
+    \item \textbf{Fish:} cod, anchovies, salmon, swordfish, sea bream, seabass, grouper, squid, shrimp, octopus, cuttlefish, tuna, mackerel, sole
+    \item \textbf{Vegetables:} tomatoes, lettuce, spinach, broccoli, zucchini, pumpkin, cabbage, savoy, artichokes, green beans, mushrooms, carrots, peppers, eggplants, asparagus, fennel, mixed soup, potatoes, chard, friarielli, escarole
+    \item \textbf{Legumes:} beans, peas, chickpeas, lentils, broad beans, mixed
+    \item \textbf{Dairy:} ricotta, mozzarella, provola, fiordilatte \quad 
+          \textbf{Cheese:} hard, soft, spreadable, feta, parmesan
+    \item \textbf{Eggs:} Yes \quad No \quad 
+          \textbf{Milk:} Yes \quad No \dotfill \quad 
+          \textbf{Yogurt:} Yes \quad No (Greek) F or W \quad (Classic) F or W \quad Kefir Yes/No
+    \item \textbf{Fresh fruit:} Yes \quad No \quad 
+          \textbf{Dried fruit:} Yes \quad No \quad 
+          \textbf{Lupini beans:} Yes \quad No \quad 
+          \textbf{Herbal teas:} Yes \quad No
+    \item \textbf{Dark chocolate:} Yes \quad No \quad 
+          \textbf{Free weekends?}
+\end{itemize}
+
+
+
+\section{Experiment prompt \#1: Enrich the ``Awesome ChatGPT Prompts'' dataset}
+\label{sec:experiment-one}
+
+
+
+
+\lstinputlisting[style=shellstyle, caption=First prompt that generates 215 enriched prompts, captionpos=b, label=lst:first-prompt]{listings/experiment-prompt-1.txt}
+
+\section{Experiment prompt \#2: From enriched prompts to PEaC modules}
+\label{sec:experiment-two}
+
+\lstinputlisting[style=shellstyle, caption=Second prompt that generates 215 PEaC modules, captionpos=b, label=lst:second-prompt]{listings/experiment-prompt-2.txt}
+
+
+\begin{comment}
+\section{Experiment prompt \#3: Makes PEaC configuration files modular}
+\label{sec:experiment-three}
+\lstinputlisting[style=shellstyle, caption=Third prompt that generates 215 modular PEaC configuration files, captionpos=b, label=lst:third-prompt]{listings/experiment-prompt-3.txt}
+
+\end{comment}
+
+\section{Data Collection Form}
+\label{sec:data-collection-form}
+
+This appendix presents the structured form used by the researcher to record quantitative metrics during each experimental session. The form was completed by direct observation to ensure accurate timing and iteration counts while allowing the dietitian to focus entirely on the task.
+
+\subsection*{Experimental Session Data Collection Form}
+
+\begin{verbatim}
+═══════════════════════════════════════════════════════════
+         COMPARATIVE EXPERIMENT - DATA COLLECTION FORM
+═══════════════════════════════════════════════════════════
+
+SCENARIO: _____ (1: Maria / 2: Giuseppe / 3: Laura)
+METHOD:   _____ (A: Direct ChatGPT / B: PEaC Templates)
+DATE:     ____/____/______
+OBSERVER: _______________________
+
+───────────────────────────────────────────────────────────
+ TIMING
+───────────────────────────────────────────────────────────
+Start time:         ____:____
+End time:           ____:____
+Total time:         _____ minutes
+
+───────────────────────────────────────────────────────────
+ ITERATIONS
+───────────────────────────────────────────────────────────
+Number of modifications/attempts: _____
+
+Iteration log:
+1. _______________________________________________
+2. _______________________________________________
+3. _______________________________________________
+4. _______________________________________________
+5. _______________________________________________
+
+───────────────────────────────────────────────────────────
+ SATISFACTION (completed by dietitian)
+───────────────────────────────────────────────────────────
+Satisfaction rating (1-5):  _____
+
+1 = Very unsatisfied
+2 = Unsatisfied
+3 = Neutral
+4 = Satisfied
+5 = Very satisfied
+
+───────────────────────────────────────────────────────────
+ QUALITATIVE NOTES
+───────────────────────────────────────────────────────────
+Difficulties observed:
+_________________________________________________________
+_________________________________________________________
+_________________________________________________________
+
+Dietitian comments:
+_________________________________________________________
+_________________________________________________________
+_________________________________________________________
+
+LLM platform used: ☐ ChatGPT  ☐ Gemini  ☐ Other: _______
+
+Acceptable output achieved: ☐ Yes  ☐ No
+
+═══════════════════════════════════════════════════════════
+\end{verbatim}
+
+\section{Technology Acceptance Model (TAM) Questionnaire}
+\label{sec:tam-questionnaire}
+
+This appendix presents the complete Technology Acceptance Model questionnaire administered to the professional dietitian following the comparative experiment described in Section~\ref{sec:use-case}. Items 1--21 use 5-point Likert scales~\citep{Ferrando2025Likert} (1 = strongly disagree, 5 = strongly agree).
+
+\subsection*{Part 1: Ease of Use}
+
+\textbf{With PEaC modular templates compared to writing directly to the AI...}
+
+\begin{enumerate}
+\item It is easier to organize patient information (preferences, conditions, goals)
+\item I can provide clearer and more complete instructions to the AI
+\item I feel more confident that the AI correctly understands my requests
+\item I spend less time preparing the request for the AI
+\item I need fewer attempts before obtaining a satisfactory dietary plan
+\end{enumerate}
+
+\subsection*{Part 2: Quality of Results}
+
+\textbf{Nutritional plans generated with PEaC compared to those with direct AI requests...}
+
+\begin{enumerate}[resume]
+\item Are more adherent to the nutritional guidelines I follow
+\item Are more personalized to the specific needs of the patient
+\item Are more complete (include all necessary information)
+\item Require fewer manual modifications from me
+\item Are more consistent across patients with similar profiles
+\end{enumerate}
+
+\subsection*{Part 3: Reusability and Management}
+
+\textbf{With PEaC modular templates...}
+
+\begin{enumerate}[resume]
+\item It is easier to adapt an existing plan for a new similar patient
+\item I can easily change only specific parts (e.g., only dietary restrictions) without rewriting everything
+\item My templates are organized clearly and I can find them easily
+\item I could more easily share my method with a colleague nutritionist
+\item If in 6 months I need to modify something, I will more easily understand what I did
+\end{enumerate}
+
+\subsection*{Part 4: Control and Trust}
+
+\textbf{Using PEaC modular templates compared to writing directly...}
+
+\begin{enumerate}[resume]
+\item I have more control over what I am asking the AI
+\item I feel more confident in delegating the creation of diet drafts to the AI
+\item It is easier to verify that I have not forgotten important information
+\item I can better ensure that my professional best practices are always applied
+\end{enumerate}
+
+\subsection*{Part 5: Overall Evaluation}
+
+\begin{enumerate}[resume]
+\item Overall, I prefer using PEaC modular templates over writing directly to the AI
+\item I would recommend the modular template approach to other nutritionists
+\end{enumerate}
+
+\subsection*{Part 6: Open-Ended Questions}
+
+\begin{enumerate}[resume]
+\item What is the main \textbf{advantage} you perceived using PEaC modular templates?
+\item What is the main \textbf{limitation or difficulty} you encountered with PEaC?
+\item Is there anything you could do easily writing directly to the AI, but became more complicated with PEaC?
+\item If you had to explain PEaC to a colleague in one sentence, what would you say?
+\end{enumerate}
+
+\subsection*{Part 7: Background Information}
+
+\begin{enumerate}[resume]
+\item How long have you been using AI tools (ChatGPT, Gemini, etc.) in professional practice?
+\begin{itemize}
+    \item[$\square$] Never used before
+    \item[$\square$] < 6 months
+    \item[$\square$] 6--12 months
+    \item[$\square$] > 1 year
+\end{itemize}
+\item Before this study, how frequently did you use AI to create nutritional plans?
+\begin{itemize}
+    \item[$\square$] Never
+    \item[$\square$] Rarely (< 1 time/month)
+    \item[$\square$] Occasionally (1--2 times/month)
+    \item[$\square$] Regularly (1+ times/week)
+\end{itemize}
+\end{enumerate}
+
+
+%% Loading bibliography style file
+ % Example: show only one author and et al.
+\bibliographystyle{apacite}
+ 
+%\bibliographystyle{cas-model2-names}
+
+% Loading bibliography database
+\bibliography{cas-refs}
+
+
+
+
+
+
+\end{document}
