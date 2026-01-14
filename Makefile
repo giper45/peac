@@ -100,6 +100,25 @@ test-performance:
 	@echo "Running performance benchmarks (50 runs, ~10 minutes)..."
 	poetry run pytest tests/test_performance.py -v -s
 
+# Run FAISS-only performance test (requires FAISS installation)
+test-performance-faiss:
+	@echo "Running FAISS performance benchmark (requires FAISS installed)..."
+	@echo "If not installed: make faiss-cpu"
+	poetry run pytest tests/test_performance.py::TestRAGPerformance::test_faiss_performance -v -s
+
+# Quick sanity checks (5 runs)
+benchmark-quick:
+	@echo "Running quick benchmark (FastEmbed, 5 runs)..."
+	poetry run python scripts/test_benchmark_quick.py
+
+benchmark-quick-faiss:
+	@echo "Running quick benchmark (FAISS, 5 runs; requires FAISS)..."
+	poetry run python scripts/test_benchmark_quick.py --faiss
+
+benchmark-quick-both:
+	@echo "Running quick benchmark (FastEmbed + FAISS, 5 runs; FAISS required)..."
+	poetry run python scripts/test_benchmark_quick.py --both
+
 # Generate corpus and run benchmarks
 benchmark:
 	@echo "Running full benchmark suite with corpus generation..."

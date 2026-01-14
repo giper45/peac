@@ -34,6 +34,7 @@ straightforward as possible.
 - EBNF grammar file in docs/
 - Hierarchical extends regression tests and local-rules validation tests
 - Coverage tests for all `examples/usecase/nutrizione-*` YAML prompts
+- Integrated FastEmbed benchmark results into MANUSCRIPT_TEXT.md (50 runs on 100-document corpus); updated analysis to reflect single-provider reporting.
 
 ### Changed
 - Refactored RagProvider to modular provider architecture
