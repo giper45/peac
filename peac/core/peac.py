@@ -1,5 +1,6 @@
 import os
 import re
+from pathlib import Path
 from typing import List
 from xml.etree import ElementTree
 import requests
@@ -205,27 +206,46 @@ def find_path(p, parent_path = ''):
     """
     Resolve path relative to parent_path if it's a relative path,
     otherwise return the absolute path as-is.
+    Cross-platform: handles both forward and backslashes.
     """
+    # Normalize separators first (convert Windows \ to Unix /)
+    # This works on all platforms as Path accepts / everywhere
+    p = p.replace('\\', '/')
+    
+    # Convert to Path for cross-platform handling
+    path_obj = Path(p)
+    
     if parent_path == '':
-        parent_path = os.path.dirname(p)
+        parent_path = str(path_obj.parent)
     
     # If path is already absolute, return as-is
-    if os.path.isabs(p):
-        return p, parent_path
+    if path_obj.is_absolute():
+        return str(path_obj), parent_path
     
     # For relative paths, resolve them relative to parent_path
-    resolved_path = os.path.normpath(os.path.join(parent_path, p))
-    return resolved_path, parent_path
+    # Path handles both / and \\ automatically
+    parent_obj = Path(parent_path)
+    resolved_path = (parent_obj / path_obj).resolve()
+    return str(resolved_path), parent_path
 
 class PromptYaml:
     def __init__(self, yaml_path, parent_path = '', add_section_headers=True):
         # Resolve the YAML file path and set parent_path to its directory
-        if not os.path.isabs(yaml_path) and parent_path:
-            yaml_path = os.path.normpath(os.path.join(parent_path, yaml_path))
+        # First, normalize separators for cross-platform compatibility
+        # Replace backslashes with forward slashes (Path handles this on all platforms)
+        yaml_path = yaml_path.replace('\\', '/')
         
+        # Use Path for cross-platform compatibility
+        yaml_path_obj = Path(yaml_path)
+        if not yaml_path_obj.is_absolute() and parent_path:
+            yaml_path_obj = (Path(parent_path) / yaml_path_obj).resolve()
+        else:
+            yaml_path_obj = yaml_path_obj.resolve()
+        
+        yaml_path = str(yaml_path_obj)
         self.add_section_headers = add_section_headers
         # Set parent_path to the directory containing the YAML file
-        self.parent_path = os.path.dirname(os.path.abspath(yaml_path))
+        self.parent_path = str(yaml_path_obj.parent)
 
         # Read YAML data from file
         with open(yaml_path, "r") as file:

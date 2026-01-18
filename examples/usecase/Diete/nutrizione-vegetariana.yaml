@@ -1,0 +1,41 @@
+prompt:
+  extends:
+    - nutrizione-base.yaml
+  
+  context:
+    base:
+      - "Scelta dietetica vegetariana/vegana: esclusione carne"
+      - "Esigenza: proteine sufficienti da fonti vegetali"
+      - "Considerazione: Omega-3, B12, ferro, zinco (micronutrienti critici)"
+      - "Stile di vita: possibile coinvolgimento etico/ambientale"
+    
+    local:
+      vegetarian-protein-sources:
+        source: consigli/vegetariano-proteine.md
+      omega3-vegetarian:
+        source: consigli/omega3-vegetale.md
+      micronutrients-vegan:
+        source: consigli/b12-ferro-zinco.md
+  
+  instruction:
+    base:
+      - "Proteine da legumi, cereali integrali, semi, noci, tofu/tempeh"
+      - "Combinare aminoacidi: legumi + cereali per profilo amminoacidico completo"
+      - "Omega-3 vegetali: semi lino, chia, noci, alghe DHA/EPA se vegan"
+      - "Ferro non-eme: abbinare con vitamina C per assorbimento (agrumi, peperoni)"
+      - "B12: considerare supplementazione o alimenti fortificati se vegan"
+      - "Zinco: semi di zucca, ceci, lievito nutrizionale"
+      - "Preferire alimenti integrali, minimizzare ultra-processati"
+      - "Se dieta vegana/vegetariana con PCOS e restrizione nichel che limita legumi: garantire adeguatezza proteica con tofu/tempeh, seitan (se tollerato), prodotti proteici vegetali raffinati low-nickel, proteine in polvere (pisello/riso/patata), senza proporre pesce salvo esplicita richiesta del paziente"
+  
+  output:
+    base:
+      - "Piano settimanale bilanciato da proteine vegetali"
+      - "5-6 pasti con combinazioni proteiche complete"
+      - "Varietà di legumi, cereali, semi, noci"
+      - "Includi opzioni vegane se richiesto (no latticini/uova)"
+      - "Note su supplementi se necessari (B12, Omega-3)"
+      - "Idratazione: 2L+ giornaliera"
+      - "Se nichel limita legumi, esplicitare fonti proteiche alternative low-nickel e uso di polveri proteiche; chiarire che il pesce non è previsto salvo scelta del paziente"
+  
+  query: "Piano dietetico vegetariano/vegano con proteine complete da legumi e cereali, B12 supplementazione, ferro vegetale con vitamina C e Omega-3 vegetale."

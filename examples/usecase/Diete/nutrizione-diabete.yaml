@@ -1,0 +1,47 @@
+prompt:
+  extends:
+    - nutrizione-base.yaml
+  
+  context:
+    base:
+      - "Diabete mellito: focus controllo glicemico con alimenti low-GI"
+      - "Distribuire carboidrati uniformemente. Farmaci: considerare timing nei pasti"
+    
+    local:
+      diabetes-food-list:
+        source: consigli/diabete.txt
+  
+  instruction:
+    base:
+      - "Limitare carboidrati semplici/zuccheri raffinati. Cibi ricchi di fibre"
+      - "3 pasti principali + 2-3 snack"
+      - "Metformina con i pasti principali (pranzo/cena): includere sempre quota di carboidrati
+        complessi per evitare ipoglicemia"
+      - "Se normopeso: carboidrati presenti ad ogni pasto, mantenuti bassi e a basso IG; se
+        sovrappeso con iperglicemia, valutare pattern low-carb controllato"
+      - "Carboidrati semplici solo dalla frutta; privilegiare carbo complessi (es. integrali se
+        graditi)"
+      - "Rapporto di riferimento 1800 kcal: CHO 50%, PRO 25%, FAT 25% (adattare ai casi)"
+      - "Pasta integrale o tradizionale a seconda accettazione; legumi da abbinare a cereali
+        (non sostituti unici dei carboidrati)"
+      - "Orari pasti flessibili salvo necessita di rieducazione: fornire range/indicazioni solo
+        se richiesto dal paziente"
+      - "Se obiettivi doppi (es. -10 kg e HbA1c <7%): priorita al controllo glicemico; il calo
+        ponderale segue con aderenza"
+      - "Il deficit calorico non deve azzerare i carboidrati: mantenere una piccola quota di
+        carboidrati complessi a basso IG, migliorando la qualita piu che riducendo solo le
+        quantita"
+  
+  output:
+    base:
+      - "Piano settimanale con basso indice glicemico"
+      - "Distribuzione uniforme carboidrati nei pasti"
+      - "Considerare timing farmaci (es. Metformina con pasti)"
+      - "Porzioni: pesate in grammi"
+      - "Esplicita macro di riferimento (es. 1800 kcal: 50/25/25) e opzioni low-carb se
+        sovrappeso con iperglicemia"
+      - "Indica flessibilita oraria, specificando slot solo se serve rieducazione"
+      - "Quando coesistono dimagrimento e target HbA1c, esplicita che la priorita e il
+        controllo glicemico e che i carboidrati restano presenti in piccola quota a basso IG"
+  
+  query: "Piano dietetico per controllo glicemico con basso indice glicemico e distribuzione uniforme carboidrati."

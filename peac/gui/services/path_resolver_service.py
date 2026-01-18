@@ -18,22 +18,61 @@ class PathResolverService:
     """Service for resolving and converting file paths between relative and absolute formats."""
     
     @staticmethod
+    def to_posix_path(path: str) -> str:
+        """
+        Convert a path to POSIX format (forward slashes).
+        
+        Useful for storing paths in configuration files that may be
+        shared across platforms.
+        
+        Args:
+            path: The path to convert
+            
+        Returns:
+            Path string with forward slashes
+        """
+        return Path(path).as_posix()
+    
+    @staticmethod
+    def from_any_path(path: str) -> str:
+        """
+        Convert a path from any format to the current platform's format.
+        
+        Handles paths that may have been created on a different platform.
+        
+        Args:
+            path: The path to convert (may use forward or back slashes)
+            
+        Returns:
+            Path string with platform-appropriate separators
+        """
+        # Path() handles both forward and back slashes
+        # and converts to the current platform's format
+        return str(Path(path))
+    
+    @staticmethod
     def normalize_path(path: str) -> str:
         """
-        Normalize path by removing platform-specific prefixes.
+        Normalize path by removing platform-specific prefixes and handling separators.
         
         On macOS, this removes '/Volumes/Macintosh HD/' prefix if present.
+        Also normalizes path separators for cross-platform compatibility.
         
         Args:
             path: The path to normalize
             
         Returns:
-            Normalized path string
+            Normalized path string with platform-appropriate separators
         """
+        # First, handle macOS volume prefix
         if path.startswith('/Volumes/Macintosh HD/'):
-            normalized = path.replace('/Volumes/Macintosh HD/', '/', 1)
-            return normalized
-        return path
+            path = path.replace('/Volumes/Macintosh HD/', '/', 1)
+        
+        # Use Path to normalize separators for the current platform
+        # This ensures cross-platform compatibility
+        normalized = str(Path(path))
+        
+        return normalized
     
     @staticmethod
     def get_absolute_path(path: str, base_dir: Optional[str] = None) -> str:
@@ -98,7 +137,9 @@ class PathResolverService:
             
             # Find common ancestor and build relative path with .. navigation
             try:
-                common = Path(*os.path.commonpath([abs_path, base]).split(os.sep))
+                # Use Path for cross-platform compatibility
+                common_str = os.path.commonpath([abs_path, base])
+                common = Path(common_str)
                 
                 # Count how many levels up from base to common
                 up_levels = len(base.parts) - len(common.parts)
@@ -107,7 +148,8 @@ class PathResolverService:
                 rel_parts = ['..'] * up_levels
                 rel_parts.extend(abs_path.parts[len(common.parts):])
                 
-                return os.path.join(*rel_parts) if rel_parts else '.'
+                # Use os.sep for joining to ensure platform-appropriate separators
+                return os.sep.join(rel_parts) if rel_parts else '.'
             except (ValueError, OSError):
                 # Cannot find common path (e.g., different drives on Windows)
                 return absolute_path

@@ -10,6 +10,16 @@ prompt:
     - Considera anamnesi del paziente, preferenze e fattori di stile di vita
     - Garantisci equilibrio nutrizionale e adeguatezza calorica agli obiettivi del
       paziente
+    - Inserisci sempre le grammature precise per ogni alimento (es. 60g pasta, 100g
+      carne, 150g verdure)
+    - La carne rossa deve essere presente massimo una volta a settimana
+    - Alterna pizza e panino il sabato sera (non entrambi nella stessa settimana)
+    - Non inserire pesce due volte nella stessa giornata
+    - Quando menzioni formaggio, specifica sempre 'formaggio senza lattosio' (salvo
+      richieste specifiche del paziente)
+    - Le uova dovrebbero essere presenti 1-2 volte a settimana (salvo intolleranze
+      o richieste del paziente)
+    - Usa emoji di cibo come elemento visivo decorativo, non come elenchi puntati
   output:
     base:
     - Struttura il piano alimentare per giorni della settimana

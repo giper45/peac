@@ -1,0 +1,130 @@
+(* PEaC YAML Complete Grammar - EBNF *)
+
+PeacModule       = "prompt:", PromptBody ;
+
+PromptBody       = { ExtendsList | InstructionSection | ContextSection | OutputSection | QueryField } ;
+
+(* === EXTENDS SECTION === *)
+ExtendsList      = "extends:", ( SimpleExtendsList | NullValue ) ;
+SimpleExtendsList = YamlSequence ;
+YamlSequence     = "-", YamlValue, { "-", YamlValue } ;
+
+(* === INSTRUCTION SECTION === *)
+InstructionSection = "instruction:", BaseRules ;
+
+(* === CONTEXT SECTION === *)
+ContextSection   = "context:", ContextRules ;
+ContextRules     = { BaseRules | LocalRules | WebRules | RagRules } ;
+
+(* === OUTPUT SECTION === *)
+OutputSection    = "output:", OutputRules ;
+OutputRules      = { BaseRules | LocalRules | WebRules | RagRules } ;
+
+(* === BASE RULES - Simple string sequences === *)
+BaseRules        = "base:", YamlSequence ;
+
+(* === LOCAL RULES - Enhanced with all provider support === *)
+LocalRules       = "local:", LocalRuleMap ;
+LocalRuleMap     = { RuleName, ":", LocalRuleBody } ;
+LocalRuleBody    = "{",
+                   [ "preamble:", String ],
+                   "source:", SourcePath,
+                   [ "recursive:", Boolean ],
+                   [ "extension:", FileExtension ],
+                   [ "filter:", RegexPattern ],
+                   [ "options:", ProviderOptions ],
+                   "}" ;
+
+(* === WEB RULES - URL content extraction === *)
+WebRules         = "web:", WebRuleMap ;
+WebRuleMap       = { RuleName, ":", WebRuleBody } ;
+WebRuleBody      = "{",
+                   [ "preamble:", String ],
+                   "source:", Url,
+                   [ "xpath:", XPathExpression ],
+                   "}" ;
+
+(* === RAG RULES - Vector search with FAISS === *)
+RagRules         = "rag:", RagRuleMap ;
+RagRuleMap       = { RuleName, ":", RagRuleBody } ;
+RagRuleBody      = "{",
+                   [ "preamble:", String ],
+                   "faiss_file:", String,
+                   "source_folder:", DirectoryPath,
+                   "query:", String,
+                   [ "top_k:", PositiveInteger ],
+                   [ "chunk_size:", PositiveInteger ],
+                   [ "overlap:", NonNegativeInteger ],
+                   [ "filter:", RegexPattern ],
+                   [ "embedding_model:", String ],
+                   "}" ;
+
+(* === PROVIDER OPTIONS - File type specific === *)
+ProviderOptions  = "{", ProviderOption, { ",", ProviderOption }, "}" ;
+ProviderOption   = PagesOption | SheetsOption ;
+PagesOption      = "pages:", PageRangeSpec ;
+SheetsOption     = "sheets:", SheetRangeSpec ;
+
+(* === RANGE SPECIFICATIONS === *)
+PageRangeSpec    = String ;  (* "1-5", "1,3,5", "1-3,7,9-11" *)
+SheetRangeSpec   = String ;  (* "1-3", "Sheet1,Sheet2", "Summary,Data" *)
+
+(* === QUERY FIELD === *)
+QueryField       = "query:", String ;
+
+(* === PATH AND FILE SPECIFICATIONS === *)
+SourcePath       = FilePath | DirectoryPath ;
+FilePath         = String ;  (* File with extension: .txt, .pdf, .docx, .xlsx *)
+DirectoryPath    = String ;  (* Directory path, can be relative or absolute *)
+FileExtension    = String ;  (* File extension filter: "py", "js", "md", etc. *)
+
+(* === REGULAR EXPRESSIONS AND XPATH === *)
+RegexPattern     = String ;  (* Valid regex pattern for filtering *)
+XPathExpression  = String ;  (* Valid XPath expression for web scraping *)
+
+(* === URL SPECIFICATION === *)
+Url              = HttpUrl | HttpsUrl ;
+HttpUrl          = "http://", UrlBody ;
+HttpsUrl         = "https://", UrlBody ;
+UrlBody          = DomainName, [ Path ], [ QueryParams ] ;
+DomainName       = Identifier, { ".", Identifier } ;
+Path             = "/", { PathSegment, "/" } ;
+QueryParams      = "?", QueryParam, { "&", QueryParam } ;
+QueryParam       = Identifier, "=", Identifier ;
+PathSegment      = { UrlChar } ;
+
+(* === LEXICAL ELEMENTS === *)
+RuleName         = Identifier ;
+Identifier       = Letter, { Letter | Digit | "_" | "-" } ;
+String           = QuotedString | UnquotedString ;
+QuotedString     = '"', { Character - '"' | EscapeSequence }, '"' |
+                   "'", { Character - "'" | EscapeSequence }, "'" ;
+UnquotedString   = NonSpecialChar, { NonSpecialChar } ;
+EscapeSequence   = "\", ( '"' | "'" | "\" | "n" | "t" | "r" ) ;
+
+(* === NUMERIC VALUES === *)
+Boolean          = "true" | "false" | "True" | "False" | "TRUE" | "FALSE" ;
+PositiveInteger  = NonZeroDigit, { Digit } ;
+NonNegativeInteger = "0" | PositiveInteger ;
+Integer          = [ "-" ], NonNegativeInteger ;
+
+(* === YAML VALUES === *)
+YamlValue        = String | Boolean | Integer | NullValue | YamlSequence | YamlMapping ;
+YamlMapping      = "{", [ YamlKeyValue, { ",", YamlKeyValue } ], "}" ;
+YamlKeyValue     = String, ":", YamlValue ;
+NullValue        = "null" | "~" | "" ;
+
+(* === CHARACTER SETS === *)
+Letter           = "A" | ... | "Z" | "a" | ... | "z" ;
+Digit            = "0" | ... | "9" ;
+NonZeroDigit     = "1" | ... | "9" ;
+UrlChar          = Letter | Digit | "-" | "_" | "." | "~" | "%" | Digit, Digit ;
+NonSpecialChar   = Letter | Digit | " " | "!" | "#" | "$" | "%" | "&" | "(" | ")" | 
+                   "*" | "+" | "," | "-" | "." | "/" | ";" | "<" | "=" | ">" | 
+                   "?" | "@" | "\" | "^" | "_" | "`" | "|" | "~" ;
+Character        = NonSpecialChar | SpecialChar ;
+SpecialChar      = ":" | "[" | "]" | "{" | "}" | '"' | "'" | "\n" | "\t" | "\r" ;
+
+(* === COMMENTS AND WHITESPACE === *)
+Comment          = "#", { Character - "\n" } ;
+Whitespace       = " " | "\t" | "\n" | "\r" ;

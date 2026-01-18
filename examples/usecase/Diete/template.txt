@@ -1,6 +1,6 @@
-Genera una dieta settimanale in formato tabellare (Lunedì-Domenica).
+Genera una dieta settimanale seguendo il seguente schema (Lunedì-Domenica).
 
-Colonne obbligatorie:
+Sezioni obbligatorie:
 1. Colazione: (es. 1 bicchiere latte fresco parz. scremato + 3-4 biscotti farina integrale con gocce cioccolato + 1-2 caffè amari)
 2. Spuntino: (es. 1 frutto a scelta se si avverte fame)
 3. Pranzo: Esempio - Insalata pomodori e rucola fresca + 4-5 olive nere + 100g feta a tocchetti o 150g fiocchi latte con yogurt Milk + 30g fresellina integrale + 1 cucchiaio olio EVO

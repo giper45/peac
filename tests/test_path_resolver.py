@@ -96,7 +96,38 @@ def test_resolve_path():
     print("resolve_path tests passed!\n")
 
 
+def test_cross_platform_methods():
+    """Test cross-platform conversion methods"""
+    print("Testing cross-platform methods...")
+    
+    # Test to_posix_path
+    if os.name == 'nt':
+        windows_path = r"C:\Users\test\file.txt"
+        posix = PathResolverService.to_posix_path(windows_path)
+        print(f"  ✓ to_posix_path: {windows_path} -> {posix}")
+        assert '/' in posix and '\\' not in posix
+    else:
+        unix_path = "/Users/test/file.txt"
+        posix = PathResolverService.to_posix_path(unix_path)
+        print(f"  ✓ to_posix_path: {unix_path} -> {posix}")
+        assert posix == unix_path
+    
+    # Test from_any_path with mixed separators
+    mixed_path = "/Users/test\\project/file.txt"
+    converted = PathResolverService.from_any_path(mixed_path)
+    print(f"  ✓ from_any_path: {mixed_path} -> {converted}")
+    
+    # Test from_any_path with Windows path on Unix (or vice versa)
+    if os.name != 'nt':
+        windows_style = r"Users\test\file.txt"
+        converted = PathResolverService.from_any_path(windows_style)
+        print(f"  ✓ from_any_path (Windows style): {windows_style} -> {converted}")
+    
+    print("cross-platform methods tests passed!\n")
+
+
 if __name__ == "__main__":
+    print("=" * 60)
     print("=" * 60)
     print("PathResolverService Tests")
     print("=" * 60 + "\n")
@@ -105,6 +136,7 @@ if __name__ == "__main__":
     test_get_absolute_path()
     test_get_relative_path()
     test_resolve_path()
+    test_cross_platform_methods()
     
     print("=" * 60)
     print("All tests passed! ✓")

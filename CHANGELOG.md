@@ -27,6 +27,7 @@ straightforward as possible.
 - Provider field in YAML grammar to support dynamic provider selection
 - Conditional FAISS installation via Makefile: `make install`, `make faiss-cpu`, `make faiss-gpu`
 - Comprehensive test suite for RAG providers (22 tests, all passing)
+- Cross-platform path handling tests (test_path_cross_platform.py and test_extends_cross_platform.py)
 - 4 example YAML files: rag-simple, rag-fastembed, rag-faiss, rag-sample-docs
 - Sample documentation folder (5 documents) for RAG testing
 - RAG_EXAMPLES.md: comprehensive guide with provider comparison table
@@ -42,12 +43,17 @@ straightforward as possible.
 - Backward compatibility maintained with `faiss_file` field
 - GUI models updated to support new RAG fields
 - Makefile enhanced with test targets: `make test`, `make test-rag`, `make test-all`
+- Enhanced nutritional guidelines in usecase files with specific rules for meal planning
 
 ### Fixed
 - Module naming conflict (rag.py renamed to rag_legacy.py)
 - Import structure for RAG providers
 - Path resolution in YAML examples
 - Hierarchical extends merge now fully recursive (inherits grandparents)
+- Cross-platform path handling in PathResolverService (Windows/macOS/Linux compatibility)
+- Path separator handling for files created on different platforms
+- Cross-platform extends in YAML files (handles both forward and backslashes in path references)
+- find_path and PromptYaml now normalize path separators automatically (\ to /)
 - Missing `source` in local rules now reported gracefully instead of KeyError
 
 ## [0.2.6] - 2026-01-12
