@@ -4,6 +4,7 @@ prompt:
   
   context:
     base:
+      - "La paziente è donna"
       - "Specificità femminili: ferro (ciclo mestruale), calcio (ossa), ormoni (metabolismo)"
     
     local:
@@ -13,7 +14,7 @@ prompt:
   instruction:
     base:
       - "Adattare calorie per fase ciclo mestruale se rilevante"
-      - "Gravidanza/allattamento: monitorare aumentate necessità nutrizionali"
+      - "In caso di gravidanza/allattamento: monitorare aumentate necessità nutrizionali"
   
   output:
     base:
@@ -22,4 +23,3 @@ prompt:
       - "Calcio: considerare ossa e ormoni"
       - "Adattamento calorie per fase ciclo se rilevante"
   
-  query: "Piano dietetico adattato a specifiche femminili: ferro, calcio, ormoni e fasi ciclo mestruale."

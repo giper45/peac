@@ -19,11 +19,11 @@ prompt:
       - "CHO complessi, fibre alte per senso di pienezza"
       - "Grassi sani: non eliminare, mantenere MUFA/PUFA"
       - "Distribuzione calorie: colazione robusta per evitare fame pomeridiana"
-    - "Deficit stimato clinicamente (età/attività/metabolismo) e non su formule rigide"
-    - "Non promettere perdite di peso precise: spiega variabilità individuale e comunica
-      aspettative prudenti"
-    - "Per profili sedentari applica un taglio calorico più marcato ma sostenibile"
-  
+      - "Deficit stimato clinicamente (età/attività/metabolismo) e non su formule rigide"
+      - "Non promettere perdite di peso precise: spiega variabilità individuale e comunica
+        aspettative prudenti"
+      - "Per profili sedentari applica un taglio calorico più marcato ma sostenibile"
+    
   output:
     base:
       - "Piano settimanale con deficit calorico moderato"
@@ -31,7 +31,7 @@ prompt:
       - "Porzioni: pesate in grammi per accuratezza"
       - "Include idratazione: 2L+ acqua/giorno"
       - "Note su attività fisica consigliata (30 min moderata)"
-    - "Messaggio al paziente sulla variabilità della perdita di peso e sul focus su
-      aderenza e sostenibilità"
-  
+      - "Messaggio al paziente sulla variabilità della perdita di peso e sul focus su
+        aderenza e sostenibilità"
+    
   query: "Piano dietetico per perdita peso graduale con deficit calorico moderato, proteine elevate per satietà e alimenti nutrienti ricchi di fibre."

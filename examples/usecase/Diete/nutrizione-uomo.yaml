@@ -1,0 +1,17 @@
+prompt:
+  extends:
+    - nutrizione-base.yaml
+  
+  context:
+    base:
+      - "Il paziente è uomo"
+      - "Specificità maschili: massa muscolare, metabolismo, salute cardiovascolare, prevenzione carenze (es. ferro, zinco, vitamina D)"
+      - "Età, attività fisica e stile di vita influenzano fabbisogni e distribuzione dei pasti"
+  instruction:
+    base:
+      - "Adattare calorie e macronutrienti in base a età, attività fisica e obiettivi (es. mantenimento, aumento massa, dimagrimento)"
+      - "Monitorare apporto proteico per supporto muscolare e recupero"
+      - "Prevenire carenze di ferro, zinco, vitamina D, calcio"
+      - "Valutare timing pasti in funzione di lavoro, sport, abitudini"
+  
+  

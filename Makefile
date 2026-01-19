@@ -80,6 +80,14 @@ test:
 	@echo "Running test suite..."
 	poetry run pytest tests/ -v
 
+test-usecase:
+	@echo "Running use case tests..."
+	@cd examples/usecase/Diete && \
+	for ls in *.yaml; do \
+		echo "Testing $$ls..."; \
+		poetry run peac prompt $$ls; \
+	done
+
 # Run RAG-specific tests
 test-rag:
 	@echo "Running RAG tests..."
