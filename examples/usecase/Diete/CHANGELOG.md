@@ -1,4 +1,4 @@
-# 19-01-2026
+# 1.0 - 19-01-2026
 ## Aggiunte
 - Informazioni da interviste 
 - Aggiunto "Iterative Prompting (clarifying question)
