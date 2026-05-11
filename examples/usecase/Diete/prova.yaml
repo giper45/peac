@@ -1,0 +1,4 @@
+prompt:
+  query: 'maschio 32 kg 100 chili sedentario '
+  extends:
+  - nutrizione-base.yaml

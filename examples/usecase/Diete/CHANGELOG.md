@@ -1,3 +1,9 @@
+# 2026-01-19
+Added Sunday-specific snack and dinner rules to nutrizione-base.yaml:
+- Sunday snack: homemade cheesecake, two pastries, or a slice of homemade cake.
+- Sunday dinner: ricotta, 1 Philadelphia, 1 robiola, or 50g of cold cuts.
+# 1.1 - 19-01-2026 
+
 # 1.0 - 19-01-2026
 ## Aggiunte
 - Informazioni da interviste 

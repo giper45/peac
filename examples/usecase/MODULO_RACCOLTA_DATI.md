@@ -29,7 +29,7 @@ Orari: Colazione 7:30 | Pranzo 13:00 | Cena 20:00
 
 ### METODO A: Approccio Tradizionale (ChatGPT/Gemini diretto)
 
-**Orario inizio**: ________:________ (hh:mm)
+**Orario inizio**: 19-02-2026 18:49 : +15 (hh:mm)
 
 **Descrizione cosa hai scritto all'AI** (sintetica):
 ```
@@ -58,9 +58,20 @@ _________________________________________________________________
 
 **Difficoltà incontrate** (note libere):
 ```
-_________________________________________________________________
-_________________________________________________________________
 ```
+
+## Richieste fatte a ChatGPT
+1. Elabora un piano per Giuseppe ... 
+
+2. Ok menu settimanale completo (con colazione spuntino mattutino pranzo merenda e cena)
+
+
+Deve copiare una per una le sezioni, ha difficoltà
+
+
+
+
+
 
 **SODDISFAZIONE FINALE** (circonda un numero):
 ```
